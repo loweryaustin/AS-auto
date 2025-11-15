@@ -1,6 +1,6 @@
 /**
  * ============================================
- * SCRIPT TOOL SETTINGS MODAL LOGIC (V5.2.0)
+ * SCRIPT TOOL SETTINGS MODAL LOGIC (V5.2.1)
  * ============================================
  * This component handles all logic and UI for
  * the main settings modal, including:
@@ -29,18 +29,18 @@ let autoSaveTimer = null;
  */
 AppUI.createSupplementEditorElement = function(supp) {
     const suppEl = document.createElement('div');
-    // NEW: Added .settings-supplement-editor-card class
+    // .settings-supplement-editor-card class
     suppEl.className = 'p-4 bg-gray-700 rounded-lg space-y-3 settings-supplement-editor-card';
     suppEl.dataset.suppId = supp.id;
-    suppEl.draggable = true; // NEW: Make the card draggable
+    // suppEl.draggable = true; // REMOVED: We only want the handle to be draggable
     
     const safeName = supp.name ? supp.name.replace(/"/g, '&quot;') : "Unnamed Supplement";
     
-    // NEW: Added drag handle icon and modified header structure
+    // Added drag handle icon and modified header structure
     suppEl.innerHTML = `
         <div class="flex justify-between items-center pb-2 border-b border-gray-600">
-            <!-- NEW: Drag Handle -->
-            <svg class="drag-handle h-6 w-6 text-gray-400 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <!-- MODIFIED: Added draggable=true to the handle itself -->
+            <svg draggable="true" class="drag-handle h-6 w-6 text-gray-400 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
 
@@ -419,15 +419,13 @@ AppUI.initSettingsEventListeners = function() {
     DOM.resetDefaultsCancelBtn.addEventListener('click', () => DOM.resetDefaultsConfirmModal.classList.add('hidden'));
     DOM.resetDefaultsConfirmBtn.addEventListener('click', AppUI.resetSettingsToDefaults);
 
-    // --- NEW: Drag-and-Drop Event Listeners ---
+    // --- MODIFIED: Drag-and-Drop Event Listeners ---
     DOM.supplementSettingsList.addEventListener('dragstart', (e) => {
-        // Only allow dragging from the handle
-        if (!e.target.classList.contains('drag-handle')) {
-            // Check if the target is the SVG path inside the handle
-            if (!e.target.closest('.drag-handle')) {
-                e.preventDefault();
-                return;
-            }
+        // MODIFIED: Simplified logic. The event only fires on the handle.
+        const handle = e.target.closest('.drag-handle');
+        if (!handle) {
+             e.preventDefault();
+             return;
         }
         
         draggedSupplement = e.target.closest('.settings-supplement-editor-card');
