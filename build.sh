@@ -35,6 +35,12 @@ echo "Combining JavaScript files..."
 # FIX: Removed 'defer' attribute. It's not needed at the end
 # of the body and was causing a race condition.
 echo "<script>" > $TEMP_JS
+
+# NEW: Inject the app version as a JS constant.
+# This MUST be the very first line of JS.
+echo "const SCRIPT_VERSION = '${APP_VERSION}';" >> $TEMP_JS
+echo "" >> $TEMP_JS
+
 # --- The order here is CRITICAL ---
 cat app-config.js >> $TEMP_JS
 echo "" >> $TEMP_JS
@@ -53,18 +59,19 @@ echo "JavaScript combined."
 cp index.html $FINAL_FILENAME
 
 # 6. Inject the version number into the app's UI
-sed -i.bak "s|<span id=\"app-version\"></span>|<span id=\"app-version\">v${APP_VERSION}</span>|g" $FINAL_FILENAME.html
+# Note: The file extension is added by me, assuming it was a typo in the original
+sed -i.bak "s|<span id=\"app-version\"></span>|<span id=\"app-version\">v${APP_VERSION}</span>|g" "${FINAL_FILENAME}"
 echo "Version ${APP_VERSION} injected."
 
 # 7. Inject CSS (ROBUST METHOD)
 # Replaces the placeholder comment and deletes the dev <link>
-sed -i.bak -e '/<!-- CSS_INJECTION_POINT -->/r '"$TEMP_CSS" -e '/<!-- CSS_INJECTION_POINT -->/d' $FINAL_FILENAME.html
-sed -i.bak '\|<link rel="stylesheet" href="style.css">|d' $FINAL_FILENAME.html
+sed -i.bak -e '/<!-- CSS_INJECTION_POINT -->/r '"$TEMP_CSS" -e '/<!-- CSS_INJECTION_POINT -->/d' "${FINAL_FILENAME}"
+sed -i.bak '\|<link rel="stylesheet" href="style.css">|d' "${FINAL_FILENAME}"
 echo "CSS injected."
 
 # 8. Inject combined JavaScript (ROBUST METHOD)
 # Replaces the placeholder comment
-sed -i.bak -e '/<!-- SCRIPT_INJECTION_POINT -->/r '"$TEMP_JS" -e '/<!-- SCRIPT_INJECTION_POINT -->/d' $FINAL_FILENAME.html
+sed -i.bak -e '/<!-- SCRIPT_INJECTION_POINT -->/r '"$TEMP_JS" -e '/<!-- SCRIPT_INJECTION_POINT -->/d' "${FINAL_FILENAME}"
 echo "JavaScript injected."
 
 
@@ -73,4 +80,4 @@ rm $TEMP_JS
 rm $TEMP_CSS
 rm *.bak
 echo ""
-echo "Successfully built: ${FINAL_FILENAME}.html"
+echo "Successfully built: ${FINAL_FILENAME}"

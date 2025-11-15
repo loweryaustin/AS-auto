@@ -179,3 +179,23 @@ body { font-family: 'Inter', sans-serif; }
 .import-message.error {
     color: #f87171; /* red-400 */
 }
+
+/* NEW: Styles for Search Results */
+.search-result-item {
+    padding: 0.75rem 1rem; /* 12px 16px */
+    color: #d1d5db; /* gray-300 */
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+.search-result-item:hover {
+    background-color: #4b5563; /* gray-600 */
+    color: #ffffff; /* white */
+}
+.search-result-item:not(:last-child) {
+    border-bottom: 1px solid #374151; /* gray-700 */
+}
+.search-result-empty {
+    padding: 0.75rem 1rem; /* 12px 16px */
+    color: #9ca3af; /* gray-400 */
+    font-style: italic;
+}

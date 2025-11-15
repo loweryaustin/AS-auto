@@ -1,3 +1,871 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Call Script Tool</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+<style>
+body { font-family: 'Inter', sans-serif; }
+.sidebar-item-enter {
+    opacity: 0;
+    transform: translateX(20px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.sidebar-item-enter-active {
+    opacity: 1;
+    transform: translateX(0);
+}
+.script-checkbox:checked + span {
+    text-decoration: line-through;
+    color: #16a34a; /* green-600 */
+}
+.script-checkbox:checked + span::after {
+    content: ' (Symptom Added)';
+    font-weight: 600;
+}
+.prose-dark h2 { color: #fff; border-bottom-color: #4b5563; }
+.prose-dark h3 { color: #d1d5db; }
+.prose-dark p, .prose-dark label, .prose-dark li { color: #d1d5db; }
+
+/* Style for editable spans (now just placeholders) */
+.editable-span {
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+/* Timer and Animation Styles */
+.timer-segment {
+    transition: all 0.3s ease-in-out;
+    cursor: pointer;
+    overflow: hidden; /* To contain the progress bar */
+}
+.timer-segment-progress {
+    transition: width 0.1s linear;
+}
+
+@keyframes flashAndGrow {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.05); opacity: 0.8; }
+}
+.flash-grow {
+    animation: flashAndGrow 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+}
+.pulse {
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* Monospaced font for timers */
+.timer-time {
+    font-family: 'ui-monospace', 'SFMono-Regular', Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+/* Custom scrollbar for modal */
+#settings-modal-content::-webkit-scrollbar {
+    width: 8px;
+}
+#settings-modal-content::-webkit-scrollbar-track {
+    background: #374151; /* gray-700 */
+    border-radius: 10px;
+}
+#settings-modal-content::-webkit-scrollbar-thumb {
+    background: #6b7280; /* gray-500 */
+    border-radius: 10px;
+}
+#settings-modal-content::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af; /* gray-400 */
+}
+
+/* Styles for settings modal symptom editor */
+.symptom-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem; /* 8px */
+    padding: 0.75rem; /* 12px */
+    background-color: #4b5563; /* gray-600 */
+    border-radius: 0.375rem; /* 6px */
+}
+
+.symptom-input-group .symptom-input-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.symptom-input-group input[type="text"] {
+    flex: 1;
+    min-width: 0;
+}
+.symptom-input-group button {
+    flex-shrink: 0;
+}
+.symptom-input-group textarea {
+    width: 100%;
+}
+.symptom-input-group label {
+    font-size: 0.75rem; /* 12px */
+    color: #d1d5db; /* gray-300 */
+    margin-bottom: 0.25rem; /* 4px */
+    display: block;
+}
+
+
+/* Styles for symptom checklist grouping */
+.symptom-group-container {
+    padding: 1rem; /* 16px */
+    background-color: #1f2937; /* gray-800 */
+    border-radius: 0.5rem; /* 8px */
+}
+.symptom-group-header {
+    color: #6ee7b7; /* green-300 */
+    font-size: 1rem; /* 16px */
+    font-weight: 600; /* semibold */
+    margin-bottom: 0.75rem; /* 12px */
+    border-bottom: 1px solid #374151; /* gray-700 */
+    padding-bottom: 0.5rem; /* 8px */
+}
+
+/* Styles for sidebar symptom cards */
+.sidebar-symptom-card {
+    background-color: #374151; /* gray-700 */
+    padding: 0.75rem 1rem; /* 12px 16px */
+    border-radius: 0.5rem; /* 8px */
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    border-left: 4px solid #6ee7b7; /* green-300 */
+}
+.sidebar-symptom-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem; /* 8px */
+}
+.sidebar-symptom-card-supp-name {
+    font-size: 0.875rem; /* 14px */
+    font-weight: 600; /* semibold */
+    color: #a7f3d0; /* green-200 */
+}
+.sidebar-symptom-card-symptom-text {
+    font-size: 1.125rem; /* 18px */
+    font-weight: 600; /* semibold */
+    color: #ffffff; /* white */
+    margin-bottom: 0.5rem; /* 8px */
+}
+.sidebar-symptom-card-pitch {
+    font-size: 0.875rem; /* 14px */
+    color: #d1d5db; /* gray-300 */
+    font-style: italic;
+}
+
+/* NEW: Styles for Import Modal */
+.import-textarea {
+    width: 100%;
+    height: 200px;
+    background-color: #374151; /* gray-700 */
+    color: #ffffff;
+    border: 1px solid #4b5563; /* gray-600 */
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    font-family: 'ui-monospace', 'SFMono-Regular', Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: 0.875rem;
+}
+
+.import-message {
+    font-size: 0.875rem; /* 14px */
+    font-weight: 600;
+    min-height: 1.25rem; /* 20px */
+}
+
+.import-message.success {
+    color: #6ee7b7; /* green-300 */
+}
+
+.import-message.error {
+    color: #f87171; /* red-400 */
+}
+
+/* NEW: Styles for Search Results */
+.search-result-item {
+    padding: 0.75rem 1rem; /* 12px 16px */
+    color: #d1d5db; /* gray-300 */
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+.search-result-item:hover {
+    background-color: #4b5563; /* gray-600 */
+    color: #ffffff; /* white */
+}
+.search-result-item:not(:last-child) {
+    border-bottom: 1px solid #374151; /* gray-700 */
+}
+.search-result-empty {
+    padding: 0.75rem 1rem; /* 12px 16px */
+    color: #9ca3af; /* gray-400 */
+    font-style: italic;
+}
+</style>
+
+</head>
+<body class="bg-gray-900 text-gray-200">
+    
+    <!-- Settings Cog -->
+    <button id="settings-cog-btn" class="fixed top-6 left-6 z-50 text-gray-400 hover:text-white transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826 3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+    </button>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-80 flex items-center justify-center z-50 p-4">
+        <div class="bg-gray-800 rounded-2xl shadow-2xl p-6 md:p-8 w-full max-w-3xl max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center mb-6 flex-shrink-0">
+                <h2 class="text-2xl font-bold text-white">Settings</h2>
+                <!-- This span is the injection target for the build script -->
+                <span id="app-version" class="text-xs text-gray-500 font-mono"></span>
+                <button id="settings-close-btn" class="text-gray-400 hover:text-white transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Settings Content (now scrollable) -->
+            <div id="settings-modal-content" class="space-y-6 overflow-y-auto pr-2">
+                
+                <!-- REMOVED: Active Supplement Switcher -->
+                <!-- This is now handled by the main page's search box -->
+
+                <!-- Agent Details -->
+                <section>
+                    <h3 class="text-lg font-semibold text-gray-300 mb-3">Agent Details</h3>
+                    <div>
+                        <label for="agent-name-setting" class="block text-sm font-medium text-gray-300 mb-1">Agent Name</label>
+                        <input type="text" id="agent-name-setting" class="w-full bg-gray-700 border-gray-600 text-white rounded-lg p-3 focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </section>
+
+                <!-- Timer Segments -->
+                <section>
+                    <div class="flex justify-between items-center mb-3">
+                        <h3 class="text-lg font-semibold text-gray-300">Timer Segments</h3>
+                        <button id="add-segment-btn" class="bg-green-600 hover:bg-green-700 text-white text-sm font-bold py-2 px-4 rounded-lg transition-colors">
+                            Add Segment
+                        </button>
+                    </div>
+                    <div id="segment-settings-list" class="space-y-3">
+                        <!-- Segments will be dynamically inserted here -->
+                    </div>
+                </section>
+
+                <!-- Supplement Wording -->
+                <section>
+                    <h3 class="text-lg font-semibold text-yellow-400 mb-3">Edit Current Supplement Wording</h3>
+                    
+                    <!-- Base Product -->
+                    <div class="p-4 bg-gray-900 rounded-lg mb-4">
+                        <h4 class="text-md font-semibold text-blue-300 mb-2">Base Product</h4>
+                        <div class="space-y-3">
+                             <div>
+                                <label class="text-xs text-gray-400">Name</label>
+                                <input type="text" id="base-product-name-setting" class="w-full bg-gray-700 text-white rounded p-2 text-sm">
+                            </div>
+                            <div>
+                                <label class="text-xs text-gray-400">Pitch (in sidebar)</label>
+                                <textarea id="base-product-pitch-setting" rows="2" class="w-full bg-gray-700 text-white rounded p-2 text-sm"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Recommendations -->
+                    <div class="flex justify-between items-center mb-2">
+                        <h4 class="text-md font-semibold text-green-300">Recommendations</h4>
+                        <button id="add-supplement-btn" class="bg-green-600 hover:bg-green-700 text-white text-xs font-bold py-1 px-3 rounded-lg transition-colors">
+                            Add Supplement
+                        </button>
+                    </div>
+                    <div id="supplement-settings-list" class="space-y-3">
+                        <!-- Supplement recommendations will be dynamically inserted here -->
+                    </div>
+                </section>
+            </div>
+
+            <!-- Settings Footer -->
+            <div class="border-t border-gray-700 pt-6 flex flex-wrap justify-between items-center gap-4 flex-shrink-0 mt-6">
+                <div>
+                    <button id="reset-to-defaults-btn" class="bg-red-800 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg transition-colors text-lg">
+                        Reset All
+                    </button>
+                </div>
+                <div class="flex flex-wrap gap-4">
+                    <button id="import-btn" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-3 px-6 rounded-lg transition-colors text-lg">
+                        Import
+                    </button>
+                    <button id="export-btn" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-3 px-6 rounded-lg transition-colors text-lg">
+                        Export
+                    </button>
+                    <button id="settings-save-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-colors text-lg">
+                        Save
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reset Confirmation Modal -->
+    <div id="reset-confirm-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-80 flex items-center justify-center z-50 p-4">
+        <div class="bg-gray-800 rounded-2xl shadow-2xl p-6 md:p-8 w-full max-w-md">
+            <h2 class="text-2xl font-bold text-white mb-4">Reset for Next Call?</h2>
+            <p class="text-gray-300 mb-6">This will clear the client's name, reset the regimen, and reset the call timer. Your saved settings (agent info, timer segments, etc.) will not be affected.</p>
+            <div class="flex justify-end gap-4">
+                <button id="reset-cancel-btn" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-5 rounded-lg transition-colors">
+                    Cancel
+                </button>
+                <button id="reset-confirm-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-5 rounded-lg transition-colors">
+                    Reset Call
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Reset to Defaults Confirmation Modal -->
+    <div id="reset-defaults-confirm-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-80 flex items-center justify-center z-50 p-4">
+        <div class="bg-gray-800 rounded-2xl shadow-2xl p-6 md:p-8 w-full max-w-md">
+            <h2 class="text-2xl font-bold text-white mb-4">Reset All Settings & Data?</h2>
+            <p class="text-gray-300 mb-6">This will erase ALL your saved data (Agent Name, Segments, and ALL supplement edits) and restore the original defaults. This action cannot be undone.</p>
+            <p class="text-yellow-400 font-semibold mb-6">Are you sure you want to proceed?</p>
+            <div class="flex justify-end gap-4">
+                <button id="reset-defaults-cancel-btn" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-5 rounded-lg transition-colors">
+                    Cancel
+                </button>
+                <button id="reset-defaults-confirm-btn" class="bg-red-800 hover:bg-red-700 text-white font-bold py-2 px-5 rounded-lg transition-colors">
+                    Yes, Reset All
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Import Config Modal -->
+    <div id="import-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-80 flex items-center justify-center z-50 p-4">
+        <div class="bg-gray-800 rounded-2xl shadow-2xl p-6 md:p-8 w-full max-w-xl">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold text-white">Import Configuration</h2>
+                <button id="import-modal-close-btn" class="text-gray-400 hover:text-white transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <p class="text-gray-300 mb-4">Paste your exported JSON object below. This will overwrite all current settings and supplement data.</p>
+            <textarea id="import-textarea" class="import-textarea" placeholder="{ &quot;settings&quot;: {...}, &quot;databases&quot;: {...} }"></textarea>
+            <div id="import-message" class="import-message mt-2"></div>
+            <div class="flex justify-end gap-4 mt-6">
+                <button id="import-cancel-btn" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-5 rounded-lg transition-colors">
+                    Cancel
+                </button>
+                <button id="import-confirm-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-5 rounded-lg transition-colors">
+                    Import & Save
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="flex flex-col lg:flex-row min-h-screen">
+        
+        <!-- Main Script Content -->
+        <main class="flex-1 p-6 md:p-10 lg:p-12 overflow-y-auto">
+            <div class="max-w-3xl mx-auto prose prose-lg prose-dark">
+                
+                <!-- Title container -->
+                <div class="flex justify-between items-start mb-6"> <!-- Changed to items-start for better alignment -->
+                    <!-- NEW: Dynamic Title/Search Component -->
+                    <div id="title-search-container" class="relative flex-1">
+                        <h1 id="script-title-display" class="text-3xl font-bold text-white mb-0 cursor-pointer hover:text-gray-300 transition-colors">[Script Title]</h1>
+                        <input type="text" id="script-search-input" class="hidden w-full max-w-sm bg-gray-700 border-gray-600 text-white rounded-lg p-3 text-2xl font-bold focus:ring-2 focus:ring-blue-500" placeholder="Search supplements..." style="line-height: 1.1;"> <!-- Added line-height -->
+                        <div id="script-search-results" class="hidden absolute top-full left-0 w-full max-w-sm bg-gray-700 border border-gray-600 rounded-lg shadow-lg mt-2 z-10 overflow-hidden">
+                            <!-- Search results will be populated by script.js -->
+                        </div>
+                    </div>
+                    <!-- Reset Button -->
+                    <button id="reset-app-btn" class="text-blue-400 hover:text-blue-300 border border-blue-400 hover:border-blue-300 rounded-lg px-4 py-2 text-sm font-semibold transition-colors ml-4 flex-shrink-0"> <!-- Added flex-shrink-0 -->
+                        Next Call
+                    </button>
+                </div>
+
+                <section class="mb-8">
+                    <h2>Part 1: Greeting</h2>
+                    <p>Hello, I'm calling for <span class="client-name-placeholder text-yellow-400">[Client Name]</span>?</p>
+                    <p>Hi <span class="client-name-placeholder text-yellow-400">[Client Name]</span>. My name is <span id="agent-name-placeholder" class="agent-name-placeholder editable-span text-yellow-400 font-bold">[Agent Name]</span>. I'm a specialist at <span class="base-product-name-script">...</span>, the supplement you ordered online. How are you doing today?</p>
+                    <p>The reason I'm calling is you have been assigned as my client, and I reach out to all of my clients onboarding. I'm going to ask you some questions so I can best offer my guidance to help you with this. Okay?</p>
+                </section>
+
+                    <h2 class="mt-0">Part 2: Discovery</h2>
+                    <div class="space-y-6">
+                        <!-- Client Name Input -->
+                        <div>
+                            <label for="client-name" class="block text-lg font-semibold text-gray-300 mb-2">Client Name:</label>
+                            <div class="relative">
+                                <input type="text" id="client-name" placeholder="Enter client's name to start timer..." class="w-full bg-gray-700 border-gray-600 text-white rounded-lg p-3 pr-12 focus:ring-2 focus:ring-blue-500">
+                                <button id="start-timer-manual-btn" class="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 bg-blue-600 hover:bg-blue-700 rounded-full flex items-center justify-center text-white transition-colors">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Config Dropdowns -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- This hidden select is still used as the source of truth -->
+                            <select id="regimen-length" class="hidden">
+                                <option value="18" selected>18 Months (Full)</option>
+                                <option value="12">12 Months (Walk-down 1)</option>
+                                <option value="6">6 Months (Walk-down 2)</option>
+                                <option value="3">3 Months (Walk-down 3)</option>
+                            </select>
+                            
+                            <div>
+                                <label for="online-bottles" class="block text-sm font-semibold text-gray-300 mb-2">Online Order:</label>
+                                <select id="online-bottles" class="w-full bg-gray-700 border-gray-600 text-white rounded-lg p-3 focus:ring-2 focus:ring-blue-500">
+                                    <option value="0">0 Bottles</option>
+                                    <option value="1">1 Bottle</option>
+                                    <option value="3">3 Bottles</option>
+                                    <option value="6" selected>6 Bottles</option>
+                                    <option value="9">9 Bottles</option>
+                                    <option value="12">12 Bottles</option>
+                                    <option value="15">15 Bottles</option>
+                                    <option value="18">18 Bottles</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="gender" class="block text-sm font-semibold text-gray-300 mb-2">Client Gender:</label>
+                                <select id="gender" class="w-full bg-gray-700 border-gray-600 text-white rounded-lg p-3 focus:ring-2 focus:ring-blue-500">
+                                    <option value="any">Unspecified</option>
+                                    <option value="male">Male</option>
+                                    <option value="female">Female</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Questions -->
+                        <p class="font-semibold text-lg mt-4">Questions:</p>
+                        <ul class="list-decimal pl-5 space-y-2">
+                            <li>How long have you been dealing with this?</li>
+                            <li>Are you dealing with any other underlying health conditions such as high blood pressure, cholesterol, or diabetes?</li>
+                            <li>Okay, do you take medications for those?</li>
+                            <li>How does this affect your life?</li>
+                            <li>What is your biggest concern when it to comes to your health?</li>
+                        </ul>
+
+                        <!-- Interactive Symptom Checkboxes -->
+                        <p class="font-semibold text-lg mt-6">Symptoms Checklist:</p>
+                        <!-- This container will be populated by script.js -->
+                        <div id="symptom-checklist-container" class="space-y-4">
+                            <!-- Dynamically generated symptoms go here -->
+                        </div>
+                    </div>
+
+                <!-- Part 3: The Tell (Telling not Selling) -->
+                <section class="mb-8">
+                    <h2>Part 3: The Tell (Telling not Selling)</h2>
+                    <p>Okay well <span class="client-name-placeholder text-yellow-400">[Client Name]</span>, I have a really good understanding of your situation now. And based on everything that you'vetold me, I can definitely help you get the results we're looking to see. That being said, I'm going to put you on a very specific regiment that is going to help take care of this. Okay?</p>
+                    
+                    <p>Great. So for your regiment here, you're going to take your <span id="base-product-name-tell" class="base-product-name-script">...</span> daily, first thing in the morning. Okay?</p>
+                    
+                    <!-- Dynamic Add-on Pitch -->
+                    <div id="dynamic-pitch-content" class="mt-6 p-6 bg-gray-800 rounded-2xl shadow-inner">
+                        <p class="italic text-yellow-400">Your personalized add-on pitch will appear here as you select symptoms...</p>
+                    </div>
+
+                    <!-- Dynamic Benefits List -->
+                    <div id="dynamic-benefits-list" class="mt-6 p-6 bg-gray-800 rounded-2xl shadow-inner">
+                         <p class="italic text-yellow-400">Your summary of benefits will appear here...</p>
+                    </div>
+
+                    <p>And this regiment here is only going to be for <strong class="text-yellow-400"><span id="pitch-length-1">18</span> months</strong>, and then you're done completely. Okay? So this is not something you're going to do forever. That's because the first <strong class="text-yellow-400"><span id="pitch-length-half">9</span> months</strong> are meant to help you get all of the results I'vementioned. And the reason you take this for another <strong class="text-yellow-400"><span id="pitch-length-half-2">9</span> months</strong> after that is to help your body bio-acclimate and maintain these results on its own. Simply put, once you're done, you're done for good. Does that make sense?</p>
+                    
+                    <p>Okay perfect. This is all going to be very straight forward. You're going to have the instructions and information on the bottles. But I do like to remind all of my clients that I am your specialist, so if you have any questions, don't hesitate to call me. Okay, <span class="client-name-placeholder text-yellow-400">[Client Name]</span>?</p>
+                </section>
+                
+                <!-- Part 4: The Close -->
+                <section class="mb-8">
+                    <h2>Part 4: The Close</h2>
+                    <p>Alright. And it is going to be this phone number here that I'm calling you from, this <span id="agent-phone-placeholder" class="editable-span text-yellow-400 font-bold">[###]</span> number. And, again, my name is <span class="agent-name-placeholder text-yellow-400 font-bold">[Agent Name]</span>. Feel free to save that in your phone. I'm going to be your main point of contact, so I'll be here to help you monday through friday, 9 to 5 central time. Okay?</p>
+                    
+                    <p>I do also like to mention, <span class="client-name-placeholder text-yellow-400">[Client Name]</span>, if for some reason you are not seeing any initial results or any improvement within the first <strong class="text-yellow-400">60 days</strong>, just go ahead and give me a call, and we will make sure to get this whole thing refunded to you. Okay? Because we wanna make sure that this is working for you. Okay?</p>
+                    
+                    <p>Now I'm going to re-verify a couple of pieces of information with you before I get you going on the rest of your regimen. Your shipping address is [ADDRESS] correct? [IF NO, CORRECT IT]. And your email is [EMAIL], is that right? [IF NO, CORRECT IT]</p>
+                    
+                    <p>Perfect. Alright. Now online, these typically $69 a bottle, but with your specialist discounts, I'm going to bring that all the way down to just <strong class="text-yellow-400">$<span id="pitch-price">45</span> per bottle</strong>. Now we don't save any client card information, so we'll need to get a new card reverified. We accept Visa, Mastercard, or Discover.</p>
+                </section>
+
+
+                <!-- Part 5: Authorization & Closing -->
+                <section class="mb-8">
+                    <h2>Part 5: Authorization & Closing</h2>
+                    
+                    <h3>CARD</h3>
+                    <p>Okay, let's start with the expiration? ... The cvv on the back? Now let me move us to a
+                    non-recorded line so I can get that card number. ... Hello, can you hear me? ... Perfect, what is
+                    that card number? ... Let me read it back to you. ... I'm moving us back to that recorded line. ...
+                    We’re back on that recorded line. Is the billing address the same as the shipping? [IF NOT, ASK
+                    FOR BILLING] And Was there a middle initial or just first and last for the name on the card?</p>
+
+                    <h3 class="mt-6">AUTHO SCRIPT</h3>
+                    <p>So now I’m going to read you this authorization statement here. It's going to sound a little
+                    repetitive, so bear with me. And I do need to get your okay three times. And like I said, we don't
+                    save any client card information. So we don't do any monthly subscriptions. So I'm going to get
+                    you out everything that you need from start to finish for the full <strong class="text-yellow-400"><span id="autho-length-1">18</span> months</strong> today. So it'll
+                    be a onetime purchase. Okay?</p>
+                    
+                    <!-- This div will be populated by JS with the correct wording -->
+                    <div id="autho-script-dynamic-wording" class="my-4">
+                        <p>Now online you've already ordered <strong class="text-yellow-400"><span id="autho-online-bottles">...</span></strong> of the <strong class="text-yellow-400 autho-main-supp-1 base-product-name-script">...</span></strong>. So all I have left to do now is send you <strong class="text-yellow-400"><span id="autho-main-supp-needed">...</span></strong> more of the <strong class="text-yellow-400 autho-main-supp-2 base-product-name-script">...</span></strong> to take that up to <strong class="text-yellow-400"><span id="autho-length-2">18</span></strong>, as well as
+                        the <strong class="text-yellow-400"><span id="autho-length-3">18</span>-month</strong> supply of <strong class="text-yellow-400"><span id="autho-addons-list">...</span></strong> to complete your regiment.</p>
+                    </div>
+
+                    <p>And with
+                    your free shipping and discounts all included, it's only coming out to a one-time additional
+                    payment of <strong class="text-yellow-400">$<span id="autho-cost">...</span></strong> US Dollars, and we will put that on the <strong class="text-yellow-400">[CARD TYPE]</strong> ending in <strong class="text-yellow-400">[XXXX]</strong>. Okay?</p>
+                    <p>For your safety, I always say it twice. You do authorize the one-time additional payment of the
+                    <strong class="text-yellow-400">$<span id="autho-cost-2">...</span></strong> US Dollars on the <strong class="text-yellow-400">[CARD TYPE]</strong> ending in <strong class="text-yellow-400">[XXXX]</strong>, is that correct?</p>
+                    
+                    <!-- Walkdown Selector (MOVED) -->
+                    <div class="my-6 p-4 bg-gray-800 rounded-lg">
+                        <label for="autho-regimen-length" class="block text-lg font-semibold text-yellow-400 mb-2">Regimen Length (Walkdown):</label>
+                        <p class="text-sm text-gray-400 mb-2 italic">If client has price objection, use this to walk down the price. It will sync and recalculate the script.</p>
+                        <select id="autho-regimen-length" class="w-full bg-gray-700 border-gray-600 text-white rounded-lg p-3 focus:ring-2 focus:ring-blue-500">
+                            <option value="18">18 Months (Full)</option>
+                            <option value="12">12 Months (Walk-down 1)</option>
+                            <option value="6">6 Months (Walk-down 2)</option>
+                            <option value="3">3 Months (Walk-down 3)</option>
+                        </select>
+                    </div>
+
+                    <h3 class="mt-6">ORDER BREAKDOWN</h3>
+                    <p>Perfect, I'll get that sent over to the processing team. In the meantime, I want to go over your
+                    order breakdown so you know what's coming out to you. Online, you ordered <strong class="text-yellow-400"><span id="order-online-bottles">...</span></strong> bottle(s) of
+                    <strong class="text-yellow-400 class="order-main-supp-1 base-product-name-script"">...</span></strong> for <strong class="text-yellow-400">[ONLINE ORDER COST]</strong>. This was already processed before.</p>
+                    
+                    <!-- This div will be populated by JS with the correct wording -->
+                    <div id="order-breakdown-dynamic-wording" class="my-4">
+                        <p>Now with your new order,
+                        you'll be getting <strong class="text-yellow-400"><span id="order-main-supp-needed">...</span></strong> additional <strong class="text-yellow-400 order-main-supp-2 base-product-name-script">...</span></strong> and the full <strong class="text-yellow-400"><span id="order-length">18</span>-month</strong> supply of <strong class="text-yellow-400"><span id="order-addons-list">...</span></strong> for the additional <strong class="text-yellow-400">$<span id="order-cost">...</span></strong>.</p>
+                    </div>
+
+                    <p>That will complete your
+                    regiment and you'll see this coming out in two different packages. Give the order 5 to 7
+                    business days to reach you, okay? And for your clarity, the bank statement will be from
+                    "Supplement Phone Order."</p>
+                    <p>Okay, the company policy enforces me to say this disclaimer, are you ready, I just need you to
+                    agree, okay?</p>
+                    
+                    <p class="my-4 p-4 bg-gray-700 rounded-lg italic border-l-4 border-yellow-500">
+                    Now to clarify, I’m obviously not a medical professional, and these supplements aren’t intended
+                    to diagnose, treat, cure, or prevent any disease. The FDA has not evaluated these statements.
+                    Results vary. Some customers see great benefits, others see no change. If you’re taking
+                    prescription medications, check with a healthcare provider. That said, you have nothing to
+                    worry about with our <strong class="text-yellow-300">60-day</strong> refund policy. If you’re unsatisfied, just give me a call back and I’ll
+                    help set up the return. Does that make sense?
+                    </p>
+                    
+                    <p>Perfect. Give me a quick moment to check in with the processing team... [IF NO -> DECLINE RES
+                    | IF YES -> CONTINUE] Alright, the charge did go through.</p>
+
+                    <h3 class="mt-6">CLOSING</h3>
+                    <p>Now, each supplement will have the instructions on the label. You will also get an email of the
+                    receipt and tracking information. When you get that first package, wait for the second package
+                    to get there so you can start all the supplements at the same time. I’m very excited for you to
+                    start seeing those results. Did you have any last minute questions I could answer for you? [IF
+                    YES, ANSWER | IF NO -> CONTINUE]</p>
+                    <p>Alright, I’ll get your package prepared to be sent out. Other than that, I hope you have a great
+                    rest of your day. Bye.</p>
+                    
+                    <hr class="my-6 border-gray-600">
+                    
+                    <h3 class="mt-6 text-red-400">DECLINE RES</h3>
+                    <p>Processing just sent me an email here. They’re letting me know that your bank wants to get
+                    your okay on this before we send it out. So go ahead and check your email or your text. You
+                    should get a notification. They’re going to ask for your okay and if you recognize the charge
+                    amount.</p>
+                    
+                    <h4 class="mt-4 font-semibold text-yellow-400">IF NOT</h4>
+                    <p>Alright, since your bank hasn’t sent you a notification, I’ll have you call them. Let them
+                    know you authorize the <strong class="text-yellow-400">$<span id="decline-cost">...</span></strong> from “Supplement Phone Order.” I’ll call you back in 10 or so
+                    minutes to finish the authorization. You Should have a number on the back of your card to call.</p>
+                    
+                    <h4 class="mt-4 font-semibold text-yellow-400">Pick up Card</h4>
+                    <p>Means simple decline, will get text/email to verify if they authorized the
+                    purchase, or will need to call bank</p>
+                </section>
+
+            </div>
+        </main>
+
+        <!-- Sidebar -->
+        <aside class="w-full lg:w-1/3 xl:w-1/4 bg-gray-800 p-6 shadow-2xl overflow-y-auto lg:sticky lg:top-0 lg:h-screen">
+            
+            <!-- Notes Section -->
+            <div class="mb-6">
+                <h2 class="text-2xl font-semibold text-white border-b border-gray-700 pb-3 mb-4">Call Notes</h2>
+                <div class="space-y-3">
+                    <p id="generated-notes" class="text-sm text-gray-300 italic p-3 bg-gray-900 rounded-lg">Pitched: </p>
+                    <textarea id="custom-notes" class="w-full bg-gray-700 border-gray-600 text-white rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500" rows="4" placeholder="Add custom notes here..."></textarea>
+                    <button id="copy-notes-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                        <span>Copy Notes</span>
+                    </button>
+                </div>
+            </div>
+
+            <h2 class="text-2xl font-semibold text-white border-b border-gray-700 pb-3 mb-6">Regimen Preview</h2>
+            
+            <div id="regimen-list" class="space-y-4">
+                <!-- Base Product (Always On) -->
+                <div class="bg-gray-700 p-4 rounded-lg shadow border-l-4 border-blue-500">
+                    <h3 id="base-product-name-sidebar" class="text-lg font-semibold text-blue-300">...</h3>
+                    <p id="base-product-pitch-sidebar" class="text-sm text-gray-300 italic mt-1">...</p>
+                </div>
+                
+                <div id="dynamic-recommendations" class="space-y-4">
+                    <!-- Placeholder -->
+                    <p id="sidebar-placeholder" class="text-gray-400 italic text-center p-4">Select symptoms from Part 2 to build the regimen.</p>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Floating Timer Bar -->
+    <div id="floating-timer-bar" class="fixed bottom-4 left-1/2 -translate-x-1/2 flex items-center justify-center gap-2 z-40 p-2 bg-gray-900 bg-opacity-70 backdrop-blur-sm rounded-full shadow-lg">
+        <!-- Segments will be dynamically inserted here -->
+    </div>
+
+<script>
+const SCRIPT_VERSION = '1.3.0';
+
+/**
+ * APP_CONFIG
+ * This file contains the default *application-level* settings.
+ * These are settings that do not change when the supplement database is swapped.
+ */
+const APP_CONFIG = {
+    // Default agent details
+    agentName: "[Agent Name]",
+
+    // Default call timer segments
+    segments: [
+        { id: "seg-1", title: "Listening", duration: 45, progress: 0, state: 'pending', overtime: 0, startTime: null },
+        { id: "seg-2", title: "Discovery", duration: 120, progress: 0, state: 'pending', overtime: 0, startTime: null },
+        { id: "seg-3", title: "Tell", duration: 240, progress: 0, state: 'pending', overtime: 0, startTime: null },
+        { id: "seg-4", title: "Card", duration: 45, progress: 0, state: 'pending', overtime: 0, startTime: null },
+        { id: "seg-5", title: "Autho", duration: 180, progress: 0, state: 'pending', overtime: 0, startTime: null },
+    ]
+};
+
+/**
+ * GLPRO_CONFIG
+ * Database file for the "GL Pro" supplement.
+ */
+const GLPRO_CONFIG = {
+    "baseProduct": {
+        name: "GL Pro (Base)",
+        pitch: "This is the base product for diabetes. It helps the pancreas from the *inside*."
+    },
+    "recommendations": [
+        { 
+            id: "fpp", 
+            name: "FreePain Pro (FPP)", 
+            gender: "any",
+            symptoms: [
+                { 
+                    id: "symp-fpp-1", 
+                    text: "Tingling or numbness (Neuropathy)",
+                    pitch: "For your tingling and numbness... 'That one is going to help with the tingling and numbness in the feet... help the nerves to start to regrow, and help to alleviate some of the pain.'",
+                    benefit: "help with the tingling and numbness"
+                }
+            ]
+        },
+        { 
+            id: "sleep",
+            name: "Deep Sleep Pro",
+            gender: "any",
+            symptoms: [
+                { 
+                    id: "symp-sleep-1", 
+                    text: "Poor Sleep",
+                    pitch: "For your sleep issues... 'This one helps with falling asleep and staying asleep, and helps make the sleep you do get more effective and regenerative.'",
+                    benefit: "help you get better sleep"
+                }
+            ]
+        },
+        { 
+            id: "slim",
+            name: "Slim Boost Pro / Arctic Burn",
+            gender: "any",
+            symptoms: [
+                { 
+                    id: "symp-slim-1", 
+                    text: "Need to lose weight",
+                    pitch: "For your weight loss goal/energy... 'This one's gonna help with the metabolism, help to retrain it and speed it up... helping your body to focus on metabolizing the fat for more sustained energy.'",
+                    benefit: "help you get rid of the excess weight and boost energy"
+                }
+            ]
+        },
+        { 
+            id: "tmax",
+            name: "Tmax Pro",
+            gender: "male",
+            symptoms: [
+                { 
+                    id: "symp-tmax-1", 
+                    text: "Fatigue / Low Energy",
+                    pitch: "For your fatigue and recovery... 'This will boost those natural testosterone levels, helping you feel like a younger man again, but more importantly, helping your body recover like a younger man again.'",
+                    benefit: "help with fatigue and recovery"
+                },
+                { 
+                    id: "symp-tmax-2", 
+                    text: "Symptoms of ED? (Male Only)",
+                    pitch: "For your ED symptoms... 'This will boost those natural testosterone levels... helping your body recover like a younger man again.'",
+                    benefit: "help with ED symptoms"
+                }
+            ]
+        },
+        { 
+            id: "mens",
+            name: "Men's Balance Pro",
+            gender: "male",
+            symptoms: [
+                { 
+                    id: "symp-mens-1", 
+                    text: "Waking up for urination? (Male Only)",
+                    pitch: "For waking up to urinate... 'This will help with healthy bladder and prostate function, helping you sleep... and helping your body get rid of the excess sugars more easily.'",
+                    benefit: "help with nightly urination"
+                }
+            ]
+        },
+        { 
+            id: "core",
+            name: "Core Vitality Pro",
+            gender: "any",
+            symptoms: [
+                { 
+                    id: "symp-core-1", 
+                    text: "High Blood Pressure / Cholesterol",
+                    pitch: "For your high blood pressure/cholesterol... 'That one's gonna help with circulation, cardiovascular health, as well as helping with healthy bone density.'",
+                    benefit: "help with cardiovascular health and circulation"
+                }
+            ]
+        },
+        { 
+            id: "flora",
+            name: "Flora Flo",
+            gender: "any",
+            symptoms: [
+                { 
+                    id: "symp-flora-1", 
+                    text: "Bloating / Digestion",
+                    pitch: "For your bloating... 'This one will help with that bloating issue... help with digestion as well as helping with the good bacterial balance in the gut.'",
+                    benefit: "help with bloating and digestion"
+                }
+            ]
+        },
+        { 
+            id: "sugar",
+            name: "FreeSugar Pro",
+            gender: "any",
+            symptoms: [
+                { 
+                    id: "symp-sugar-1", 
+                    text: "Blood sugar still high",
+                    pitch: "For your high blood sugar... 'While the GLPRO is helping the pancreas, this one's gonna be helping with the blood sugar in general, helping it to stay lower longer.'",
+                    benefit: "help get your blood sugar under control"
+                }
+            ]
+        }
+    ]
+};
+
+/**
+ * NEURO_CONFIG
+ * Database file for the "Neuro Pro" supplement.
+ */
+const NEURO_CONFIG = {
+    "baseProduct": {
+        name: "Neuro Pro (Base)",
+        pitch: "This is the base product for cognitive function. It helps support brain health and memory."
+    },
+    "recommendations": [
+        { 
+            id: "neuro-focus", 
+            name: "Focus Max", 
+            gender: "any",
+            symptoms: [
+                { 
+                    id: "symp-focus-1", 
+                    text: "Brain fog / Trouble concentrating",
+                    pitch: "For brain fog... 'This will help clear the cobwebs and support the neurotransmitters responsible for focus and clarity.'",
+                    benefit: "help with focus and mental clarity"
+                }
+            ]
+        },
+        { 
+            id: "neuro-sleep",
+            name: "Deep Sleep Pro",
+            gender: "any",
+            symptoms: [
+                { 
+                    id: "symp-nsleep-1", 
+                    text: "Poor Sleep / Waking up tired",
+                    pitch: "For your sleep issues... 'This one helps with falling asleep and staying asleep. Quality sleep is essential for memory consolidation.'",
+                    benefit: "help you get restorative sleep"
+                }
+            ]
+        },
+        { 
+            id: "neuro-calm",
+            name: "Calm Support",
+            gender: "any",
+            symptoms: [
+                { 
+                    id: "symp-calm-1", 
+                    text: "Feeling stressed or anxious",
+                    pitch: "For stress... 'This helps balance your cortisol levels. High stress can be very damaging to memory and cognitive function.'",
+                    benefit: "help reduce stress and anxiety"
+                }
+            ]
+        }
+    ]
+};
+
+/**
+ * DATABASE_CONFIGS
+ * This file collects all individual supplement database configs
+ * into one object for the main script to load.
+ *
+ * The build script (build.sh) ensures this file is loaded *after*
+ * all the individual database files.
+ */
+const DATABASE_CONFIGS = {
+    // The key "GL Pro" is the display name in the settings dropdown.
+    // The value "GLPRO_CONFIG" is the const variable from the db file.
+    "GL Pro": GLPRO_CONFIG,
+    "Neuro Pro": NEURO_CONFIG
+    // To add another supplement, just add its file to build.sh
+    // and add a new line here, e.g.:
+    // "ABC Pro": ABCPRO_CONFIG
+};
+
 /**
  * ============================================
  * SCRIPT TOOL APPLICATION LOGIC (V6.3)
@@ -1118,3 +1986,6 @@ function init() {
 
 // Wait for the DOM to be fully loaded before running the app
 document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
