@@ -1,17 +1,25 @@
 /**
  * ============================================
- * SCRIPT TOOL SETTINGS MODAL LOGIC (V5.0.0)
+ * SCRIPT TOOL SETTINGS MODAL LOGIC (V5.2.0)
  * ============================================
  * This component handles all logic and UI for
  * the main settings modal, including:
  * - App Settings (Agent, Segments)
  * - Database Editor (Base Product, Questions, Recommendations)
  * - Reset functions
+ * - Auto-saving
  *
  * It depends on:
  * - `appState`, `DOM` (global)
  * - `saveSettingsToStorage()`, `loadState()`, `initAppUI()` (from script.js)
  */
+
+// --- Module-level variables for drag-and-drop ---
+let draggedSupplement = null;
+let lastDragOverEl = null;
+
+// --- Module-level variables for auto-saving ---
+let autoSaveTimer = null;
 
 /**
  * Creates the HTML element for a single supplement
@@ -21,13 +29,22 @@
  */
 AppUI.createSupplementEditorElement = function(supp) {
     const suppEl = document.createElement('div');
-    suppEl.className = 'p-4 bg-gray-700 rounded-lg space-y-3';
+    // NEW: Added .settings-supplement-editor-card class
+    suppEl.className = 'p-4 bg-gray-700 rounded-lg space-y-3 settings-supplement-editor-card';
     suppEl.dataset.suppId = supp.id;
+    suppEl.draggable = true; // NEW: Make the card draggable
     
     const safeName = supp.name ? supp.name.replace(/"/g, '&quot;') : "Unnamed Supplement";
+    
+    // NEW: Added drag handle icon and modified header structure
     suppEl.innerHTML = `
         <div class="flex justify-between items-center pb-2 border-b border-gray-600">
-            <div class="flex-1">
+            <!-- NEW: Drag Handle -->
+            <svg class="drag-handle h-6 w-6 text-gray-400 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+
+            <div class="flex-1 ml-3"> <!-- Added ml-3 -->
                 <label class="text-xs text-gray-400">Supplement Name</label>
                 <input type="text" value="${safeName}" class="supp-name-input w-full bg-gray-600 text-white rounded p-2 text-sm">
             </div>
@@ -157,10 +174,11 @@ AppUI.renderSettingsModal = function() {
 }
 
 /**
- * Reads all values from the settings modal,
- * updates appState, and saves to localStorage.
+ * NEW: Reads all values from the settings modal,
+ * updates appState, saves to localStorage, and
+ * re-renders the main UI.
  */
-AppUI.saveSettings = function() {
+AppUI.readAndSaveAllSettings = function() {
     // 1. Save App Settings
     appState.settings.agentName = DOM.agentNameSettingInput.value || "[Agent Name]";
     
@@ -196,6 +214,7 @@ AppUI.saveSettings = function() {
     appState.supplementDatabase.guaranteeDays = parseInt(DOM.baseProductGuaranteeSetting.value, 10) || 60;
     
     // Save Recommendations
+    // This logic automatically respects the new DOM order from drag-and-drop.
     const newRecommendations = [];
     const suppElements = DOM.supplementSettingsList.querySelectorAll('[data-supp-id]');
     suppElements.forEach(el => {
@@ -231,11 +250,27 @@ AppUI.saveSettings = function() {
     // 3. Persist all settings to localStorage
     saveSettingsToStorage(); // This function lives in script.js
     
-    // 4. Close modal and re-render UI
-    appState.isSettingsOpen = false;
-    AppUI.renderSettingsModal();
+    // 4. Re-render the main UI to reflect changes
     initAppUI(); // This function lives in script.js
+    
+    console.log("Auto-saved settings.");
 }
+
+/**
+ * NEW: Debouncer function to trigger auto-save.
+ * @param {number} [delay=500] - The delay in milliseconds.
+ */
+AppUI.triggerAutoSave = function(delay = 500) {
+    clearTimeout(autoSaveTimer);
+    autoSaveTimer = setTimeout(() => {
+        // Must check if modal is still open. If user closes it,
+        // we don't need to read values.
+        if (appState.isSettingsOpen) {
+            AppUI.readAndSaveAllSettings();
+        }
+    }, delay);
+}
+
 
 /**
  * Clears all data from localStorage and reloads
@@ -260,14 +295,33 @@ AppUI.resetSettingsToDefaults = function() {
 AppUI.initSettingsEventListeners = function() {
     DOM.settingsCogBtn.addEventListener('click', () => { appState.isSettingsOpen = true; AppUI.renderSettingsModal(); });
     DOM.settingsCloseBtn.addEventListener('click', () => { appState.isSettingsOpen = false; AppUI.renderSettingsModal(); });
-    DOM.settingsSaveBtn.addEventListener('click', AppUI.saveSettings);
+    // DOM.settingsSaveBtn.addEventListener('click', AppUI.saveSettings); // REMOVED
+
+    // --- NEW: Auto-save triggers ---
+    // 1. Listen for any text input
+    DOM.settingsModal.addEventListener('input', () => {
+        AppUI.triggerAutoSave(500); // 500ms delay for typing
+    });
+
+    // 2. Listen for discrete actions (add/remove buttons)
+    DOM.settingsModal.addEventListener('click', (e) => {
+        const actionButton = e.target.closest(
+            '.remove-segment-btn, .add-segment-btn, .remove-question-btn, .add-question-btn, .remove-symptom-btn, .add-symptom-btn, .remove-supplement-btn, .add-supplement-btn'
+        );
+        if (actionButton) {
+            AppUI.triggerAutoSave(50); // 50ms delay, just to let DOM update first
+        }
+    });
+
+    // --- End of Auto-save triggers ---
 
     DOM.addSegmentBtn.addEventListener('click', () => {
         appState.settings.segments.push({
             id: `seg-${Date.now()}`, title: "New Segment", duration: 60,
             progress: 0, state: 'pending', overtime: 0, startTime: null
         });
-        AppUI.renderSettingsModal();
+        AppUI.renderSettingsModal(); // Re-render to show new segment
+        // Auto-save will be triggered by the click listener above
     });
 
     DOM.segmentSettingsList.addEventListener('click', (e) => {
@@ -275,7 +329,8 @@ AppUI.initSettingsEventListeners = function() {
         if (removeBtn) {
             const idToRemove = removeBtn.dataset.segmentId;
             appState.settings.segments = appState.settings.segments.filter(s => s.id !== idToRemove);
-            AppUI.renderSettingsModal();
+            AppUI.renderSettingsModal(); // Re-render to remove segment
+            // Auto-save will be triggered by the click listener above
         }
     });
 
@@ -290,12 +345,14 @@ AppUI.initSettingsEventListeners = function() {
             </button>
         `;
         DOM.questionsEditorList.appendChild(questionEl);
+        // Auto-save will be triggered by the click listener above
     });
 
     DOM.questionsEditorList.addEventListener('click', (e) => {
         const removeBtn = e.target.closest('.remove-question-btn');
         if (removeBtn) {
             removeBtn.parentElement.remove();
+            // Auto-save will be triggered by the click listener above
         }
     });
 
@@ -305,6 +362,7 @@ AppUI.initSettingsEventListeners = function() {
         const removeSymptomBtn = e.target.closest('.remove-symptom-btn');
         if (removeSymptomBtn) {
             removeSymptomBtn.closest('.symptom-input-group').remove();
+            // Auto-save will be triggered by the click listener above
             return;
         }
 
@@ -331,12 +389,14 @@ AppUI.initSettingsEventListeners = function() {
                 </div>
             `;
             symptomsListDiv.appendChild(newSymptomGroup);
+            // Auto-save will be triggered by the click listener above
             return;
         }
 
         const removeSuppBtn = e.target.closest('.remove-supplement-btn');
         if (removeSuppBtn) {
             removeSuppBtn.closest('[data-supp-id]').remove();
+            // Auto-save will be triggered by the click listener above
             return;
         }
     });
@@ -351,10 +411,83 @@ AppUI.initSettingsEventListeners = function() {
         };
         const newSuppElement = AppUI.createSupplementEditorElement(newSupp);
         DOM.supplementSettingsList.appendChild(newSuppElement);
+        // Auto-save will be triggered by the click listener above
     });
     
     // Reset to Defaults Modal
     DOM.resetToDefaultsBtn.addEventListener('click', () => DOM.resetDefaultsConfirmModal.classList.remove('hidden'));
     DOM.resetDefaultsCancelBtn.addEventListener('click', () => DOM.resetDefaultsConfirmModal.classList.add('hidden'));
     DOM.resetDefaultsConfirmBtn.addEventListener('click', AppUI.resetSettingsToDefaults);
+
+    // --- NEW: Drag-and-Drop Event Listeners ---
+    DOM.supplementSettingsList.addEventListener('dragstart', (e) => {
+        // Only allow dragging from the handle
+        if (!e.target.classList.contains('drag-handle')) {
+            // Check if the target is the SVG path inside the handle
+            if (!e.target.closest('.drag-handle')) {
+                e.preventDefault();
+                return;
+            }
+        }
+        
+        draggedSupplement = e.target.closest('.settings-supplement-editor-card');
+        if (!draggedSupplement) return;
+
+        e.dataTransfer.effectAllowed = 'move';
+        // Use a slight delay to allow the DOM to update
+        setTimeout(() => {
+            if (draggedSupplement) draggedSupplement.classList.add('dragging');
+        }, 0);
+    });
+
+    DOM.supplementSettingsList.addEventListener('dragover', (e) => {
+        e.preventDefault(); // Necessary to allow dropping
+        
+        const targetEl = e.target.closest('.settings-supplement-editor-card');
+        
+        // Clear previous target
+        if (lastDragOverEl && lastDragOverEl !== targetEl) {
+            lastDragOverEl.classList.remove('drag-over-target');
+        }
+
+        if (targetEl && targetEl !== draggedSupplement) {
+            targetEl.classList.add('drag-over-target');
+            lastDragOverEl = targetEl;
+        }
+    });
+
+    DOM.supplementSettingsList.addEventListener('dragend', () => {
+        if (draggedSupplement) {
+            draggedSupplement.classList.remove('dragging');
+        }
+        if (lastDragOverEl) {
+            lastDragOverEl.classList.remove('drag-over-target');
+        }
+        draggedSupplement = null;
+        lastDragOverEl = null;
+    });
+
+    DOM.supplementSettingsList.addEventListener('drop', (e) => {
+        e.preventDefault();
+        
+        if (lastDragOverEl) {
+            lastDragOverEl.classList.remove('drag-over-target');
+        }
+
+        const targetEl = e.target.closest('.settings-supplement-editor-card');
+        
+        if (targetEl && draggedSupplement && targetEl !== draggedSupplement) {
+            // Insert the dragged element *before* the target element
+            targetEl.parentNode.insertBefore(draggedSupplement, targetEl);
+        }
+        
+        if (draggedSupplement) {
+            draggedSupplement.classList.remove('dragging');
+        }
+        draggedSupplement = null;
+        lastDragOverEl = null;
+
+        // NEW: Trigger auto-save on drop
+        AppUI.triggerAutoSave(50);
+    });
 }

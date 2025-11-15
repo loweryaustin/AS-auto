@@ -342,3 +342,25 @@ body { font-family: 'Inter', sans-serif; }
 .settings-warning-box .warning-text {
     color: #fde68a; /* yellow-200 */
 }
+
+/* NEW: Styles for drag-and-drop re-ordering in settings */
+.drag-handle {
+    cursor: grab;
+    transition: color 0.15s ease;
+}
+.drag-handle:hover {
+    color: #ffffff; /* white */
+}
+.drag-handle:active {
+    cursor: grabbing;
+}
+.settings-supplement-editor-card.dragging {
+    opacity: 0.5;
+    border: 2px dashed #3b82f6; /* blue-500 */
+}
+.settings-supplement-editor-card.drag-over-target {
+    /* Use a top border as a drop indicator */
+    border-top: 3px solid #3b82f6; /* blue-500 */
+    /* Add padding to make space for the border */
+    padding-top: calc(1rem - 3px); /* 1rem is default p-4, minus border */
+}

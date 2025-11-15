@@ -1,6 +1,6 @@
 /**
  * ============================================
- * SCRIPT TOOL APPLICATION LOGIC (V5.0.0)
+ * SCRIPT TOOL APPLICATION LOGIC (V5.2.0)
  * ============================================
  * This is the main "controller" file.
  * It handles state, core logic, and event listeners.
@@ -75,7 +75,7 @@ function cacheDOMElements() {
     DOM.settingsCogBtn = document.getElementById('settings-cog-btn');
     DOM.settingsModal = document.getElementById('settings-modal');
     DOM.settingsCloseBtn = document.getElementById('settings-close-btn');
-    DOM.settingsSaveBtn = document.getElementById('settings-save-btn');
+    // DOM.settingsSaveBtn = document.getElementById('settings-save-btn'); // REMOVED
     DOM.agentNameSettingInput = document.getElementById('agent-name-setting');
     DOM.segmentSettingsList = document.getElementById('segment-settings-list');
     DOM.addSegmentBtn = document.getElementById('add-segment-btn');
