@@ -1,12 +1,20 @@
 /**
- * NEURO_CONFIG
+ * Neuro Pro
  * Database file for the "Neuro Pro" supplement.
+ * This file "self-registers" into the global DATABASE_CONFIGS object.
  */
-const NEURO_CONFIG = {
+DATABASE_CONFIGS["Neuro Pro"] = {
     "baseProduct": {
         name: "Neuro Pro (Base)",
         pitch: "This is the base product for cognitive function. It helps support brain health and memory."
     },
+    "guaranteeDays": 90,
+    "questions": [
+        "How long have you been dealing with this?",
+        "What other health conditions are you dealing with?",
+        "What medications are you taking?",
+        "What is your biggest health concern?"
+    ],
     "recommendations": [
         { 
             id: "neuro-focus", 

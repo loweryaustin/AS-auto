@@ -1,16 +1,15 @@
 /**
  * ============================================
- * SCRIPT TOOL APPLICATION LOGIC (V6.3)
+ * SCRIPT TOOL APPLICATION LOGIC (V4.0.0)
  * ============================================
- * * This file contains all the business logic for the script tool.
- * * CHANGES (V6.3):
- * - REMOVED the "dev mode" script loader.
- * - The project is now built *only* via the build.sh script.
+ * This is the main "controller" file.
+ * It handles state, core logic, and event listeners.
+ * All DOM manipulation and UI logic is in script-ui.js (AppUI).
  */
 
 // --- App State ---
 
-// NEW: Version-gated localStorage keys.
+// Version-gated localStorage keys.
 // SCRIPT_VERSION is injected by build.sh
 const APP_VERSION = typeof SCRIPT_VERSION !== 'undefined' ? SCRIPT_VERSION : 'dev';
 const APP_SETTINGS_KEY = `appSettings_${APP_VERSION}`;
@@ -24,18 +23,20 @@ let appState = {
     editedDatabases: {},     // Holds user-edited DBs from localStorage
     supplementDatabase: {},  // The *currently active* supplement DB
     currentDbName: null,     // The key of the currently active DB
+    onlineOrder: [],         // NEW: Holds {name, quantity} objects
     currentSegmentIndex: -1,
     globalTimerInterval: null,
     isSettingsOpen: false,
-    isSearching: false      // NEW: State for title search
+    isSearching: false
 };
 
 // --- DOM CACHE (Query once) ---
+// This object is shared with script-ui.js
 const DOM = {};
 function cacheDOMElements() {
     DOM.regimenLengthSelect = document.getElementById('regimen-length');
     DOM.authoRegimenLengthSelect = document.getElementById('autho-regimen-length'); 
-    DOM.onlineBottlesSelect = document.getElementById('online-bottles');
+    // DOM.onlineBottlesSelect = document.getElementById('online-bottles'); // REMOVED
     DOM.genderSelect = document.getElementById('gender');
     DOM.clientNameInput = document.getElementById('client-name');
     DOM.clientNamePlaceholders = document.querySelectorAll('.client-name-placeholder');
@@ -61,8 +62,17 @@ function cacheDOMElements() {
     DOM.agentNameSettingInput = document.getElementById('agent-name-setting');
     DOM.segmentSettingsList = document.getElementById('segment-settings-list');
     DOM.addSegmentBtn = document.getElementById('add-segment-btn');
+
+    // NEW: Question Editor Elements
+    DOM.questionsEditorList = document.getElementById('questions-editor-list');
+    DOM.addQuestionBtn = document.getElementById('add-question-btn');
+    
+    // NEW: Discovery Questions List Container (Main Page)
+    DOM.discoveryQuestionsList = document.getElementById('discovery-questions-list');
+
     DOM.baseProductNameSetting = document.getElementById('base-product-name-setting');
     DOM.baseProductPitchSetting = document.getElementById('base-product-pitch-setting');
+    DOM.baseProductGuaranteeSetting = document.getElementById('base-product-guarantee-setting'); // NEW
     DOM.supplementSettingsList = document.getElementById('supplement-settings-list');
     DOM.addSupplementBtn = document.getElementById('add-supplement-btn');
     DOM.resetToDefaultsBtn = document.getElementById('reset-to-defaults-btn');
@@ -73,80 +83,48 @@ function cacheDOMElements() {
     DOM.resetDefaultsConfirmModal = document.getElementById('reset-defaults-confirm-modal');
     DOM.resetDefaultsConfirmBtn = document.getElementById('reset-defaults-confirm-btn');
     DOM.resetDefaultsCancelBtn = document.getElementById('reset-defaults-cancel-btn');
-    DOM.exportBtn = document.getElementById('export-btn');
-    DOM.importBtn = document.getElementById('import-btn');
+    
+    // NEW: LocalStorage Warning Box
+    DOM.settingsWarningBox = document.getElementById('settings-warning-box');
+
+    // NEW Contextual Import/Export Buttons
+    DOM.exportAppSettingsBtn = document.getElementById('export-app-settings-btn');
+    DOM.importAppSettingsBtn = document.getElementById('import-app-settings-btn');
+    DOM.exportDbBtn = document.getElementById('export-db-btn');
+    DOM.importDbBtn = document.getElementById('import-db-btn');
+    DOM.currentDbNameDisplay = document.getElementById('current-db-name-display');
+
+    // Import Modal Elements
     DOM.importModal = document.getElementById('import-modal');
+    DOM.importModalTitle = document.getElementById('import-modal-title');
+    DOM.importModalDescription = document.getElementById('import-modal-description');
     DOM.importModalCloseBtn = document.getElementById('import-modal-close-btn');
     DOM.importTextarea = document.getElementById('import-textarea');
     DOM.importConfirmBtn = document.getElementById('import-confirm-btn');
     DOM.importCancelBtn = document.getElementById('import-cancel-btn');
     DOM.importMessage = document.getElementById('import-message');
-    // DOM.databaseSwitcher = document.getElementById('database-switcher'); // REMOVED
-    // DOM.scriptTitle = document.getElementById('script-title'); // REMOVED
 
-    // NEW: Title Search Elements
+    // Title Search Elements
     DOM.titleSearchContainer = document.getElementById('title-search-container');
     DOM.scriptTitleDisplay = document.getElementById('script-title-display');
-    DOM.titleClickWrapper = document.getElementById('title-click-wrapper'); // NEW
-    DOM.titleSearchNote = document.getElementById('title-search-note'); // NEW
+    DOM.titleClickWrapper = document.getElementById('title-click-wrapper');
+    DOM.titleSearchNote = document.getElementById('title-search-note');
     DOM.scriptSearchInput = document.getElementById('script-search-input');
     DOM.scriptSearchResults = document.getElementById('script-search-results');
+
+    // NEW: Online Order Editor Elements
+    DOM.onlineOrderEditor = document.getElementById('online-order-editor');
+    DOM.onlineOrderList = document.getElementById('online-order-list');
+    DOM.onlineOrderSearch = document.getElementById('online-order-search');
+    DOM.onlineOrderSearchResults = document.getElementById('online-order-search-results');
+    DOM.orderBreakdownOnlinePart = document.getElementById('order-breakdown-online-part');
+    DOM.authoScriptOnlinePart = document.getElementById('autho-script-online-part');
+    
+    // NEW: Guarantee Day Placeholders
+    DOM.guaranteeDays1 = document.getElementById('guarantee-days-1');
+    DOM.guaranteeDays2 = document.getElementById('guarantee-days-2');
 }
 
-
-// --- Utility Functions ---
-
-function simpleDeepMerge(target, source) {
-    let output = { ...target };
-    for (const key in source) {
-        if (source.hasOwnProperty(key)) {
-            if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
-                output[key] = simpleDeepMerge(target[key] || {}, source[key]);
-            } else {
-                output[key] = source[key];
-            }
-        }
-    }
-    return output;
-}
-
-function deepCopy(obj) {
-    if (typeof obj === 'undefined' || obj === null) {
-        console.error("Cannot deep copy undefined or null object.");
-        return {};
-    }
-    try {
-        return JSON.parse(JSON.stringify(obj));
-    } catch (e) {
-        console.error("Failed to deep copy object:", e, obj);
-        return {};
-    }
-}
-
-function getPricePerBottle(months) {
-    if (months >= 12) return 45;
-    if (months >= 6) return 47;
-    return 49;
-}
-
-function formatAddonList(names) {
-    if (names.length === 0) return "no additional supplements";
-    if (names.length === 1) return names[0];
-    if (names.length === 2) return names.join(' and ');
-    return names.slice(0, -1).join(', ') + ', and '.concat(names.slice(-1));
-}
-
-function formatBenefitsList(benefits) {
-    if (benefits.length === 0) return "This regimen is designed to help your pancreas heal.";
-    let benefitString = "Now, this is going to " + benefits.slice(0, -1).join(', ') + (benefits.length > 1 ? ', and ' : '') + benefits.slice(-1) + ".";
-    return benefitString.charAt(0).toUpperCase() + benefitString.slice(1);
-}
-
-function formatTime(seconds) {
-    const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
-    const secs = (seconds % 60).toString().padStart(2, '0');
-    return `${mins}:${secs}`;
-}
 
 // --- State Management Functions ---
 
@@ -158,13 +136,13 @@ function loadState() {
     } catch (e) {
         console.error("Failed to parse saved appSettings:", e);
     }
-    appState.settings = simpleDeepMerge(deepCopy(APP_CONFIG), savedAppSettings);
+    appState.settings = AppUI.simpleDeepMerge(AppUI.deepCopy(APP_CONFIG), savedAppSettings);
     appState.settings.segments.forEach(s => {
         s.state = 'pending'; s.progress = 0; s.overtime = 0; s.startTime = null;
     });
 
     // 2. Load all default supplement databases
-    appState.allDatabaseDefaults = deepCopy(DATABASE_CONFIGS);
+    appState.allDatabaseDefaults = AppUI.deepCopy(DATABASE_CONFIGS);
 
     // 3. Load all *edited* supplement databases
     try {
@@ -178,11 +156,7 @@ function loadState() {
     const defaultDbName = Object.keys(appState.allDatabaseDefaults)[0]; // Fallback to the first DB
     const lastDbName = localStorage.getItem(LAST_DB_NAME_KEY) || defaultDbName;
     
-    // 5. Populate the DB switcher (REMOVED)
-    // DOM.databaseSwitcher.innerHTML = '';
-    // ... logic removed ...
-
-    // 6. Load the active supplement config
+    // 5. Load the active supplement config
     loadSupplementDb(lastDbName, false); // false = don't reset call
 }
 
@@ -208,20 +182,41 @@ function loadSupplementDb(dbName, resetCall = true) {
     
     // Merge edited version over the default
     // If defaultConfig is null (user-created), it just uses the editedConfig
-    appState.supplementDatabase = simpleDeepMerge(deepCopy(defaultConfig) || {}, editedConfig || {});
+    appState.supplementDatabase = AppUI.simpleDeepMerge(AppUI.deepCopy(defaultConfig) || {}, editedConfig || {});
     appState.currentDbName = dbName;
     localStorage.setItem(LAST_DB_NAME_KEY, dbName);
 
-    // FIX: Removed the call to initAppUI() and am manually calling the
-    // necessary render functions in the correct order, AFTER state is set.
+    // NEW: Guardrail for old data that might be missing the questions key
+    if (!appState.supplementDatabase.questions) {
+        appState.supplementDatabase.questions = []; // Add it if it's missing
+    }
+    
+    // NEW: Guardrail for old data that might be missing guaranteeDays
+    if (!appState.supplementDatabase.guaranteeDays) {
+        appState.supplementDatabase.guaranteeDays = 60; // Add it if it's missing
+    }
+
+    // NEW: Set default online order
+    // This MUST happen after supplementDatabase is set
+    appState.onlineOrder = [
+        { name: appState.supplementDatabase.baseProduct.name.replace(' (Base)', ''), quantity: 6 }
+    ];
+
+    // FIX: Manually calling render functions in order
     
     // 1. Render the title and sidebar
     updateSupplementWordingUI();
+
+    // 2. Render the new discovery questions
+    renderDiscoveryQuestions(); // NEW
     
-    // 2. Render the new symptom checklist
+    // 3. Render the new symptom checklist
     renderSymptomChecklist();
     
-    // 3. Render the script (costs, wording, etc.)
+    // 4. Render the Online Order Editor
+    AppUI.renderOnlineOrderEditor();
+    
+    // 5. Render the script (costs, wording, etc.)
     renderAllScript();
 
     if (resetCall) {
@@ -245,83 +240,7 @@ function saveSettingsToStorage() {
     }
 }
 
-// --- UI Update Functions (State -> DOM) ---
-
-// NEW: Title/Search UI Functions
-function renderTitleUI() {
-    if (appState.isSearching) {
-        DOM.titleClickWrapper.classList.add('hidden'); // UPDATED
-        DOM.scriptSearchInput.classList.remove('hidden');
-        DOM.scriptSearchInput.value = '';
-        DOM.scriptSearchInput.focus();
-        renderSearchResults('');
-    } else {
-        DOM.titleClickWrapper.classList.remove('hidden'); // UPDATED
-        DOM.scriptSearchInput.classList.add('hidden');
-        DOM.scriptSearchResults.classList.add('hidden');
-        
-        if (appState.supplementDatabase && appState.supplementDatabase.baseProduct) {
-            const baseProductName = appState.supplementDatabase.baseProduct.name.replace(' (Base)', '');
-            // console.log(`renderTitleUI: Setting title to "${baseProductName} Call Script"`);
-            DOM.scriptTitleDisplay.textContent = `${baseProductName} Call Script`;
-        } else {
-            // console.log("renderTitleUI: No supplement data, setting default title.");
-            DOM.scriptTitleDisplay.textContent = 'Call Script';
-        }
-    }
-}
-
-function renderSearchResults(query) {
-    const lowerQuery = query.toLowerCase().trim();
-
-    // NEW: Search both default and user-created (edited) databases
-    const defaultDbNames = Object.keys(appState.allDatabaseDefaults);
-    const editedDbNames = Object.keys(appState.editedDatabases);
-    const allDbNames = Array.from(new Set([...defaultDbNames, ...editedDbNames])).sort();
-
-    // Filter based on query
-    const filteredDbNames = allDbNames.filter(name => 
-        name.toLowerCase().includes(lowerQuery)
-    );
-
-    let html = '';
-
-    if (filteredDbNames.length === 0 && lowerQuery.length > 0) {
-        html = `<div class="search-result-empty">No supplements found.</div>`;
-    } else {
-         html = filteredDbNames.map(name => `
-            <div class="search-result-item" data-dbname="${name.replace(/"/g, '&quot;')}">
-                ${name}
-            </div>
-        `).join('');
-    }
-
-    // NEW: Add "Create" button if query is new and valid
-    const exactMatchFound = allDbNames.some(name => name.toLowerCase() === lowerQuery);
-    if (lowerQuery.length > 0 && !exactMatchFound) {
-        // Sanitize query for HTML attribute
-        const safeDbName = query.trim().replace(/"/g, '&quot;');
-        html += `
-            <div class="search-result-create-btn" data-dbname="${safeDbName}">
-                + Create "${safeDbName}"
-            </div>
-        `;
-    }
-
-    DOM.scriptSearchResults.innerHTML = html;
-    DOM.scriptSearchResults.classList.remove('hidden');
-}
-
-function closeSearch(e) {
-    // Closes search if clicking outside the title/search container
-    if (DOM.titleSearchContainer && !DOM.titleSearchContainer.contains(e.target)) {
-        if (appState.isSearching) {
-            appState.isSearching = false;
-            renderTitleUI();
-        }
-    }
-}
-
+// --- Core UI Update Functions ---
 
 function updateAgentNameUI() {
     const displayName = appState.settings.agentName || "[Agent Name]";
@@ -330,12 +249,12 @@ function updateAgentNameUI() {
 
 function updateSupplementWordingUI() {
     // This function now just updates wording in the script/sidebar
-    // The title itself is handled by renderTitleUI()
+    // The title itself is handled by AppUI.renderTitleUI()
     const baseProduct = appState.supplementDatabase.baseProduct;
     const baseProductName = baseProduct.name.replace(' (Base)', '');
 
     // Update title
-    renderTitleUI();
+    AppUI.renderTitleUI();
     
     // Update sidebar
     DOM.baseProductNameSidebar.textContent = baseProduct.name;
@@ -356,377 +275,22 @@ function updateTimerControlsVisibility() {
     DOM.startTimerManualBtn.classList.toggle('hidden', appState.currentSegmentIndex !== -1);
 }
 
-// --- Timer Functions ---
-
-function renderTimerBar() {
-    DOM.floatingTimerBar.innerHTML = '';
-    let isCurrentSegmentOvertime = appState.currentSegmentIndex !== -1 && appState.settings.segments[appState.currentSegmentIndex].state === 'overtime';
-
-    appState.settings.segments.forEach((segment, index) => {
-        const segmentEl = document.createElement('div');
-        segmentEl.dataset.index = index;
-        let content = '', progressWidth = '0%', bgClass = 'bg-gray-700 hover:bg-gray-600', animationClass = '', extraSegmentClasses = '';
-
-        switch(segment.state) {
-            case 'active':
-                const elapsed = (Date.now() - segment.startTime) / 1000;
-                const remaining = Math.max(0, segment.duration - elapsed);
-                progressWidth = `${Math.min(100, segment.progress)}%`;
-                bgClass = 'bg-blue-600';
-                content = `<span class="text-sm">${segment.title}</span><span class="timer-time text-lg -mt-1">${formatTime(Math.ceil(remaining))}</span>`;
-                if (segment.progress >= 90) animationClass = 'flash-grow';
-                break;
-            case 'overtime':
-                progressWidth = '100%'; bgClass = 'bg-red-600';
-                content = `<span class="text-sm">${segment.title}</span><span class="timer-time text-lg -mt-1">+${formatTime(Math.floor(segment.overtime))}</span>`;
-                break;
-            case 'overtime-complete':
-                progressWidth = '100%'; bgClass = 'bg-red-600';
-                content = `<span class="text-sm">${segment.title}</span><span class="timer-time text-lg -mt-1">+${formatTime(Math.floor(segment.overtime))}</span>`;
-                break;
-            case 'complete':
-                progressWidth = '100%'; bgClass = 'bg-green-700';
-                content = `<span class="text-sm">${segment.title}</span><span class="timer-time text-lg -mt-1">${formatTime(Math.floor(segment.duration))}</span>`;
-                break;
-            case 'pending':
-            default:
-                let isNextSegment = index === appState.currentSegmentIndex + 1;
-                bgClass = 'bg-gray-700';
-                if (isNextSegment || (appState.currentSegmentIndex === -1 && index === 0)) {
-                    bgClass += ' hover:bg-gray-600 opacity-100';
-                    if (isNextSegment && isCurrentSegmentOvertime) extraSegmentClasses = 'pulse';
-                } else {
-                    bgClass += ' opacity-60 hover:opacity-80';
-                }
-                content = `<span class="text-sm">${segment.title}</span><span class="timer-time text-lg -mt-1">${formatTime(segment.duration)}</span>`;
-                break;
-        }
-        segmentEl.className = `timer-segment relative w-36 h-12 flex flex-col items-center justify-center rounded-full text-white font-semibold shadow-md transition-all duration-300 ${extraSegmentClasses}`;
-        const progressEl = document.createElement('div');
-        progressEl.className = `timer-segment-progress absolute top-0 left-0 h-full rounded-full ${bgClass} ${animationClass}`;
-        progressEl.style.width = progressWidth;
-        if (segment.state === 'complete' || segment.state === 'overtime' || segment.state === 'active' || segment.state === 'overtime-complete') {
-            segmentEl.className += ' bg-gray-600';
-        } else {
-            segmentEl.className += ` ${bgClass}`;
-        }
-        segmentEl.innerHTML = `<div class="relative z-10 flex flex-col items-center justify-center">${content}</div>`;
-        segmentEl.prepend(progressEl);
-        if (animationClass) segmentEl.classList.add(...animationClass.split(' '));
-        DOM.floatingTimerBar.appendChild(segmentEl);
-    });
-}
-
-function updateGlobalTimer() {
-    const index = appState.currentSegmentIndex;
-    if (index === -1) { stopGlobalTimer(); return; }
-    const segment = appState.settings.segments[index];
-    if (!segment) return;
-    if (segment.state === 'active') {
-        const elapsed = (Date.now() - segment.startTime) / 1000;
-        segment.progress = (elapsed / segment.duration) * 100;
-        if (elapsed >= segment.duration) {
-            segment.state = 'overtime'; segment.progress = 100; segment.startTime = Date.now();
-        }
-    } else if (segment.state === 'overtime') {
-        segment.overtime = (Date.now() - segment.startTime) / 1000;
-    }
-    renderTimerBar();
-}
-
-function startGlobalTimer() { if (!appState.globalTimerInterval) appState.globalTimerInterval = setInterval(updateGlobalTimer, 100); }
-function stopGlobalTimer() { clearInterval(appState.globalTimerInterval); appState.globalTimerInterval = null; }
-
-function tryStartSegment(index) {
-    if (appState.currentSegmentIndex === index && appState.settings.segments[index].state === 'active') return;
-    if (appState.currentSegmentIndex === -1 && index === 0) { startSegment(0); return; }
-    if (appState.currentSegmentIndex !== -1) {
-        const currentSeg = appState.settings.segments[appState.currentSegmentIndex];
-        if (index === appState.currentSegmentIndex + 1) {
-            currentSeg.state = (currentSeg.state === 'overtime') ? 'overtime-complete' : 'complete';
-            currentSeg.progress = 100;
-            startSegment(index);
-        }
-    }
-}
-
-function startSegment(index) {
-    if (!appState.settings.segments[index]) return;
-    appState.currentSegmentIndex = index;
-    const segment = appState.settings.segments[index];
-    segment.state = 'active'; segment.progress = 0; segment.overtime = 0; segment.startTime = Date.now();
-    startGlobalTimer(); renderTimerBar(); updateTimerControlsVisibility();
-}
-
-// --- Settings Modal Functions ---
-
-function renderSettingsModal() {
-    if (appState.isSettingsOpen) {
-        DOM.settingsModal.classList.remove('hidden');
-        DOM.agentNameSettingInput.value = appState.settings.agentName;
-
-        // Populate segments
-        DOM.segmentSettingsList.innerHTML = '';
-        appState.settings.segments.forEach((segment, index) => {
-            const segmentEl = document.createElement('div');
-            segmentEl.className = 'flex items-center gap-3 p-3 bg-gray-700 rounded-lg';
-            segmentEl.dataset.id = segment.id;
-            segmentEl.innerHTML = `
-                <span class="text-gray-400 font-bold">${index + 1}</span>
-                <div class="flex-1">
-                    <label class="text-xs text-gray-400">Title</label>
-                    <input type="text" value="${segment.title.replace(/"/g, '&quot;')}" class="segment-title-input w-full bg-gray-600 text-white rounded p-2 text-sm">
-                </div>
-                <div class="w-24">
-                    <label class="text-xs text-gray-400">Duration (sec)</label>
-                    <input type="number" value="${segment.duration}" class="segment-duration-input w-full bg-gray-600 text-white rounded p-2 text-sm">
-                </div>
-                <button data-segment-id="${segment.id}" class="remove-segment-btn bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                </button>
-            `;
-            DOM.segmentSettingsList.appendChild(segmentEl);
-        });
-
-        // Populate Supplement Wording (for *current* DB)
-        DOM.baseProductNameSetting.value = appState.supplementDatabase.baseProduct.name;
-        DOM.baseProductPitchSetting.value = appState.supplementDatabase.baseProduct.pitch;
-        
-        DOM.supplementSettingsList.innerHTML = '';
-        if (appState.supplementDatabase.recommendations) {
-            appState.supplementDatabase.recommendations.forEach(supp => {
-                const suppEl = document.createElement('div');
-                suppEl.className = 'p-4 bg-gray-700 rounded-lg space-y-3';
-                suppEl.dataset.suppId = supp.id;
-                
-                const safeName = supp.name ? supp.name.replace(/"/g, '&quot;') : "Unnamed Supplement";
-                suppEl.innerHTML = `
-                    <div class="flex justify-between items-center pb-2 border-b border-gray-600">
-                        <div class="flex-1">
-                            <label class="text-xs text-gray-400">Supplement Name</label>
-                            <input type="text" value="${safeName}" class="supp-name-input w-full bg-gray-600 text-white rounded p-2 text-sm">
-                        </div>
-                        <select class="supp-gender-select bg-gray-600 text-white rounded p-2 text-sm ml-3">
-                            <option value="any" ${supp.gender === 'any' ? 'selected' : ''}>Gender: Any</option>
-                            <option value="male" ${supp.gender === 'male' ? 'selected' : ''}>Gender: Male Only</option>
-                            <option value="female" ${supp.gender === 'female' ? 'selected' : ''}>Gender: Female Only</option>
-                        </select>
-                        <button class="remove-supplement-btn bg-red-600 hover:bg-red-700 text-white text-xs font-bold py-1 px-3 rounded-lg ml-3">Remove</button>
-                    </div>
-                    <h5 class="text-sm font-semibold text-gray-300 pt-2 border-t border-gray-600">Symptoms</h5>
-                `;
-
-                const symptomsListDiv = document.createElement('div');
-                symptomsListDiv.className = 'space-y-2 supp-symptoms-list';
-                
-                if (supp.symptoms) {
-                    supp.symptoms.forEach(symp => {
-                        const symptomGroup = document.createElement('div');
-                        symptomGroup.className = 'symptom-input-group';
-                        symptomGroup.dataset.sympId = symp.id;
-                        const safeSympText = symp.text ? symp.text.replace(/"/g, '&quot;') : "";
-                        const safeBenefit = symp.benefit ? symp.benefit.replace(/"/g, '&quot;') : "";
-                        const safePitch = symp.pitch || "";
-                        
-                        symptomGroup.innerHTML = `
-                            <div class="symptom-input-row">
-                                <input type="text" value="${safeSympText}" class="supp-symptom-text-input w-full bg-gray-500 text-white rounded p-2 text-sm" placeholder="Symptom Text">
-                                <button class="remove-symptom-btn bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                </button>
-                            </div>
-                            <div>
-                                <label>Sidebar Pitch</label>
-                                <textarea rows="2" class="supp-symptom-pitch-input w-full bg-gray-500 text-white rounded p-2 text-sm" placeholder="Sidebar pitch for this symptom...">${safePitch}</textarea>
-                            </div>
-                            <div>
-                                <label>Script Benefit</label>
-                                <input type="text" value="${safeBenefit}" class="supp-symptom-benefit-input w-full bg-gray-500 text-white rounded p-2 text-sm" placeholder="Script benefit for this symptom...">
-                            </div>
-                        `;
-                        symptomsListDiv.appendChild(symptomGroup);
-                    });
-                }
-                suppEl.appendChild(symptomsListDiv);
-
-                const addSymptomBtn = document.createElement('button');
-                addSymptomBtn.className = 'add-symptom-btn bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-1 px-3 rounded-lg mt-2';
-                addSymptomBtn.textContent = 'Add Symptom';
-                suppEl.appendChild(addSymptomBtn);
-                DOM.supplementSettingsList.appendChild(suppEl);
-            });
-        }
-
-    } else {
-        DOM.settingsModal.classList.add('hidden');
-    }
-}
-
-function saveSettings() {
-    // 1. Save App Settings
-    appState.settings.agentName = DOM.agentNameSettingInput.value || "[Agent Name]";
-    
-    const newSegments = [];
-    const segmentElements = DOM.segmentSettingsList.querySelectorAll('[data-id]');
-    segmentElements.forEach(el => {
-        const id = el.dataset.id;
-        const titleInput = el.querySelector('.segment-title-input');
-        const durationInput = el.querySelector('.segment-duration-input');
-        if (!titleInput || !durationInput) return;
-        const title = titleInput.value;
-        const duration = parseInt(durationInput.value, 10);
-        const existingSegment = appState.settings.segments.find(s => s.id === id) || {};
-        newSegments.push({ ...existingSegment, id: id, title: title || "Segment", duration: duration || 60, });
-    });
-    appState.settings.segments = newSegments;
-
-    // 2. Save *Current* Supplement DB Settings
-    appState.supplementDatabase.baseProduct.name = DOM.baseProductNameSetting.value;
-    appState.supplementDatabase.baseProduct.pitch = DOM.baseProductPitchSetting.value;
-    
-    const newRecommendations = [];
-    const suppElements = DOM.supplementSettingsList.querySelectorAll('[data-supp-id]');
-    suppElements.forEach(el => {
-        const suppId = el.dataset.suppId;
-        const nameInput = el.querySelector('.supp-name-input');
-        const genderSelect = el.querySelector('.supp-gender-select');
-        if (!nameInput || !genderSelect) return;
-        const newSymptoms = [];
-        const symptomElements = el.querySelectorAll('.symptom-input-group');
-        symptomElements.forEach(sympEl => {
-            const sympId = sympEl.dataset.sympId;
-            const sympTextInput = sympEl.querySelector('.supp-symptom-text-input');
-            const sympPitchInput = sympEl.querySelector('.supp-symptom-pitch-input');
-            const sympBenefitInput = sympEl.querySelector('.supp-symptom-benefit-input');
-            if (sympTextInput && sympTextInput.value && sympPitchInput && sympBenefitInput) {
-                newSymptoms.push({
-                    id: sympId,
-                    text: sympTextInput.value,
-                    pitch: sympPitchInput.value,
-                    benefit: sympBenefitInput.value
-                });
-            }
-        });
-        newRecommendations.push({
-            id: suppId,
-            name: nameInput.value,
-            gender: genderSelect.value,
-            symptoms: newSymptoms
-        });
-    });
-    appState.supplementDatabase.recommendations = newRecommendations;
-    
-    // 3. Persist all settings to localStorage
-    saveSettingsToStorage();
-    
-    // 4. Close modal and re-render UI
-    appState.isSettingsOpen = false;
-    renderSettingsModal();
-    initAppUI(); // Full re-render
-}
-
-function resetSettingsToDefaults() {
-    localStorage.removeItem(APP_SETTINGS_KEY);
-    localStorage.removeItem(EDITED_DATABASES_KEY);
-    localStorage.removeItem(LAST_DB_NAME_KEY);
-    
-    loadState();
-    initAppUI();
-    
-    appState.isSettingsOpen = false;
-    renderSettingsModal();
-    DOM.resetDefaultsConfirmModal.classList.add('hidden');
-}
-
-// --- Import/Export Functions ---
-
-function exportConfig() {
-    // Export *all* current settings and *all* edited databases
-    const configToExport = {
-        settings: appState.settings,
-        databases: appState.editedDatabases
-    };
-    
-    const exportString = JSON.stringify(configToExport, null, 2);
-
-    const tempTextarea = document.createElement('textarea');
-    tempTextarea.style.position = 'absolute'; tempTextarea.style.left = '-9999px';
-    tempTextarea.value = exportString;
-    document.body.appendChild(tempTextarea);
-    tempTextarea.select();
-    let success = false;
-    try { success = document.execCommand('copy'); } catch (err) { console.error('Failed to copy: ', err); }
-    document.body.removeChild(tempTextarea);
-
-    if (success) {
-        const originalText = DOM.exportBtn.textContent;
-        DOM.exportBtn.textContent = 'Copied!';
-        setTimeout(() => { DOM.exportBtn.textContent = originalText; }, 2000);
-    }
-}
-
-function importConfig() {
-    let rawText = DOM.importTextarea.value.trim();
-    DOM.importMessage.textContent = '';
-    DOM.importMessage.className = 'import-message';
-
-    try {
-        const importedConfig = JSON.parse(rawText);
-        
-        if (!importedConfig.settings || !importedConfig.databases) {
-            throw new Error('Invalid config object. Missing `settings` or `databases` keys.');
-        }
-
-        // Save to localStorage
-        localStorage.setItem(APP_SETTINGS_KEY, JSON.stringify(importedConfig.settings));
-        localStorage.setItem(EDITED_DATABASES_KEY, JSON.stringify(importedConfig.databases));
-        
-        DOM.importMessage.textContent = 'Success! Reloading application...';
-        DOM.importMessage.classList.add('success');
-
-        // Reload the app with new settings
-        setTimeout(() => {
-            loadState();
-            initAppUI();
-            DOM.importModal.classList.add('hidden');
-            appState.isSettingsOpen = false;
-            renderSettingsModal();
-        }, 1000);
-
-    } catch (e) {
-        console.error("Import failed:", e);
-        DOM.importMessage.textContent = `Error: ${e.message}. Please check console.`;
-        DOM.importMessage.classList.add('error');
-    }
-}
-
-
-// NEW: Function to create a new supplement database
-function createNewSupplement(dbName) {
-    console.log(`Creating new supplement: ${dbName}`);
-    
-    // 1. Create the blank template
-    const newDbConfig = {
-        "baseProduct": {
-            name: `${dbName} (Base)`,
-            pitch: "Click the settings cog to edit this pitch."
-        },
-        "recommendations": []
-    };
-
-    // 2. Add to the editedDatabases in memory
-    appState.editedDatabases[dbName] = newDbConfig;
-
-    // 3. Save to localStorage
-    saveSettingsToStorage();
-
-    // 4. Load the new DB
-    // This will reset the call and update all UI
-    loadSupplementDb(dbName);
-}
-
-
 // --- Symptom Checklist Rendering ---
+
+// NEW: Render Discovery Questions
+function renderDiscoveryQuestions() {
+    DOM.discoveryQuestionsList.innerHTML = ''; // Clear existing
+    if (!appState.supplementDatabase.questions || appState.supplementDatabase.questions.length === 0) {
+        DOM.discoveryQuestionsList.innerHTML = '<li class="text-gray-400 italic">No discovery questions configured.</li>';
+        return;
+    }
+
+    appState.supplementDatabase.questions.forEach(question => {
+        const li = document.createElement('li');
+        li.textContent = question;
+        DOM.discoveryQuestionsList.appendChild(li);
+    });
+}
 
 function renderSymptomChecklist() {
     const selectedGender = DOM.genderSelect.value;
@@ -787,9 +351,9 @@ function renderAllScript() {
         return; // Stop execution
     }
     const months = parseInt(DOM.regimenLengthSelect.value, 10);
-    const onlineBottlesOrdered = parseInt(DOM.onlineBottlesSelect.value, 10);
     const mainSuppName = appState.supplementDatabase.baseProduct.name.replace(' (Base)', '');
-    const pricePerBottle = getPricePerBottle(months);
+    const pricePerBottle = AppUI.getPricePerBottle(months);
+    const guaranteeDays = appState.supplementDatabase.guaranteeDays || 60; // NEW
 
     DOM.authoRegimenLengthSelect.value = months;
 
@@ -816,13 +380,30 @@ function renderAllScript() {
     );
     activeRecommendations.sort((a, b) => a.name.localeCompare(b.name));
     
+    // Get ALL addon names selected in checklist
     let addonNames = activeRecommendations.map(rec => rec.name.replace(/\(.*\)/, '').trim());
-    let addonListString = formatAddonList(addonNames);
+    let addonListString = AppUI.formatAddonList(addonNames);
 
-    const numAddOns = activeSupplementIds.size;
+    // --- NEW PRICING LOGIC ---
+    // Find how many base supplement bottles were in the online order
+    const onlineBottlesOrdered = appState.onlineOrder.find(item => item.name === mainSuppName)?.quantity || 0;
+
+    // Calculate how many *more* base bottles are needed
     const bottlesOfMainToOrder = Math.max(0, months - onlineBottlesOrdered);
-    const bottlesOfAddonsToOrder = months * numAddOns;
+
+    // --- LOGIC FIX V3.3.3 ---
+    // Calculate how many *more* addon bottles are needed
+    // This MUST loop over activeRecommendations to get the *original* name for the lookup
+    let bottlesOfAddonsToOrder = 0;
+    for (const rec of activeRecommendations) {
+        const originalAddonName = rec.name; // e.g., "FreePain Pro (FPP)"
+        const onlineAddonQty = appState.onlineOrder.find(item => item.name === originalAddonName)?.quantity || 0;
+        bottlesOfAddonsToOrder += Math.max(0, months - onlineAddonQty);
+    }
+    // --- END LOGIC FIX ---
+    
     const totalCost = (bottlesOfMainToOrder * pricePerBottle) + (bottlesOfAddonsToOrder * pricePerBottle);
+    // --- END NEW PRICING LOGIC ---
     
     const pitchedSupps = [mainSuppName, ...addonNames];
     DOM.generatedNotes.textContent = 'Pitched: ' + pitchedSupps.join(', ');
@@ -830,7 +411,7 @@ function renderAllScript() {
     if (activeRecommendations.length === 0) {
         DOM.dynamicPitchContent.innerHTML = `<p class="italic text-yellow-400">No additional symptoms selected. The regimen will only be for ${mainSuppName}.</p>`;
     } else {
-        let pitch = `<p>And I'm also going to have you take <strong class="text-yellow-400">${numAddOns}</strong> additional supplement${numAddOns > 1 ? 's' : ''} with the ${mainSuppName}. `;
+        let pitch = `<p>And I'm also going to have you take <strong class="text-yellow-400">${addonNames.length}</strong> additional supplement${addonNames.length > 1 ? 's' : ''} with the ${mainSuppName}. `;
         if (addonNames.length === 1) {
             pitch += `It's the <strong class="text-green-400">${addonNames[0]}</strong>. Okay?</p>`;
         } else if (addonNames.length === 2) {
@@ -847,7 +428,7 @@ function renderAllScript() {
     }
     
     const benefits = activeSymptomsData.map(s => s.sympBenefit);
-    DOM.dynamicBenefitsList.innerHTML = `<p class="text-lg">${formatBenefitsList(benefits)} Okay?</p>`;
+    DOM.dynamicBenefitsList.innerHTML = `<p class="text-lg">${AppUI.formatBenefitsList(benefits)} Okay?</p>`;
 
     DOM.dynamicRecommendations.innerHTML = '';
     if (activeSymptomsData.length === 0) {
@@ -883,25 +464,56 @@ function renderAllScript() {
     document.getElementById('pitch-length-half-2').textContent = months - halfMonths;
     document.getElementById('pitch-price').textContent = pricePerBottle;
 
-    const hasOnlyAddons = (bottlesOfMainToOrder === 0 && bottlesOfAddonsToOrder > 0);
-    const hasOnlyMain = (bottlesOfMainToOrder > 0 && bottlesOfAddonsToOrder === 0);
-    const hasBoth = (bottlesOfMainToOrder > 0 && bottlesOfAddonsToOrder > 0);
-    let authoScriptWording = "", orderBreakdownWording = "";
+    // --- NEW AUTHO SCRIPT LOGIC ---
+    
+    // 1. Populate the "Online you've already ordered" line
+    let onlineOrderSummary = "Now online you've already ordered ";
+    if (appState.onlineOrder.length === 0) {
+        onlineOrderSummary += "no items.";
+    } else {
+        onlineOrderSummary += appState.onlineOrder.map(item => `<strong class="text-yellow-400">${item.quantity} ${item.name}</strong>`).join(', ') + ".";
+    }
+    DOM.authoScriptOnlinePart.innerHTML = onlineOrderSummary;
+
+    // 2. Populate the "So all I have left to do" line
+    const needsMain = bottlesOfMainToOrder > 0;
+    const needsAddons = bottlesOfAddonsToOrder > 0;
+    let authoScriptWording = "";
+    
     const regimenCompletionText = (months < 18) 
         ? `for the first <strong class="text-yellow-400">${months} months</strong> of your regimen` 
-        : "to complete your regiment";
+        : "to complete your regimen";
 
-    if (hasOnlyAddons) {
-        authoScriptWording = `<p>Now online you've already ordered your full <strong class="text-yellow-400">${onlineBottlesOrdered} months</strong> of the <strong class="text-yellow-400">${mainSuppName}</strong>. So all I have left to do now is send you the full <strong class="text-yellow-400">${months}-month</strong> supply of <strong class="text-yellow-400">${addonListString}</strong> ${regimenCompletionText}.</p>`;
-        orderBreakdownWording = `<p>Now with your new order, you'll be getting the full <strong class="text-yellow-400">${months}-month</strong> supply of <strong class="text-yellow-400">${addonListString}</strong> for the additional <strong class="text-yellow-400">$<span id="order-cost">${totalCost.toFixed(2)}</span></strong>.</p>`;
-    } else if (hasOnlyMain) {
-        authoScriptWording = `<p>Now online you've already ordered <strong class="text-yellow-400">${onlineBottlesOrdered}</strong> of the <strong class="text-yellow-400">${mainSuppName}</strong>. So all I have left to do now is send you <strong class="text-yellow-400">${bottlesOfMainToOrder}</strong> more of the <strong class="text-yellow-400">${mainSuppName}</strong> to take that up to <strong class="text-yellow-400">${months}</strong> ${regimenCompletionText}.</p>`;
-        orderBreakdownWording = `<p>Now with your new order, you'll be getting <strong class="text-yellow-400">${bottlesOfMainToOrder}</strong> additional <strong class="text-yellow-400">${mainSuppName}</strong> for the additional <strong class="text-yellow-400">$<span id="order-cost">${totalCost.toFixed(2)}</span></strong>.</p>`;
-    } else if (hasBoth) {
-        authoScriptWording = `<p>Now online you've already ordered <strong class="text-yellow-400">${onlineBottlesOrdered}</strong> of the <strong class="text-yellow-400">${mainSuppName}</strong>. So all I have left to do now is send you <strong class="text-yellow-400">${bottlesOfMainToOrder}</strong> more of the <strong class="text-yellow-400">${mainSuppName}</strong> to take that up to <strong class="text-yellow-400">${months}</strong>, as well as the <strong class="text-yellow-400">${months}-month</strong> supply of <strong class="text-yellow-400">${addonListString}</strong> ${regimenCompletionText}.</p>`;
-        orderBreakdownWording = `<p>Now with your new order, you'll be getting <strong class="text-yellow-400">${bottlesOfMainToOrder}</strong> additional <strong class="text-yellow-400">${mainSuppName}</strong> and the full <strong class="text-yellow-400">${months}-month</strong> supply of <strong class="text-yellow-400">${addonListString}</strong> for the additional <strong class="text-yellow-400">$<span id="order-cost">${totalCost.toFixed(2)}</span></strong>.</p>`;
+    // --- LOGIC FIX V3.3.2 (This logic is correct) ---
+    // Uses bottlesOfAddonsToOrder (which is now correctly calculated in V3.3.3)
+    if (needsMain && needsAddons) {
+        authoScriptWording = `<p>So all I have left to do now is send you <strong class="text-yellow-400">${bottlesOfMainToOrder}</strong> more of the <strong class="text-yellow-400">${mainSuppName}</strong>, as well as <strong class="text-yellow-400">${bottlesOfAddonsToOrder}</strong> more of the <strong class="text-yellow-400">${addonListString}</strong> ${regimenCompletionText}.</p>`;
+    } else if (needsMain && !needsAddons) {
+        authoScriptWording = `<p>So all I have left to do now is send you <strong class="text-yellow-400">${bottlesOfMainToOrder}</strong> more of the <strong class="text-yellow-400">${mainSuppName}</strong> ${regimenCompletionText}.</p>`;
+    } else if (!needsMain && needsAddons) {
+        authoScriptWording = `<p>So all I have left to do now is send you <strong class="text-yellow-400">${bottlesOfAddonsToOrder}</strong> more of the <strong class="text-yellow-400">${addonListString}</strong> ${regimenCompletionText}.</p>`;
     } else {
-        authoScriptWording = `<p>It looks like your order is already complete with <strong class="text-yellow-400">${onlineBottlesOrdered} months</strong> of <strong class="text-yellow-400">${mainSuppName}</strong> and no additional supplements.</p>`;
+        authoScriptWording = `<p>It looks like your order is already complete with everything you need for the full <strong class="text-yellow-400">${months}-month</strong> regimen.</p>`;
+    }
+    // --- END LOGIC FIX ---
+    
+    // 3. Populate the "Order Breakdown" section
+    let onlineOrderText = "Online, you ordered: ";
+    if (appState.onlineOrder.length === 0) {
+        onlineOrderText = "You have no items in your online order.";
+    } else {
+        onlineOrderText += appState.onlineOrder.map(item => `<strong class="text-yellow-400">${item.quantity} ${item.name}</strong>`).join(', ');
+    }
+    DOM.orderBreakdownOnlinePart.innerHTML = onlineOrderText + " for [ONLINE ORDER COST]. This was already processed before.";
+
+    let orderBreakdownWording = "";
+    if (needsMain && needsAddons) {
+        orderBreakdownWording = `<p>Now with your new order, you'll be getting <strong class="text-yellow-400">${bottlesOfMainToOrder}</strong> additional <strong class="text-yellow-400">${mainSuppName}</strong> and <strong class="text-yellow-400">${bottlesOfAddonsToOrder}</strong> additional bottle(s) of <strong class="text-yellow-400">${addonListString}</strong> for the additional <strong class="text-yellow-400">$<span id="order-cost">${totalCost.toFixed(2)}</span></strong>.</p>`;
+    } else if (needsMain && !needsAddons) {
+        orderBreakdownWording = `<p>Now with your new order, you'll be getting <strong class="text-yellow-400">${bottlesOfMainToOrder}</strong> additional <strong class="text-yellow-400">${mainSuppName}</strong> for the additional <strong class="text-yellow-400">$<span id="order-cost">${totalCost.toFixed(2)}</span></strong>.</p>`;
+    } else if (!needsMain && needsAddons) {
+        orderBreakdownWording = `<p>Now with your new order, you'll be getting <strong class="text-yellow-400">${bottlesOfAddonsToOrder}</strong> additional bottle(s) of <strong class="text-yellow-400">${addonListString}</strong> for the additional <strong class="text-yellow-400">$<span id="order-cost">${totalCost.toFixed(2)}</span></strong>.</p>`;
+    } else {
         orderBreakdownWording = `<p>Now with your new order, it looks like your order is already complete.</p>`;
     }
     
@@ -909,15 +521,19 @@ function renderAllScript() {
     document.getElementById('autho-script-dynamic-wording').innerHTML = authoScriptWording;
     document.getElementById('autho-cost').textContent = totalCost.toFixed(2);
     document.getElementById('autho-cost-2').textContent = totalCost.toFixed(2);
-    document.getElementById('order-online-bottles').textContent = onlineBottlesOrdered;
+    // document.getElementById('order-online-bottles').textContent = onlineBottlesOrdered; // REMOVED
     document.getElementById('order-breakdown-dynamic-wording').innerHTML = orderBreakdownWording;
     document.getElementById('decline-cost').textContent = totalCost.toFixed(2);
+
+    // NEW: Update guarantee day placeholders
+    if (DOM.guaranteeDays1) DOM.guaranteeDays1.textContent = guaranteeDays;
+    if (DOM.guaranteeDays2) DOM.guaranteeDays2.textContent = guaranteeDays;
 }
 
 // --- Call Reset Functions ---
 
 function resetForNextCall() {
-    stopGlobalTimer();
+    AppUI.stopGlobalTimer();
     appState.currentSegmentIndex = -1;
     appState.settings.segments.forEach(s => { s.state = 'pending'; s.progress = 0; s.overtime = 0; s.startTime = null; });
     DOM.clientNameInput.value = '';
@@ -926,8 +542,15 @@ function resetForNextCall() {
     DOM.authoRegimenLengthSelect.value = '18';
     DOM.regimenLengthSelect.value = '18';
     DOM.customNotes.value = '';
+
+    // NEW: Reset online order to default
+    appState.onlineOrder = [
+        { name: appState.supplementDatabase.baseProduct.name.replace(' (Base)', ''), quantity: 6 }
+    ];
+    AppUI.renderOnlineOrderEditor();
+
     renderAllScript();
-    renderTimerBar();
+    AppUI.renderTimerBar();
     updateTimerControlsVisibility();
     DOM.resetConfirmModal.classList.add('hidden');
 }
@@ -938,25 +561,7 @@ function resetForNextCall() {
 function setupEventListeners() {
     DOM.copyNotesBtn.addEventListener('click', () => {
         const fullNotes = DOM.generatedNotes.textContent + '\n\n' + DOM.customNotes.value;
-        const tempTextarea = document.createElement('textarea');
-        tempTextarea.style.position = 'absolute'; tempTextarea.style.left = '-9999px';
-        tempTextarea.value = fullNotes;
-        document.body.appendChild(tempTextarea);
-        tempTextarea.select();
-        let success = false;
-        try { success = document.execCommand('copy'); } catch (err) { console.error('Failed to copy: ', err); }
-        document.body.removeChild(tempTextarea);
-        if (success) {
-            const span = DOM.copyNotesBtn.querySelector('span');
-            span.textContent = 'Copied!';
-            DOM.copyNotesBtn.classList.add('bg-green-600', 'hover:bg-green-700');
-            DOM.copyNotesBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
-            setTimeout(() => {
-                span.textContent = 'Copy Notes';
-                DOM.copyNotesBtn.classList.remove('bg-green-600', 'hover:bg-green-700');
-                DOM.copyNotesBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
-            }, 2000);
-        }
+        AppUI.copyToClipboard(fullNotes, DOM.copyNotesBtn.querySelector('span'), 'Copy Notes', 'Copied!');
     });
 
     DOM.symptomChecklistContainer.addEventListener('change', (e) => {
@@ -968,15 +573,15 @@ function setupEventListeners() {
         renderAllScript();
     });
 
-    DOM.onlineBottlesSelect.addEventListener('change', renderAllScript);
+    // DOM.onlineBottlesSelect.addEventListener('change', renderAllScript); // REMOVED
     DOM.genderSelect.addEventListener('change', () => { renderSymptomChecklist(); renderAllScript(); });
 
     DOM.clientNameInput.addEventListener('input', () => {
         updateClientName(DOM.clientNameInput.value.trim());
-        if (appState.currentSegmentIndex === -1) tryStartSegment(0);
+        if (appState.currentSegmentIndex === -1) AppUI.tryStartSegment(0);
     });
 
-    DOM.startTimerManualBtn.addEventListener('click', () => { if (appState.currentSegmentIndex === -1) tryStartSegment(0); });
+    DOM.startTimerManualBtn.addEventListener('click', () => { if (appState.currentSegmentIndex === -1) AppUI.tryStartSegment(0); });
 
     DOM.dynamicRecommendations.addEventListener('click', (e) => {
         const removeBtn = e.target.closest('.remove-btn');
@@ -996,16 +601,16 @@ function setupEventListeners() {
     DOM.resetCancelBtn.addEventListener('click', () => DOM.resetConfirmModal.classList.add('hidden'));
     DOM.resetConfirmBtn.addEventListener('click', resetForNextCall);
 
-    DOM.settingsCogBtn.addEventListener('click', () => { appState.isSettingsOpen = true; renderSettingsModal(); });
-    DOM.settingsCloseBtn.addEventListener('click', () => { appState.isSettingsOpen = false; renderSettingsModal(); });
-    DOM.settingsSaveBtn.addEventListener('click', saveSettings);
+    DOM.settingsCogBtn.addEventListener('click', () => { appState.isSettingsOpen = true; AppUI.renderSettingsModal(); });
+    DOM.settingsCloseBtn.addEventListener('click', () => { appState.isSettingsOpen = false; AppUI.renderSettingsModal(); });
+    DOM.settingsSaveBtn.addEventListener('click', AppUI.saveSettings);
 
     DOM.addSegmentBtn.addEventListener('click', () => {
         appState.settings.segments.push({
             id: `seg-${Date.now()}`, title: "New Segment", duration: 60,
             progress: 0, state: 'pending', overtime: 0, startTime: null
         });
-        renderSettingsModal();
+        AppUI.renderSettingsModal();
     });
 
     DOM.segmentSettingsList.addEventListener('click', (e) => {
@@ -1013,9 +618,30 @@ function setupEventListeners() {
         if (removeBtn) {
             const idToRemove = removeBtn.dataset.segmentId;
             appState.settings.segments = appState.settings.segments.filter(s => s.id !== idToRemove);
-            renderSettingsModal();
+            AppUI.renderSettingsModal();
         }
     });
+
+    // NEW: Listeners for Question Editor
+    DOM.addQuestionBtn.addEventListener('click', () => {
+        const questionEl = document.createElement('div');
+        questionEl.className = 'flex items-center gap-2';
+        questionEl.innerHTML = `
+            <input type="text" value="" class="question-input w-full bg-gray-600 text-white rounded p-2 text-sm" placeholder="New question...">
+            <button class="remove-question-btn bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+            </button>
+        `;
+        DOM.questionsEditorList.appendChild(questionEl);
+    });
+
+    DOM.questionsEditorList.addEventListener('click', (e) => {
+        const removeBtn = e.target.closest('.remove-question-btn');
+        if (removeBtn) {
+            removeBtn.parentElement.remove();
+        }
+    });
+
 
     DOM.supplementSettingsList.addEventListener('click', (e) => {
         const removeSymptomBtn = e.target.closest('.remove-symptom-btn');
@@ -1058,6 +684,7 @@ function setupEventListeners() {
     });
 
     DOM.addSupplementBtn.addEventListener('click', () => {
+        // BUG FIX: This now appends the new element instead of re-rendering all
         const newSympId = `symp-${Date.now()}`;
         const newSupp = {
             id: `supp-${Date.now()}`, name: "New Supplement", gender: "any",
@@ -1065,52 +692,52 @@ function setupEventListeners() {
                 { id: newSympId, text: "New Symptom", pitch: "", benefit: "" }
             ]
         };
-        appState.supplementDatabase.recommendations.push(newSupp);
-        renderSettingsModal();
+        // 1. Create the new element
+        const newSuppElement = AppUI.createSupplementEditorElement(newSupp);
+        // 2. Append it to the list in the DOM
+        DOM.supplementSettingsList.appendChild(newSuppElement);
+        // Note: The new supplement is not in appState *yet*. It will be added
+        // when the user hits "Save". This prevents unsaved changes from
+        // being lost.
     });
     
     DOM.resetToDefaultsBtn.addEventListener('click', () => DOM.resetDefaultsConfirmModal.classList.remove('hidden'));
     DOM.resetDefaultsCancelBtn.addEventListener('click', () => DOM.resetDefaultsConfirmModal.classList.add('hidden'));
-    DOM.resetDefaultsConfirmBtn.addEventListener('click', resetSettingsToDefaults);
+    DOM.resetDefaultsConfirmBtn.addEventListener('click', AppUI.resetSettingsToDefaults);
 
     DOM.floatingTimerBar.addEventListener('click', (e) => {
         const segmentEl = e.target.closest('.timer-segment');
-        if (segmentEl) tryStartSegment(Number(segmentEl.dataset.index));
+        if (segmentEl) AppUI.tryStartSegment(Number(segmentEl.dataset.index));
     });
 
-    DOM.exportBtn.addEventListener('click', exportConfig);
-    DOM.importBtn.addEventListener('click', () => {
-        DOM.importModal.classList.remove('hidden');
-        DOM.importMessage.textContent = '';
-        DOM.importMessage.className = 'import-message';
-        DOM.importTextarea.value = '';
-    });
+    // NEW Import/Export Listeners
+    DOM.exportAppSettingsBtn.addEventListener('click', (e) => AppUI.exportAppSettings(e));
+    DOM.exportDbBtn.addEventListener('click', (e) => AppUI.handleDatabaseExport(e));
+    DOM.importAppSettingsBtn.addEventListener('click', () => AppUI.openImportModal('app'));
+    DOM.importDbBtn.addEventListener('click', () => AppUI.openImportModal('db'));
+
+    // Import Modal Listeners
     DOM.importModalCloseBtn.addEventListener('click', () => DOM.importModal.classList.add('hidden'));
     DOM.importCancelBtn.addEventListener('click', () => DOM.importModal.classList.add('hidden'));
-    DOM.importConfirmBtn.addEventListener('click', importConfig);
+    DOM.importConfirmBtn.addEventListener('click', AppUI.handleImport);
 
-    // REMOVED: Old database switcher listener
-    // DOM.databaseSwitcher.addEventListener('change', (e) => {
-    //     loadSupplementDb(e.target.value);
-    // });
-
-    // NEW: Title Search Listeners
-    DOM.titleClickWrapper.addEventListener('click', () => { // UPDATED
+    // Title Search Listeners
+    DOM.titleClickWrapper.addEventListener('click', () => {
         appState.isSearching = true;
-        renderTitleUI();
+        AppUI.renderTitleUI();
     });
 
     DOM.scriptSearchInput.addEventListener('input', () => {
-        renderSearchResults(DOM.scriptSearchInput.value);
+        AppUI.renderSearchResults(DOM.scriptSearchInput.value);
     });
 
     DOM.scriptSearchResults.addEventListener('click', (e) => {
-        // NEW: Check for click on a create button
+        // Check for click on a create button
         const createBtn = e.target.closest('.search-result-create-btn');
         if (createBtn) {
             const dbName = createBtn.dataset.dbname;
             if (dbName) {
-                createNewSupplement(dbName);
+                AppUI.createNewSupplement(dbName);
                 // createNewSupplement will call loadSupplementDb, which
                 // handles closing the search UI.
             }
@@ -1128,7 +755,58 @@ function setupEventListeners() {
     });
 
     // Add listener to close search when clicking outside
-    document.addEventListener('click', closeSearch);
+    document.addEventListener('click', AppUI.closeSearch);
+
+    // NEW: Online Order Editor Listeners
+    DOM.onlineOrderSearch.addEventListener('input', () => {
+        AppUI.renderOnlineOrderSearchResults(DOM.onlineOrderSearch.value);
+    });
+    
+    DOM.onlineOrderSearch.addEventListener('focus', () => {
+        AppUI.renderOnlineOrderSearchResults('');
+    });
+    
+    // Close search results when clicking outside the editor
+    document.addEventListener('click', (e) => {
+        if (DOM.onlineOrderEditor && !DOM.onlineOrderEditor.contains(e.target)) {
+            DOM.onlineOrderSearchResults.classList.add('hidden');
+        }
+    });
+
+    DOM.onlineOrderSearchResults.addEventListener('click', (e) => {
+        const itemEl = e.target.closest('.search-result-item');
+        if (itemEl) {
+            const name = itemEl.dataset.name;
+            appState.onlineOrder.push({ name: name, quantity: 1 });
+            AppUI.renderOnlineOrderEditor();
+            renderAllScript();
+            DOM.onlineOrderSearch.value = '';
+            DOM.onlineOrderSearchResults.classList.add('hidden');
+        }
+    });
+
+    DOM.onlineOrderList.addEventListener('input', (e) => {
+        if (e.target.classList.contains('online-order-item-qty')) {
+            const index = parseInt(e.target.dataset.index, 10);
+            const newQuantity = parseInt(e.target.value, 10);
+            if (!isNaN(newQuantity) && newQuantity >= 0) {
+                if(appState.onlineOrder[index]) {
+                    appState.onlineOrder[index].quantity = newQuantity;
+                    renderAllScript(); // Re-calculate everything
+                }
+            }
+        }
+    });
+
+    DOM.onlineOrderList.addEventListener('click', (e) => {
+        const removeBtn = e.target.closest('.online-order-item-remove-btn');
+        if (removeBtn) {
+            const index = parseInt(removeBtn.dataset.index, 10);
+            appState.onlineOrder.splice(index, 1); // Remove item from state
+            AppUI.renderOnlineOrderEditor(); // Re-render the editor list
+            renderAllScript(); // Re-calculate everything
+        }
+    });
 }
 
 // --- INITIALIZATION ---
@@ -1139,10 +817,12 @@ function setupEventListeners() {
  */
 function initAppUI() {
     updateAgentNameUI();
-    updateSupplementWordingUI(); // This will also call renderTitleUI()
+    updateSupplementWordingUI(); // This will also call AppUI.renderTitleUI()
+    renderDiscoveryQuestions(); // NEW
     renderSymptomChecklist();
+    AppUI.renderOnlineOrderEditor(); // NEW
     renderAllScript();
-    renderTimerBar();
+    AppUI.renderTimerBar();
     updateClientName(DOM.clientNameInput.value);
     updateTimerControlsVisibility();
 }
