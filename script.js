@@ -1,6 +1,6 @@
 /**
  * ============================================
- * SCRIPT TOOL APPLICATION LOGIC (V5.3.0)
+ * SCRIPT TOOL APPLICATION LOGIC (V5.3.2)
  * ============================================
  * This is the main "controller" file.
  * It handles state, core logic, and event listeners.
@@ -351,15 +351,17 @@ function renderSymptomChecklist() {
 
         const groupEl = document.createElement('div');
         groupEl.className = 'symptom-group-container';
-        groupEl.dataset.suppId = supp.id; // NEW: Add data-id for drag-and-drop
+        groupEl.dataset.suppId = supp.id; // Add data-id for drag-and-drop
 
-        // NEW: Add drag handle to header
+        // MODIFIED: Wrapped the SVG in a larger, draggable div
         groupEl.innerHTML = `
             <h4 class="symptom-group-header flex justify-between items-center">
                 <span>${supp.name}</span>
-                <svg draggable="true" class="drag-handle-main h-6 w-6 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
+                <div draggable="true" class="drag-handle-main h-8 w-8 flex items-center justify-center rounded-md text-gray-500">
+                    <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </div>
             </h4>`;
 
         const symptomsList = document.createElement('div');
@@ -735,7 +737,7 @@ function initDragAndDropEventListeners() {
             const targetId = targetEl.dataset.suppId;
 
             // Find indices in the *data array*
-            const& draggedIndex = appState.supplementDatabase.recommendations.findIndex(s => s.id === draggedId);
+            const draggedIndex = appState.supplementDatabase.recommendations.findIndex(s => s.id === draggedId);
             const targetIndex = appState.supplementDatabase.recommendations.findIndex(s => s.id === targetId);
 
             if (draggedIndex > -1 && targetIndex > -1) {
@@ -811,7 +813,7 @@ function setupEventListeners() {
     AppUI.initSearchEventListeners();
     AppUI.initIOEventListeners();
     AppUI.initOrderEditorEventListeners();
-    initDragAndDropEventListeners(); // NEW: Add main page DND listeners
+    initDragAndDropEventListeners(); // Add main page DND listeners
 }
 
 // --- INITIALIZATION ---
