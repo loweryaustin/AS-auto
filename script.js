@@ -1,10 +1,17 @@
 /**
  * ============================================
- * SCRIPT TOOL APPLICATION LOGIC (V4.1.1)
+ * SCRIPT TOOL APPLICATION LOGIC (V5.0.0)
  * ============================================
  * This is the main "controller" file.
  * It handles state, core logic, and event listeners.
- * All DOM manipulation and UI logic is in script-ui.js (AppUI).
+ *
+ * It orchestrates all components:
+ * - `AppUI` (script-ui.js)
+ * - `AppUI.initTimerEventListeners` (script-timer.js)
+ * - `AppUI.initSettingsEventListeners` (script-settings.js)
+ * - `AppUI.initSearchEventListeners` (script-search.js)
+ * - `AppUI.initIOEventListeners` (script-io.js)
+ * - `AppUI.initOrderEditorEventListeners` (script-order-editor.js)
  */
 
 // --- App State ---
@@ -23,7 +30,7 @@ let appState = {
     editedDatabases: {},     // Holds user-edited DBs from localStorage
     supplementDatabase: {},  // The *currently active* supplement DB
     currentDbName: null,     // The key of the currently active DB
-    onlineOrder: [],         // NEW: Holds {name, quantity} objects
+    onlineOrder: [],         // Holds {name, quantity} objects
     currentSegmentIndex: -1,
     globalTimerInterval: null,
     isSettingsOpen: false,
@@ -31,12 +38,12 @@ let appState = {
 };
 
 // --- DOM CACHE (Query once) ---
-// This object is shared with script-ui.js
+// This object is shared with all component files
 const DOM = {};
 function cacheDOMElements() {
+    // Core App
     DOM.regimenLengthSelect = document.getElementById('regimen-length');
     DOM.authoRegimenLengthSelect = document.getElementById('autho-regimen-length'); 
-    // DOM.onlineBottlesSelect = document.getElementById('online-bottles'); // REMOVED
     DOM.genderSelect = document.getElementById('gender');
     DOM.clientNameInput = document.getElementById('client-name');
     DOM.clientNamePlaceholders = document.querySelectorAll('.client-name-placeholder');
@@ -50,11 +57,21 @@ function cacheDOMElements() {
     DOM.baseProductNameSidebar = document.getElementById('base-product-name-sidebar');
     DOM.baseProductPitchSidebar = document.getElementById('base-product-pitch-sidebar');
     DOM.baseProductNameScriptPlaceholders = document.querySelectorAll('.base-product-name-script');
+    DOM.discoveryQuestionsList = document.getElementById('discovery-questions-list');
+    DOM.guaranteeDays1 = document.getElementById('guarantee-days-1');
+    DOM.guaranteeDays2 = document.getElementById('guarantee-days-2');
+    DOM.orderBreakdownCompletionWording = document.getElementById('order-breakdown-completion-wording');
+    
+    // Notes (Shared Utility)
     DOM.generatedNotes = document.getElementById('generated-notes');
     DOM.customNotes = document.getElementById('custom-notes');
     DOM.copyNotesBtn = document.getElementById('copy-notes-btn');
+
+    // Timer
     DOM.floatingTimerBar = document.getElementById('floating-timer-bar');
     DOM.startTimerManualBtn = document.getElementById('start-timer-manual-btn');
+    
+    // Settings
     DOM.settingsCogBtn = document.getElementById('settings-cog-btn');
     DOM.settingsModal = document.getElementById('settings-modal');
     DOM.settingsCloseBtn = document.getElementById('settings-close-btn');
@@ -62,20 +79,18 @@ function cacheDOMElements() {
     DOM.agentNameSettingInput = document.getElementById('agent-name-setting');
     DOM.segmentSettingsList = document.getElementById('segment-settings-list');
     DOM.addSegmentBtn = document.getElementById('add-segment-btn');
-
-    // NEW: Question Editor Elements
     DOM.questionsEditorList = document.getElementById('questions-editor-list');
     DOM.addQuestionBtn = document.getElementById('add-question-btn');
-    
-    // NEW: Discovery Questions List Container (Main Page)
-    DOM.discoveryQuestionsList = document.getElementById('discovery-questions-list');
-
     DOM.baseProductNameSetting = document.getElementById('base-product-name-setting');
     DOM.baseProductPitchSetting = document.getElementById('base-product-pitch-setting');
-    DOM.baseProductGuaranteeSetting = document.getElementById('base-product-guarantee-setting'); // NEW
+    DOM.baseProductGuaranteeSetting = document.getElementById('base-product-guarantee-setting');
     DOM.supplementSettingsList = document.getElementById('supplement-settings-list');
     DOM.addSupplementBtn = document.getElementById('add-supplement-btn');
     DOM.resetToDefaultsBtn = document.getElementById('reset-to-defaults-btn');
+    DOM.settingsWarningBox = document.getElementById('settings-warning-box');
+    DOM.currentDbNameDisplay = document.getElementById('current-db-name-display');
+
+    // Reset Modals
     DOM.resetAppBtn = document.getElementById('reset-app-btn');
     DOM.resetConfirmModal = document.getElementById('reset-confirm-modal');
     DOM.resetConfirmBtn = document.getElementById('reset-confirm-btn');
@@ -84,17 +99,11 @@ function cacheDOMElements() {
     DOM.resetDefaultsConfirmBtn = document.getElementById('reset-defaults-confirm-btn');
     DOM.resetDefaultsCancelBtn = document.getElementById('reset-defaults-cancel-btn');
     
-    // NEW: LocalStorage Warning Box
-    DOM.settingsWarningBox = document.getElementById('settings-warning-box');
-
-    // NEW Contextual Import/Export Buttons
+    // Import/Export
     DOM.exportAppSettingsBtn = document.getElementById('export-app-settings-btn');
     DOM.importAppSettingsBtn = document.getElementById('import-app-settings-btn');
     DOM.exportDbBtn = document.getElementById('export-db-btn');
     DOM.importDbBtn = document.getElementById('import-db-btn');
-    DOM.currentDbNameDisplay = document.getElementById('current-db-name-display');
-
-    // Import Modal Elements
     DOM.importModal = document.getElementById('import-modal');
     DOM.importModalTitle = document.getElementById('import-modal-title');
     DOM.importModalDescription = document.getElementById('import-modal-description');
@@ -104,7 +113,7 @@ function cacheDOMElements() {
     DOM.importCancelBtn = document.getElementById('import-cancel-btn');
     DOM.importMessage = document.getElementById('import-message');
 
-    // Title Search Elements
+    // Title Search
     DOM.titleSearchContainer = document.getElementById('title-search-container');
     DOM.scriptTitleDisplay = document.getElementById('script-title-display');
     DOM.titleClickWrapper = document.getElementById('title-click-wrapper');
@@ -112,25 +121,22 @@ function cacheDOMElements() {
     DOM.scriptSearchInput = document.getElementById('script-search-input');
     DOM.scriptSearchResults = document.getElementById('script-search-results');
 
-    // NEW: Online Order Editor Elements
+    // Online Order Editor
     DOM.onlineOrderEditor = document.getElementById('online-order-editor');
     DOM.onlineOrderList = document.getElementById('online-order-list');
     DOM.onlineOrderSearch = document.getElementById('online-order-search');
     DOM.onlineOrderSearchResults = document.getElementById('online-order-search-results');
     DOM.orderBreakdownOnlinePart = document.getElementById('order-breakdown-online-part');
     DOM.authoScriptOnlinePart = document.getElementById('autho-script-online-part');
-    
-    // NEW: Guarantee Day Placeholders
-    DOM.guaranteeDays1 = document.getElementById('guarantee-days-1');
-    DOM.guaranteeDays2 = document.getElementById('guarantee-days-2');
-    
-    // NEW: Order breakdown completion wording
-    DOM.orderBreakdownCompletionWording = document.getElementById('order-breakdown-completion-wording');
 }
 
 
 // --- State Management Functions ---
 
+/**
+ * Loads the application state from defaults and localStorage.
+ * Populates `appState`.
+ */
 function loadState() {
     // 1. Load default app settings and merge saved app settings
     let savedAppSettings = {};
@@ -189,29 +195,29 @@ function loadSupplementDb(dbName, resetCall = true) {
     appState.currentDbName = dbName;
     localStorage.setItem(LAST_DB_NAME_KEY, dbName);
 
-    // NEW: Guardrail for old data that might be missing the questions key
+    // Guardrail for old data that might be missing the questions key
     if (!appState.supplementDatabase.questions) {
         appState.supplementDatabase.questions = []; // Add it if it's missing
     }
     
-    // NEW: Guardrail for old data that might be missing guaranteeDays
+    // Guardrail for old data that might be missing guaranteeDays
     if (!appState.supplementDatabase.guaranteeDays) {
         appState.supplementDatabase.guaranteeDays = 60; // Add it if it's missing
     }
 
-    // NEW: Set default online order
+    // Set default online order
     // This MUST happen after supplementDatabase is set
     appState.onlineOrder = [
         { name: appState.supplementDatabase.baseProduct.name.replace(' (Base)', ''), quantity: 6 }
     ];
 
-    // FIX: Manually calling render functions in order
+    // Manually calling render functions in order
     
     // 1. Render the title and sidebar
     updateSupplementWordingUI();
 
     // 2. Render the new discovery questions
-    renderDiscoveryQuestions(); // NEW
+    renderDiscoveryQuestions();
     
     // 3. Render the new symptom checklist
     renderSymptomChecklist();
@@ -227,6 +233,10 @@ function loadSupplementDb(dbName, resetCall = true) {
     }
 }
 
+/**
+ * Saves the current `appState.settings` and `appState.editedDatabases`
+ * to localStorage.
+ */
 function saveSettingsToStorage() {
     try {
         // 1. Save app-level settings (agent, segments)
@@ -245,18 +255,24 @@ function saveSettingsToStorage() {
 
 // --- Core UI Update Functions ---
 
+/**
+ * Updates the Agent Name placeholders in the script.
+ */
 function updateAgentNameUI() {
     const displayName = appState.settings.agentName || "[Agent Name]";
     DOM.agentNamePlaceholders.forEach(el => el.textContent = displayName);
 }
 
+/**
+ * Updates supplement-specific wording in the script and sidebar.
+ */
 function updateSupplementWordingUI() {
     // This function now just updates wording in the script/sidebar
     // The title itself is handled by AppUI.renderTitleUI()
     const baseProduct = appState.supplementDatabase.baseProduct;
     const baseProductName = baseProduct.name.replace(' (Base)', '');
 
-    // Update title
+    // Update title (calls function in script-search.js)
     AppUI.renderTitleUI();
     
     // Update sidebar
@@ -269,18 +285,27 @@ function updateSupplementWordingUI() {
     });
 }
 
+/**
+ * Updates the Client Name placeholders in the script.
+ * @param {string} name - The client's name.
+ */
 function updateClientName(name) {
     const displayName = name || "[Client Name]";
     DOM.clientNamePlaceholders.forEach(el => el.textContent = displayName);
 }
 
+/**
+ * Toggles the visibility of the manual timer start button.
+ */
 function updateTimerControlsVisibility() {
     DOM.startTimerManualBtn.classList.toggle('hidden', appState.currentSegmentIndex !== -1);
 }
 
 // --- Symptom Checklist Rendering ---
 
-// NEW: Render Discovery Questions
+/**
+ * Renders the list of discovery questions in Part 2.
+ */
 function renderDiscoveryQuestions() {
     DOM.discoveryQuestionsList.innerHTML = ''; // Clear existing
     if (!appState.supplementDatabase.questions || appState.supplementDatabase.questions.length === 0) {
@@ -295,6 +320,10 @@ function renderDiscoveryQuestions() {
     });
 }
 
+/**
+ * Renders the symptom checklist in Part 2 based on
+ * the selected gender and active database.
+ */
 function renderSymptomChecklist() {
     const selectedGender = DOM.genderSelect.value;
     DOM.symptomChecklistContainer.innerHTML = '';
@@ -331,7 +360,7 @@ function renderSymptomChecklist() {
             
             label.innerHTML = `
                 <input type="checkbox" 
-                       class="script-checkbox h-6 w-6 rounded text-blue-500 bg-gray-800 border-gray-600 focus:ring-blue-600 mt-1"
+                       class="script-checkbox h-6 w-6 rounded text-blue-500 bg-gray-800 border-gray-600 focus:ring-blue-500 mt-1"
                        id="${checkboxId}"
                        data-supplement-id="${supp.id}"
                        data-symptom-id="${symp.id}">
@@ -347,6 +376,11 @@ function renderSymptomChecklist() {
 
 // --- Main Script Rendering Function ---
 
+/**
+ * This is the "heart" of the app. It reads all inputs (symptoms,
+ * regimen length, online order) and calculates the final
+ * script, pricing, and sidebar.
+ */
 function renderAllScript() {
     // Gracefully handle missing baseProduct
     if (!appState.supplementDatabase || !appState.supplementDatabase.baseProduct) {
@@ -356,7 +390,7 @@ function renderAllScript() {
     const months = parseInt(DOM.regimenLengthSelect.value, 10);
     const mainSuppName = appState.supplementDatabase.baseProduct.name.replace(' (Base)', '');
     const pricePerBottle = AppUI.getPricePerBottle(months);
-    const guaranteeDays = appState.supplementDatabase.guaranteeDays || 60; // NEW
+    const guaranteeDays = appState.supplementDatabase.guaranteeDays || 60;
 
     DOM.authoRegimenLengthSelect.value = months;
 
@@ -576,15 +610,14 @@ function renderAllScript() {
     document.getElementById('autho-script-dynamic-wording').innerHTML = authoScriptWording;
     document.getElementById('autho-cost').textContent = totalCost.toFixed(2);
     document.getElementById('autho-cost-2').textContent = totalCost.toFixed(2);
-    // document.getElementById('order-online-bottles').textContent = onlineBottlesOrdered; // REMOVED
     document.getElementById('order-breakdown-dynamic-wording').innerHTML = orderBreakdownWording;
     document.getElementById('decline-cost').textContent = totalCost.toFixed(2);
 
-    // NEW: Update guarantee day placeholders
+    // Update guarantee day placeholders
     if (DOM.guaranteeDays1) DOM.guaranteeDays1.textContent = guaranteeDays;
     if (DOM.guaranteeDays2) DOM.guaranteeDays2.textContent = guaranteeDays;
 
-    // NEW V4.1.1: Update order breakdown completion wording
+    // Update order breakdown completion wording
     if (DOM.orderBreakdownCompletionWording) {
         if (months < 18) {
             DOM.orderBreakdownCompletionWording.innerHTML = `That will complete the first <strong class="text-yellow-400">${months} months</strong> of your regimen and you'll see this coming out in two different packages. Give the order 5 to 7 business days to reach you, okay? And for your clarity, the bank statement will be from "Supplement Phone Order."`;
@@ -596,6 +629,10 @@ function renderAllScript() {
 
 // --- Call Reset Functions ---
 
+/**
+ * Resets the application state for a new call,
+ * preserving all user settings.
+ */
 function resetForNextCall() {
     AppUI.stopGlobalTimer();
     appState.currentSegmentIndex = -1;
@@ -607,7 +644,7 @@ function resetForNextCall() {
     DOM.regimenLengthSelect.value = '18';
     DOM.customNotes.value = '';
 
-    // NEW: Reset online order to default
+    // Reset online order to default
     appState.onlineOrder = [
         { name: appState.supplementDatabase.baseProduct.name.replace(' (Base)', ''), quantity: 6 }
     ];
@@ -622,30 +659,32 @@ function resetForNextCall() {
 
 // --- Event Listeners ---
 
+/**
+ * Attaches all event listeners for the main application
+ * and initializes all component event listeners.
+ */
 function setupEventListeners() {
-    DOM.copyNotesBtn.addEventListener('click', () => {
-        const fullNotes = DOM.generatedNotes.textContent + '\n\n' + DOM.customNotes.value;
-        AppUI.copyToClipboard(fullNotes, DOM.copyNotesBtn.querySelector('span'), 'Copy Notes', 'Copied!');
-    });
-
+    // --- Core Listeners (that trigger re-renders) ---
+    
     DOM.symptomChecklistContainer.addEventListener('change', (e) => {
-        if (e.target.classList.contains('script-checkbox')) renderAllScript();
+        if (e.target.classList.contains('script-checkbox')) {
+            renderAllScript();
+        }
     });
 
     DOM.authoRegimenLengthSelect.addEventListener('change', () => {
         DOM.regimenLengthSelect.value = DOM.authoRegimenLengthSelect.value;
         renderAllScript();
     });
-
-    // DOM.onlineBottlesSelect.addEventListener('change', renderAllScript); // REMOVED
-    DOM.genderSelect.addEventListener('change', () => { renderSymptomChecklist(); renderAllScript(); });
+    
+    DOM.genderSelect.addEventListener('change', () => { 
+        renderSymptomChecklist(); 
+        renderAllScript(); 
+    });
 
     DOM.clientNameInput.addEventListener('input', () => {
         updateClientName(DOM.clientNameInput.value.trim());
-        if (appState.currentSegmentIndex === -1) AppUI.tryStartSegment(0);
     });
-
-    DOM.startTimerManualBtn.addEventListener('click', () => { if (appState.currentSegmentIndex === -1) AppUI.tryStartSegment(0); });
 
     DOM.dynamicRecommendations.addEventListener('click', (e) => {
         const removeBtn = e.target.closest('.remove-btn');
@@ -661,216 +700,18 @@ function setupEventListeners() {
         }
     });
 
+    // --- Reset Modal Listeners ---
     DOM.resetAppBtn.addEventListener('click', () => DOM.resetConfirmModal.classList.remove('hidden'));
     DOM.resetCancelBtn.addEventListener('click', () => DOM.resetConfirmModal.classList.add('hidden'));
     DOM.resetConfirmBtn.addEventListener('click', resetForNextCall);
 
-    DOM.settingsCogBtn.addEventListener('click', () => { appState.isSettingsOpen = true; AppUI.renderSettingsModal(); });
-    DOM.settingsCloseBtn.addEventListener('click', () => { appState.isSettingsOpen = false; AppUI.renderSettingsModal(); });
-    DOM.settingsSaveBtn.addEventListener('click', AppUI.saveSettings);
-
-    DOM.addSegmentBtn.addEventListener('click', () => {
-        appState.settings.segments.push({
-            id: `seg-${Date.now()}`, title: "New Segment", duration: 60,
-            progress: 0, state: 'pending', overtime: 0, startTime: null
-        });
-        AppUI.renderSettingsModal();
-    });
-
-    DOM.segmentSettingsList.addEventListener('click', (e) => {
-        const removeBtn = e.target.closest('.remove-segment-btn');
-        if (removeBtn) {
-            const idToRemove = removeBtn.dataset.segmentId;
-            appState.settings.segments = appState.settings.segments.filter(s => s.id !== idToRemove);
-            AppUI.renderSettingsModal();
-        }
-    });
-
-    // NEW: Listeners for Question Editor
-    DOM.addQuestionBtn.addEventListener('click', () => {
-        const questionEl = document.createElement('div');
-        questionEl.className = 'flex items-center gap-2';
-        questionEl.innerHTML = `
-            <input type="text" value="" class="question-input w-full bg-gray-600 text-white rounded p-2 text-sm" placeholder="New question...">
-            <button class="remove-question-btn bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-            </button>
-        `;
-        DOM.questionsEditorList.appendChild(questionEl);
-    });
-
-    DOM.questionsEditorList.addEventListener('click', (e) => {
-        const removeBtn = e.target.closest('.remove-question-btn');
-        if (removeBtn) {
-            removeBtn.parentElement.remove();
-        }
-    });
-
-
-    DOM.supplementSettingsList.addEventListener('click', (e) => {
-        const removeSymptomBtn = e.target.closest('.remove-symptom-btn');
-        if (removeSymptomBtn) {
-            removeSymptomBtn.closest('.symptom-input-group').remove();
-            return;
-        }
-
-        const addSymptomBtn = e.target.closest('.add-symptom-btn');
-        if (addSymptomBtn) {
-            const symptomsListDiv = addSymptomBtn.closest('[data-supp-id]').querySelector('.supp-symptoms-list');
-            const newSymptomGroup = document.createElement('div');
-            newSymptomGroup.className = 'symptom-input-group';
-            newSymptomGroup.dataset.sympId = `symp-${Date.now()}`;
-            newSymptomGroup.innerHTML = `
-                <div class="symptom-input-row">
-                    <input type="text" class="supp-symptom-text-input w-full bg-gray-500 text-white rounded p-2 text-sm" placeholder="Symptom Text">
-                    <button class="remove-symptom-btn bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                    </button>
-                </div>
-                <div>
-                    <label>Sidebar Pitch</label>
-                    <textarea rows="2" class="supp-symptom-pitch-input w-full bg-gray-500 text-white rounded p-2 text-sm" placeholder="Sidebar pitch for this symptom..."></textarea>
-                </div>
-                <div>
-                    <label>Script Benefit</label>
-                    <input type="text" value="" class="supp-symptom-benefit-input w-full bg-gray-500 text-white rounded p-2 text-sm" placeholder="Script benefit for this symptom...">
-                </div>
-            `;
-            symptomsListDiv.appendChild(newSymptomGroup);
-            return;
-        }
-
-        const removeSuppBtn = e.target.closest('.remove-supplement-btn');
-        if (removeSuppBtn) {
-            removeSuppBtn.closest('[data-supp-id]').remove();
-            return;
-        }
-    });
-
-    DOM.addSupplementBtn.addEventListener('click', () => {
-        // BUG FIX: This now appends the new element instead of re-rendering all
-        const newSympId = `symp-${Date.now()}`;
-        const newSupp = {
-            id: `supp-${Date.now()}`, name: "New Supplement", gender: "any",
-            symptoms: [
-                { id: newSympId, text: "New Symptom", pitch: "", benefit: "" }
-            ]
-        };
-        // 1. Create the new element
-        const newSuppElement = AppUI.createSupplementEditorElement(newSupp);
-        // 2. Append it to the list in the DOM
-        DOM.supplementSettingsList.appendChild(newSuppElement);
-        // Note: The new supplement is not in appState *yet*. It will be added
-        // when the user hits "Save". This prevents unsaved changes from
-        // being lost.
-    });
-    
-    DOM.resetToDefaultsBtn.addEventListener('click', () => DOM.resetDefaultsConfirmModal.classList.remove('hidden'));
-    DOM.resetDefaultsCancelBtn.addEventListener('click', () => DOM.resetDefaultsConfirmModal.classList.add('hidden'));
-    DOM.resetDefaultsConfirmBtn.addEventListener('click', AppUI.resetSettingsToDefaults);
-
-    DOM.floatingTimerBar.addEventListener('click', (e) => {
-        const segmentEl = e.target.closest('.timer-segment');
-        if (segmentEl) AppUI.tryStartSegment(Number(segmentEl.dataset.index));
-    });
-
-    // NEW Import/Export Listeners
-    DOM.exportAppSettingsBtn.addEventListener('click', (e) => AppUI.exportAppSettings(e));
-    DOM.exportDbBtn.addEventListener('click', (e) => AppUI.handleDatabaseExport(e));
-    DOM.importAppSettingsBtn.addEventListener('click', () => AppUI.openImportModal('app'));
-    DOM.importDbBtn.addEventListener('click', () => AppUI.openImportModal('db'));
-
-    // Import Modal Listeners
-    DOM.importModalCloseBtn.addEventListener('click', () => DOM.importModal.classList.add('hidden'));
-    DOM.importCancelBtn.addEventListener('click', () => DOM.importModal.classList.add('hidden'));
-    DOM.importConfirmBtn.addEventListener('click', AppUI.handleImport);
-
-    // Title Search Listeners
-    DOM.titleClickWrapper.addEventListener('click', () => {
-        appState.isSearching = true;
-        AppUI.renderTitleUI();
-    });
-
-    DOM.scriptSearchInput.addEventListener('input', () => {
-        AppUI.renderSearchResults(DOM.scriptSearchInput.value);
-    });
-
-    DOM.scriptSearchResults.addEventListener('click', (e) => {
-        // Check for click on a create button
-        const createBtn = e.target.closest('.search-result-create-btn');
-        if (createBtn) {
-            const dbName = createBtn.dataset.dbname;
-            if (dbName) {
-                AppUI.createNewSupplement(dbName);
-                // createNewSupplement will call loadSupplementDb, which
-                // handles closing the search UI.
-            }
-            return; // Stop execution
-        }
-
-        // Check for click on an existing item
-        const resultItem = e.target.closest('.search-result-item');
-        if (resultItem) {
-            const dbName = resultItem.dataset.dbname;
-            if (dbName) {
-                loadSupplementDb(dbName); // This will reset the call
-            }
-        }
-    });
-
-    // Add listener to close search when clicking outside
-    document.addEventListener('click', AppUI.closeSearch);
-
-    // NEW: Online Order Editor Listeners
-    DOM.onlineOrderSearch.addEventListener('input', () => {
-        AppUI.renderOnlineOrderSearchResults(DOM.onlineOrderSearch.value);
-    });
-    
-    DOM.onlineOrderSearch.addEventListener('focus', () => {
-        AppUI.renderOnlineOrderSearchResults('');
-    });
-    
-    // Close search results when clicking outside the editor
-    document.addEventListener('click', (e) => {
-        if (DOM.onlineOrderEditor && !DOM.onlineOrderEditor.contains(e.target)) {
-            DOM.onlineOrderSearchResults.classList.add('hidden');
-        }
-    });
-
-    DOM.onlineOrderSearchResults.addEventListener('click', (e) => {
-        const itemEl = e.target.closest('.search-result-item');
-        if (itemEl) {
-            const name = itemEl.dataset.name;
-            appState.onlineOrder.push({ name: name, quantity: 1 });
-            AppUI.renderOnlineOrderEditor();
-            renderAllScript();
-            DOM.onlineOrderSearch.value = '';
-            DOM.onlineOrderSearchResults.classList.add('hidden');
-        }
-    });
-
-    DOM.onlineOrderList.addEventListener('input', (e) => {
-        if (e.target.classList.contains('online-order-item-qty')) {
-            const index = parseInt(e.target.dataset.index, 10);
-            const newQuantity = parseInt(e.target.value, 10);
-            if (!isNaN(newQuantity) && newQuantity >= 0) {
-                if(appState.onlineOrder[index]) {
-                    appState.onlineOrder[index].quantity = newQuantity;
-                    renderAllScript(); // Re-calculate everything
-                }
-            }
-        }
-    });
-
-    DOM.onlineOrderList.addEventListener('click', (e) => {
-        const removeBtn = e.target.closest('.online-order-item-remove-btn');
-        if (removeBtn) {
-            const index = parseInt(removeBtn.dataset.index, 10);
-            appState.onlineOrder.splice(index, 1); // Remove item from state
-            AppUI.renderOnlineOrderEditor(); // Re-render the editor list
-            renderAllScript(); // Re-calculate everything
-        }
-    });
+    // --- Initialize Component Event Listeners ---
+    AppUI.initUtilityEventListeners(); // Notes
+    AppUI.initTimerEventListeners();
+    AppUI.initSettingsEventListeners();
+    AppUI.initSearchEventListeners();
+    AppUI.initIOEventListeners();
+    AppUI.initOrderEditorEventListeners();
 }
 
 // --- INITIALIZATION ---
@@ -882,9 +723,9 @@ function setupEventListeners() {
 function initAppUI() {
     updateAgentNameUI();
     updateSupplementWordingUI(); // This will also call AppUI.renderTitleUI()
-    renderDiscoveryQuestions(); // NEW
+    renderDiscoveryQuestions();
     renderSymptomChecklist();
-    AppUI.renderOnlineOrderEditor(); // NEW
+    AppUI.renderOnlineOrderEditor();
     renderAllScript();
     AppUI.renderTimerBar();
     updateClientName(DOM.clientNameInput.value);

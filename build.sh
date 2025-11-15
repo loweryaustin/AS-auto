@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ---
-# CALL SCRIPT BUILD SCRIPT
+# CALL SCRIPT BUILD SCRIPT (V5.0.0)
 # This script reads the master version from package.json and compiles
 # all separate .css, .js, and database/ files into a single,
 # versioned HTML file for distribution.
@@ -22,7 +22,7 @@ echo "Building Call Script App v${APP_VERSION}..."
 
 # 2. Define final filename and path (one directory up)
 BASE_FILENAME="${APP_NAME}-v${APP_VERSION}.html"
-FINAL_FILEPATH="../${BASE_FILENAME}" # NEW: Output path is one directory up
+FINAL_FILEPATH="../${BASE_FILENAME}" # Output path is one directory up
 
 # 3. Create temporary combined CSS file (with <style> tags)
 TEMP_CSS="all_styles.css"
@@ -45,21 +45,31 @@ echo "" >> $TEMP_JS
 cat app-config.js >> $TEMP_JS
 echo "" >> $TEMP_JS
 
-# NEW: Automatically find and add all DB files.
-# Since they are self-registering, the order doesn't matter.
-# We explicitly exclude database-loader.js as it is now obsolete.
+# Automatically find and add all DB files.
 echo "Finding and adding database files..."
-find database -name "*.js" -not -name "database-loader.js" -print0 | while IFS= read -r -d '' file; do
+find database -name "*.js" -print0 | while IFS= read -r -d '' file; do
     cat "$file" >> $TEMP_JS
     echo "" >> $TEMP_JS
     echo "  Added: $file"
 done
 
-# REMOVED: The explicit cat for database-loader.js is gone.
-
-# Add the UI logic file before the main script
+# script-ui.js MUST be next (defines AppUI and utilities)
 cat script-ui.js >> $TEMP_JS
 echo "" >> $TEMP_JS
+
+# Add all the new component files
+cat script-timer.js >> $TEMP_JS
+echo "" >> $TEMP_JS
+cat script-search.js >> $TEMP_JS
+echo "" >> $TEMP_JS
+cat script-io.js >> $TEMP_JS
+echo "" >> $TEMP_JS
+cat script-order-editor.js >> $TEMP_JS
+echo "" >> $TEMP_JS
+cat script-settings.js >> $TEMP_JS
+echo "" >> $TEMP_JS
+
+# script.js (main controller) MUST be last
 cat script.js >> $TEMP_JS
 # --- End of critical order ---
 echo "</script>" >> $TEMP_JS
@@ -69,16 +79,16 @@ echo "JavaScript combined."
 cp index.html "$FINAL_FILEPATH"
 echo "Base HTML copied to $FINAL_FILEPATH"
 
-# 6. Inject the version number into the app's UI (FIX: Removed extra .html)
+# 6. Inject the version number into the app's UI
 sed -i.bak "s|<span id=\"app-version\"></span>|<span id=\"app-version\">v${APP_VERSION}</span>|g" "$FINAL_FILEPATH"
 echo "Version ${APP_VERSION} injected."
 
-# 7. Inject CSS (ROBUST METHOD) (FIX: Removed extra .html)
+# 7. Inject CSS (ROBUST METHOD)
 sed -i.bak -e '/<!-- CSS_INJECTION_POINT -->/r '"$TEMP_CSS" -e '/<!-- CSS_INJECTION_POINT -->/d' "$FINAL_FILEPATH"
 sed -i.bak '\|<link rel="stylesheet" href="style.css">|d' "$FINAL_FILEPATH"
 echo "CSS injected."
 
-# 8. Inject combined JavaScript (ROBUST METHOD) (FIX: Removed extra .html)
+# 8. Inject combined JavaScript (ROBUST METHOD)
 sed -i.bak -e '/<!-- SCRIPT_INJECTION_POINT -->/r '"$TEMP_JS" -e '/<!-- SCRIPT_INJECTION_POINT -->/d' "$FINAL_FILEPATH"
 echo "JavaScript injected."
 
@@ -87,6 +97,6 @@ echo "JavaScript injected."
 rm $TEMP_JS
 rm $TEMP_CSS
 rm *.bak # Cleans up .bak files in the local dir
-rm "$FINAL_FILEPATH.bak" # NEW: Cleans up the .bak file in the parent dir
+rm "$FINAL_FILEPATH.bak" # Cleans up the .bak file in the parent dir
 echo ""
 echo "Successfully built: ${FINAL_FILEPATH}"
