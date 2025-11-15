@@ -1,0 +1,181 @@
+body { font-family: 'Inter', sans-serif; }
+.sidebar-item-enter {
+    opacity: 0;
+    transform: translateX(20px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.sidebar-item-enter-active {
+    opacity: 1;
+    transform: translateX(0);
+}
+.script-checkbox:checked + span {
+    text-decoration: line-through;
+    color: #16a34a; /* green-600 */
+}
+.script-checkbox:checked + span::after {
+    content: ' (Symptom Added)';
+    font-weight: 600;
+}
+.prose-dark h2 { color: #fff; border-bottom-color: #4b5563; }
+.prose-dark h3 { color: #d1d5db; }
+.prose-dark p, .prose-dark label, .prose-dark li { color: #d1d5db; }
+
+/* Style for editable spans (now just placeholders) */
+.editable-span {
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+/* Timer and Animation Styles */
+.timer-segment {
+    transition: all 0.3s ease-in-out;
+    cursor: pointer;
+    overflow: hidden; /* To contain the progress bar */
+}
+.timer-segment-progress {
+    transition: width 0.1s linear;
+}
+
+@keyframes flashAndGrow {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.05); opacity: 0.8; }
+}
+.flash-grow {
+    animation: flashAndGrow 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+}
+.pulse {
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* Monospaced font for timers */
+.timer-time {
+    font-family: 'ui-monospace', 'SFMono-Regular', Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+/* Custom scrollbar for modal */
+#settings-modal-content::-webkit-scrollbar {
+    width: 8px;
+}
+#settings-modal-content::-webkit-scrollbar-track {
+    background: #374151; /* gray-700 */
+    border-radius: 10px;
+}
+#settings-modal-content::-webkit-scrollbar-thumb {
+    background: #6b7280; /* gray-500 */
+    border-radius: 10px;
+}
+#settings-modal-content::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af; /* gray-400 */
+}
+
+/* Styles for settings modal symptom editor */
+.symptom-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem; /* 8px */
+    padding: 0.75rem; /* 12px */
+    background-color: #4b5563; /* gray-600 */
+    border-radius: 0.375rem; /* 6px */
+}
+
+.symptom-input-group .symptom-input-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.symptom-input-group input[type="text"] {
+    flex: 1;
+    min-width: 0;
+}
+.symptom-input-group button {
+    flex-shrink: 0;
+}
+.symptom-input-group textarea {
+    width: 100%;
+}
+.symptom-input-group label {
+    font-size: 0.75rem; /* 12px */
+    color: #d1d5db; /* gray-300 */
+    margin-bottom: 0.25rem; /* 4px */
+    display: block;
+}
+
+
+/* Styles for symptom checklist grouping */
+.symptom-group-container {
+    padding: 1rem; /* 16px */
+    background-color: #1f2937; /* gray-800 */
+    border-radius: 0.5rem; /* 8px */
+}
+.symptom-group-header {
+    color: #6ee7b7; /* green-300 */
+    font-size: 1rem; /* 16px */
+    font-weight: 600; /* semibold */
+    margin-bottom: 0.75rem; /* 12px */
+    border-bottom: 1px solid #374151; /* gray-700 */
+    padding-bottom: 0.5rem; /* 8px */
+}
+
+/* Styles for sidebar symptom cards */
+.sidebar-symptom-card {
+    background-color: #374151; /* gray-700 */
+    padding: 0.75rem 1rem; /* 12px 16px */
+    border-radius: 0.5rem; /* 8px */
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    border-left: 4px solid #6ee7b7; /* green-300 */
+}
+.sidebar-symptom-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem; /* 8px */
+}
+.sidebar-symptom-card-supp-name {
+    font-size: 0.875rem; /* 14px */
+    font-weight: 600; /* semibold */
+    color: #a7f3d0; /* green-200 */
+}
+.sidebar-symptom-card-symptom-text {
+    font-size: 1.125rem; /* 18px */
+    font-weight: 600; /* semibold */
+    color: #ffffff; /* white */
+    margin-bottom: 0.5rem; /* 8px */
+}
+.sidebar-symptom-card-pitch {
+    font-size: 0.875rem; /* 14px */
+    color: #d1d5db; /* gray-300 */
+    font-style: italic;
+}
+
+/* NEW: Styles for Import Modal */
+.import-textarea {
+    width: 100%;
+    height: 200px;
+    background-color: #374151; /* gray-700 */
+    color: #ffffff;
+    border: 1px solid #4b5563; /* gray-600 */
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    font-family: 'ui-monospace', 'SFMono-Regular', Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: 0.875rem;
+}
+
+.import-message {
+    font-size: 0.875rem; /* 14px */
+    font-weight: 600;
+    min-height: 1.25rem; /* 20px */
+}
+
+.import-message.success {
+    color: #6ee7b7; /* green-300 */
+}
+
+.import-message.error {
+    color: #f87171; /* red-400 */
+}
