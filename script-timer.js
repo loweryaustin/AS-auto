@@ -1,6 +1,6 @@
 /**
  * ============================================
- * SCRIPT TOOL TIMER LOGIC (V5.0.0)
+ * SCRIPT TOOL TIMER LOGIC (V5.3.5)
  * ============================================
  * This component handles all logic and UI for
  * the floating call timer bar.
@@ -12,17 +12,70 @@
  */
 
 /**
- * Renders the floating timer bar based on the
- * current segment states in `appState`.
+ * NEW: Creates the timer bar's HTML skeleton *once*.
+ * This function builds the elements and stores references in DOM.timerSegments.
  */
-AppUI.renderTimerBar = function() {
-    DOM.floatingTimerBar.innerHTML = '';
+AppUI.createTimerBar = function() {
+    DOM.timerSegments = []; // Clear any existing references
+    DOM.floatingTimerBar.innerHTML = ''; // Clear the bar
+    
+    appState.settings.segments.forEach((segment, index) => {
+        // 1. Create all elements
+        const segmentEl = document.createElement('div');
+        segmentEl.dataset.index = index;
+        
+        const progressEl = document.createElement('div');
+        
+        const contentDiv = document.createElement('div');
+        contentDiv.className = "relative z-10 flex flex-col items-center justify-center";
+        
+        const titleEl = document.createElement('span');
+        titleEl.className = "text-sm";
+        titleEl.textContent = segment.title;
+        
+        const timeEl = document.createElement('span');
+        timeEl.className = "timer-time text-lg -mt-1";
+        timeEl.textContent = AppUI.formatTime(segment.duration);
+        
+        // 2. Assemble them
+        contentDiv.appendChild(titleEl);
+        contentDiv.appendChild(timeEl);
+        segmentEl.appendChild(progressEl);
+        segmentEl.appendChild(contentDiv);
+        DOM.floatingTimerBar.appendChild(segmentEl);
+
+        // 3. Store references
+        DOM.timerSegments[index] = {
+            segmentEl,
+            progressEl,
+            contentDiv,
+            titleEl,
+            timeEl
+        };
+    });
+}
+
+/**
+ * MODIFIED: This function is now NON-DESTRUCTIVE.
+ * It updates the existing elements created by createTimerBar.
+ */
+AppUI.updateTimerBarUI = function() {
+    if (!DOM.timerSegments || DOM.timerSegments.length === 0) {
+        console.error("Timer bar elements not found. Was createTimerBar() called?");
+        return;
+    }
+    
     let isCurrentSegmentOvertime = appState.currentSegmentIndex !== -1 && appState.settings.segments[appState.currentSegmentIndex].state === 'overtime';
 
     appState.settings.segments.forEach((segment, index) => {
-        const segmentEl = document.createElement('div');
-        segmentEl.dataset.index = index;
-        let content = '', progressWidth = '0%', bgClass = 'bg-gray-700 hover:bg-gray-600', animationClass = '', extraSegmentClasses = '';
+        const elements = DOM.timerSegments[index];
+        if (!elements) return;
+
+        let progressWidth = '0%', 
+            bgClass = 'bg-gray-700', 
+            animationClass = '', 
+            extraSegmentClasses = '',
+            timeText = '';
 
         switch(segment.state) {
             case 'active':
@@ -30,20 +83,24 @@ AppUI.renderTimerBar = function() {
                 const remaining = Math.max(0, segment.duration - elapsed);
                 progressWidth = `${Math.min(100, segment.progress)}%`;
                 bgClass = 'bg-blue-600';
-                content = `<span class="text-sm">${segment.title}</span><span class="timer-time text-lg -mt-1">${AppUI.formatTime(Math.ceil(remaining))}</span>`;
+                timeText = AppUI.formatTime(Math.ceil(remaining));
                 if (segment.progress >= 90) animationClass = 'flash-grow';
+                extraSegmentClasses = 'expanding-outline'; 
                 break;
             case 'overtime':
-                progressWidth = '100%'; bgClass = 'bg-red-600';
-                content = `<span class="text-sm">${segment.title}</span><span class="timer-time text-lg -mt-1">+${AppUI.formatTime(Math.floor(segment.overtime))}</span>`;
+                progressWidth = '100%'; 
+                bgClass = 'bg-red-600';
+                timeText = `+${AppUI.formatTime(Math.floor(segment.overtime))}`;
                 break;
             case 'overtime-complete':
-                progressWidth = '100%'; bgClass = 'bg-red-600';
-                content = `<span class="text-sm">${segment.title}</span><span class="timer-time text-lg -mt-1">+${AppUI.formatTime(Math.floor(segment.overtime))}</span>`;
+                progressWidth = '100%'; 
+                bgClass = 'bg-red-600';
+                timeText = `+${AppUI.formatTime(Math.floor(segment.overtime))}`;
                 break;
             case 'complete':
-                progressWidth = '100%'; bgClass = 'bg-green-700';
-                content = `<span class="text-sm">${segment.title}</span><span class="timer-time text-lg -mt-1">${AppUI.formatTime(Math.floor(segment.duration))}</span>`;
+                progressWidth = '100%'; 
+                bgClass = 'bg-green-700';
+                timeText = AppUI.formatTime(Math.floor(segment.duration));
                 break;
             case 'pending':
             default:
@@ -51,48 +108,61 @@ AppUI.renderTimerBar = function() {
                 bgClass = 'bg-gray-700';
                 if (isNextSegment || (appState.currentSegmentIndex === -1 && index === 0)) {
                     bgClass += ' hover:bg-gray-600 opacity-100';
-                    if (isNextSegment && isCurrentSegmentOvertime) extraSegmentClasses = 'pulse';
+                    if (isNextSegment && isCurrentSegmentOvertime) extraSegmentClasses = 'attention-pulse';
                 } else {
                     bgClass += ' opacity-60 hover:opacity-80';
                 }
-                content = `<span class="text-sm">${segment.title}</span><span class="timer-time text-lg -mt-1">${AppUI.formatTime(segment.duration)}</span>`;
+                timeText = AppUI.formatTime(segment.duration);
                 break;
         }
-        segmentEl.className = `timer-segment relative w-36 h-12 flex flex-col items-center justify-center rounded-full text-white font-semibold shadow-md transition-all duration-300 ${extraSegmentClasses}`;
-        const progressEl = document.createElement('div');
-        progressEl.className = `timer-segment-progress absolute top-0 left-0 h-full rounded-full ${bgClass} ${animationClass}`;
-        progressEl.style.width = progressWidth;
+
+        // 4. Apply all updates to the cached DOM elements
+        elements.titleEl.textContent = segment.title;
+        elements.timeEl.textContent = timeText;
+        elements.progressEl.style.width = progressWidth;
+        
+        let segmentBaseClass = 'timer-segment relative w-36 h-12 flex flex-col items-center justify-center rounded-full text-white font-semibold shadow-md transition-all duration-300';
+        let progressBaseClass = 'timer-segment-progress absolute top-0 left-0 h-full rounded-full transition-all duration-300';
+
         if (segment.state === 'complete' || segment.state === 'overtime' || segment.state === 'active' || segment.state === 'overtime-complete') {
-            segmentEl.className += ' bg-gray-600';
+            segmentBaseClass += ' bg-gray-600';
         } else {
-            segmentEl.className += ` ${bgClass}`;
+            segmentBaseClass += ` ${bgClass}`; // Add hover state for pending
         }
-        segmentEl.innerHTML = `<div class="relative z-10 flex flex-col items-center justify-center">${content}</div>`;
-        segmentEl.prepend(progressEl);
-        if (animationClass) segmentEl.classList.add(...animationClass.split(' '));
-        DOM.floatingTimerBar.appendChild(segmentEl);
+
+        elements.segmentEl.className = `${segmentBaseClass} ${extraSegmentClasses}`;
+        elements.progressEl.className = `${progressBaseClass} ${bgClass} ${animationClass}`;
     });
 }
 
 /**
  * The main timer "tick" function, called by setInterval.
- * Updates segment progress and overtime.
+ * Updates segment progress and overtime in appState.
  */
 AppUI.updateGlobalTimer = function() {
     const index = appState.currentSegmentIndex;
-    if (index === -1) { AppUI.stopGlobalTimer(); return; }
+    if (index === -1) { 
+        AppUI.stopGlobalTimer(); 
+        return; 
+    }
+    
     const segment = appState.settings.segments[index];
     if (!segment) return;
+    
     if (segment.state === 'active') {
         const elapsed = (Date.now() - segment.startTime) / 1000;
         segment.progress = (elapsed / segment.duration) * 100;
         if (elapsed >= segment.duration) {
-            segment.state = 'overtime'; segment.progress = 100; segment.startTime = Date.now();
+            segment.state = 'overtime'; 
+            segment.progress = 100; 
+            segment.startTime = Date.now();
         }
     } else if (segment.state === 'overtime') {
         segment.overtime = (Date.now() - segment.startTime) / 1000;
     }
-    AppUI.renderTimerBar();
+    
+    // Now that state is updated, call the non-destructive UI update
+    AppUI.updateTimerBarUI();
 }
 
 /**
@@ -119,7 +189,11 @@ AppUI.stopGlobalTimer = function() {
  */
 AppUI.tryStartSegment = function(index) {
     if (appState.currentSegmentIndex === index && appState.settings.segments[index].state === 'active') return;
-    if (appState.currentSegmentIndex === -1 && index === 0) { AppUI.startSegment(0); return; }
+    if (appState.currentSegmentIndex === -1 && index === 0) { 
+        AppUI.startSegment(0); 
+        return; 
+    }
+    
     if (appState.currentSegmentIndex !== -1) {
         const currentSeg = appState.settings.segments[appState.currentSegmentIndex];
         if (index === appState.currentSegmentIndex + 1) {
@@ -136,33 +210,69 @@ AppUI.tryStartSegment = function(index) {
  */
 AppUI.startSegment = function(index) {
     if (!appState.settings.segments[index]) return;
+    
     appState.currentSegmentIndex = index;
     const segment = appState.settings.segments[index];
-    segment.state = 'active'; segment.progress = 0; segment.overtime = 0; segment.startTime = Date.now();
+    segment.state = 'active'; 
+    segment.progress = 0; 
+    segment.overtime = 0; 
+    segment.startTime = Date.now();
+    
     AppUI.startGlobalTimer(); 
-    AppUI.renderTimerBar(); 
+    AppUI.updateTimerBarUI(); // MODIFIED: Call non-destructive update
     updateTimerControlsVisibility(); // This function lives in script.js
+}
+
+
+// --- Encapsulated listener logic for {once: true} ---
+
+/**
+ * The specific function that handles the *first* keydown
+ * to start the timer.
+ */
+function handleFirstKeydown() {
+    if (appState.currentSegmentIndex === -1) {
+        AppUI.tryStartSegment(0);
+    }
+}
+
+/**
+ * Attaches the one-time keydown listener.
+ */
+function attachTimerStartListener() {
+    DOM.clientNameInput.addEventListener('keydown', handleFirstKeydown, { once: true });
+}
+
+/**
+ * Public function called by script.js to re-attach the listener
+ * after a call reset.
+ */
+AppUI.reAttachTimerStartListener = function() {
+    // We remove it just in case it's still there (e.g., reset w/o typing)
+    DOM.clientNameInput.removeEventListener('keydown', handleFirstKeydown, { capture: false }); // Ensure removal
+    attachTimerStartListener();
 }
 
 /**
  * Attaches event listeners for the Timer component.
  */
 AppUI.initTimerEventListeners = function() {
-    DOM.clientNameInput.addEventListener('input', () => {
+    // Attach the listener for the first time
+    attachTimerStartListener();
+
+    // from 'click' to 'mousedown'
+    DOM.startTimerManualBtn.addEventListener('mousedown', (e) => { 
+        e.preventDefault();
         if (appState.currentSegmentIndex === -1) {
             AppUI.tryStartSegment(0);
         }
     });
 
-    DOM.startTimerManualBtn.addEventListener('click', () => { 
-        if (appState.currentSegmentIndex === -1) {
-            AppUI.tryStartSegment(0);
-        }
-    });
-
-    DOM.floatingTimerBar.addEventListener('click', (e) => {
+    // from 'click' to 'mousedown'
+    DOM.floatingTimerBar.addEventListener('mousedown', (e) => {
         const segmentEl = e.target.closest('.timer-segment');
         if (segmentEl) {
+            e.preventDefault(); // Prevent focus shift or text selection
             AppUI.tryStartSegment(Number(segmentEl.dataset.index));
         }
     });

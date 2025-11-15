@@ -1,6 +1,6 @@
 /**
  * ============================================
- * SCRIPT TOOL APPLICATION LOGIC (V5.3.2)
+ * SCRIPT TOOL APPLICATION LOGIC (V5.3.5)
  * ============================================
  * This is the main "controller" file.
  * It handles state, core logic, and event listeners.
@@ -74,6 +74,7 @@ function cacheDOMElements() {
     // Timer
     DOM.floatingTimerBar = document.getElementById('floating-timer-bar');
     DOM.startTimerManualBtn = document.getElementById('start-timer-manual-btn');
+    DOM.timerSegments = []; // NEW: Array to hold timer segment DOM elements
     
     // Settings
     DOM.settingsCogBtn = document.getElementById('settings-cog-btn');
@@ -358,7 +359,7 @@ function renderSymptomChecklist() {
             <h4 class="symptom-group-header flex justify-between items-center">
                 <span>${supp.name}</span>
                 <div draggable="true" class="drag-handle-main h-8 w-8 flex items-center justify-center rounded-md text-gray-500">
-                    <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg class="h-6 w-6 pointer-events-none" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                     </svg>
                 </div>
@@ -667,9 +668,14 @@ function resetForNextCall() {
     AppUI.renderOnlineOrderEditor();
 
     renderAllScript();
-    AppUI.renderTimerBar();
+    AppUI.updateTimerBarUI(); // MODIFIED: Call non-destructive update
     updateTimerControlsVisibility();
     DOM.resetConfirmModal.classList.add('hidden');
+    
+    // NEW: Re-attach the one-time keydown listener for the timer
+    if(AppUI.reAttachTimerStartListener) {
+        AppUI.reAttachTimerStartListener();
+    }
 }
 
 
@@ -829,7 +835,8 @@ function initAppUI() {
     renderSymptomChecklist();
     AppUI.renderOnlineOrderEditor();
     renderAllScript();
-    AppUI.renderTimerBar();
+    AppUI.createTimerBar(); // MODIFIED: Create the timer skeleton
+    AppUI.updateTimerBarUI(); // MODIFIED: Fill in the initial state
     updateClientName(DOM.clientNameInput.value);
     updateTimerControlsVisibility();
 }

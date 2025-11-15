@@ -52,6 +52,44 @@ body { font-family: 'Inter', sans-serif; }
     animation: pulse 1.5s ease-in-out infinite;
 }
 
+/* MODIFIED: Faster, "police light" pulse */
+@keyframes attention-pulse {
+    0%, 100% { 
+        transform: scale(1.1);
+        background-color: #b91c1c; /* red-700 */
+    }
+    50% { 
+        transform: scale(1.1); 
+        background-color: #1d4ed8; /* blue-700 */
+    }
+}
+.attention-pulse {
+    animation: attention-pulse 1s ease-in-out infinite; /* Faster 1-second cycle */
+}
+
+/* NEW: Expanding outline "sonar" animation for the *active* segment */
+@keyframes expand-out {
+    0% {
+        transform: scale(0.95);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(1.4);
+        opacity: 0;
+    }
+}
+.expanding-outline::before {
+    content: '';
+    position: absolute;
+    inset: -2px; /* Start just outside the element */
+    border-radius: 9999px; /* rounded-full */
+    /* Use the same color as the active segment's progress bar */
+    border: 2px solid #2563eb; /* blue-600 */
+    /* Apply the animation */
+    animation: expand-out 1.5s ease-out infinite;
+}
+
+
 /* Monospaced font for timers */
 .timer-time {
     font-family: 'ui-monospace', 'SFMono-Regular', Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
@@ -344,12 +382,7 @@ body { font-family: 'Inter', sans-serif; }
     color: #fde68a; /* yellow-200 */
 }
 
-/* REMOVED: Old settings drag-and-drop styles */
-/* .drag-handle { ... } */
-/* .settings-supplement-editor-card.dragging { ... } */
-/* .settings-supplement-editor-card.drag-over-target { ... } */
-
-/* NEW: Styles for drag-and-drop re-ordering on MAIN PAGE */
+/* Styles for drag-and-drop re-ordering on MAIN PAGE */
 .drag-handle-main {
     cursor: grab;
     transition: color 0.15s ease;
