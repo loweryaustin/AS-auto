@@ -112,6 +112,7 @@ body { font-family: 'Inter', sans-serif; }
     padding: 1rem; /* 16px */
     background-color: #1f2937; /* gray-800 */
     border-radius: 0.5rem; /* 8px */
+    transition: border-top 0.1s ease, padding-top 0.1s ease; /* For drop indicator */
 }
 .symptom-group-header {
     color: #6ee7b7; /* green-300 */
@@ -343,22 +344,27 @@ body { font-family: 'Inter', sans-serif; }
     color: #fde68a; /* yellow-200 */
 }
 
-/* NEW: Styles for drag-and-drop re-ordering in settings */
-.drag-handle {
+/* REMOVED: Old settings drag-and-drop styles */
+/* .drag-handle { ... } */
+/* .settings-supplement-editor-card.dragging { ... } */
+/* .settings-supplement-editor-card.drag-over-target { ... } */
+
+/* NEW: Styles for drag-and-drop re-ordering on MAIN PAGE */
+.drag-handle-main {
     cursor: grab;
     transition: color 0.15s ease;
 }
-.drag-handle:hover {
+.drag-handle-main:hover {
     color: #ffffff; /* white */
 }
-.drag-handle:active {
+.drag-handle-main:active {
     cursor: grabbing;
 }
-.settings-supplement-editor-card.dragging {
+.symptom-group-container.dragging {
     opacity: 0.5;
     border: 2px dashed #3b82f6; /* blue-500 */
 }
-.settings-supplement-editor-card.drag-over-target {
+.symptom-group-container.drag-over-target {
     /* Use a top border as a drop indicator */
     border-top: 3px solid #3b82f6; /* blue-500 */
     /* Add padding to make space for the border */

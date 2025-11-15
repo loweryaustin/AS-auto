@@ -1,6 +1,6 @@
 /**
  * ============================================
- * SCRIPT TOOL APPLICATION LOGIC (V5.2.0)
+ * SCRIPT TOOL APPLICATION LOGIC (V5.3.0)
  * ============================================
  * This is the main "controller" file.
  * It handles state, core logic, and event listeners.
@@ -36,6 +36,10 @@ let appState = {
     isSettingsOpen: false,
     isSearching: false
 };
+
+// --- Module-level drag variables ---
+let draggedSymptomGroup = null;
+let lastDragOverSymptomGroup = null;
 
 // --- DOM CACHE (Query once) ---
 // This object is shared with all component files
@@ -347,7 +351,16 @@ function renderSymptomChecklist() {
 
         const groupEl = document.createElement('div');
         groupEl.className = 'symptom-group-container';
-        groupEl.innerHTML = `<h4 class="symptom-group-header">${supp.name}</h4>`;
+        groupEl.dataset.suppId = supp.id; // NEW: Add data-id for drag-and-drop
+
+        // NEW: Add drag handle to header
+        groupEl.innerHTML = `
+            <h4 class="symptom-group-header flex justify-between items-center">
+                <span>${supp.name}</span>
+                <svg draggable="true" class="drag-handle-main h-6 w-6 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+            </h4>`;
 
         const symptomsList = document.createElement('div');
         symptomsList.className = 'space-y-3';
@@ -430,7 +443,8 @@ function renderAllScript() {
     const activeRecommendations = appState.supplementDatabase.recommendations.filter(supp => 
         activeSupplementIds.has(supp.id)
     );
-    activeRecommendations.sort((a, b) => a.name.localeCompare(b.name));
+    // NEW: We no longer sort this, we respect the array's order
+    // activeRecommendations.sort((a, b) => a.name.localeCompare(b.name));
     
     // Get ALL addon names selected in checklist (for pitch)
     let addonNames = activeRecommendations.map(rec => rec.name.replace(/\(.*\)/, '').trim());
@@ -660,6 +674,91 @@ function resetForNextCall() {
 // --- Event Listeners ---
 
 /**
+ * NEW: Encapsulated DND listeners for the main page
+ */
+function initDragAndDropEventListeners() {
+    DOM.symptomChecklistContainer.addEventListener('dragstart', (e) => {
+        const handle = e.target.closest('.drag-handle-main');
+        if (!handle) {
+            e.preventDefault();
+            return;
+        }
+        
+        draggedSymptomGroup = e.target.closest('.symptom-group-container');
+        if (!draggedSymptomGroup) return;
+
+        e.dataTransfer.effectAllowed = 'move';
+        // Use a slight delay to allow the DOM to update
+        setTimeout(() => {
+            if (draggedSymptomGroup) draggedSymptomGroup.classList.add('dragging');
+        }, 0);
+    });
+
+    DOM.symptomChecklistContainer.addEventListener('dragover', (e) => {
+        e.preventDefault(); // Necessary to allow dropping
+        
+        const targetEl = e.target.closest('.symptom-group-container');
+        
+        // Clear previous target
+        if (lastDragOverSymptomGroup && lastDragOverSymptomGroup !== targetEl) {
+            lastDragOverSymptomGroup.classList.remove('drag-over-target');
+        }
+
+        if (targetEl && targetEl !== draggedSymptomGroup) {
+            targetEl.classList.add('drag-over-target');
+            lastDragOverSymptomGroup = targetEl;
+        }
+    });
+
+    DOM.symptomChecklistContainer.addEventListener('dragend', () => {
+        if (draggedSymptomGroup) {
+            draggedSymptomGroup.classList.remove('dragging');
+        }
+        if (lastDragOverSymptomGroup) {
+            lastDragOverSymptomGroup.classList.remove('drag-over-target');
+        }
+        draggedSymptomGroup = null;
+        lastDragOverSymptomGroup = null;
+    });
+
+    DOM.symptomChecklistContainer.addEventListener('drop', (e) => {
+        e.preventDefault();
+        
+        if (lastDragOverSymptomGroup) {
+            lastDragOverSymptomGroup.classList.remove('drag-over-target');
+        }
+
+        const targetEl = e.target.closest('.symptom-group-container');
+        
+        if (targetEl && draggedSymptomGroup && targetEl !== draggedSymptomGroup) {
+            const draggedId = draggedSymptomGroup.dataset.suppId;
+            const targetId = targetEl.dataset.suppId;
+
+            // Find indices in the *data array*
+            const& draggedIndex = appState.supplementDatabase.recommendations.findIndex(s => s.id === draggedId);
+            const targetIndex = appState.supplementDatabase.recommendations.findIndex(s => s.id === targetId);
+
+            if (draggedIndex > -1 && targetIndex > -1) {
+                // Move the item in the array
+                const [draggedItem] = appState.supplementDatabase.recommendations.splice(draggedIndex, 1);
+                appState.supplementDatabase.recommendations.splice(targetIndex, 0, draggedItem);
+                
+                // Save and re-render
+                saveSettingsToStorage();
+                renderSymptomChecklist(); // Re-render to show new order
+            }
+        }
+        
+        if (draggedSymptomGroup) {
+            draggedSymptomGroup.classList.remove('dragging');
+        }
+        draggedSymptomGroup = null;
+        lastDragOverSymptomGroup = null;
+    });
+}
+
+
+/**
  * Attaches all event listeners for the main application
  * and initializes all component event listeners.
  */
@@ -712,6 +811,7 @@ function setupEventListeners() {
     AppUI.initSearchEventListeners();
     AppUI.initIOEventListeners();
     AppUI.initOrderEditorEventListeners();
+    initDragAndDropEventListeners(); // NEW: Add main page DND listeners
 }
 
 // --- INITIALIZATION ---

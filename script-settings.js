@@ -1,6 +1,6 @@
 /**
  * ============================================
- * SCRIPT TOOL SETTINGS MODAL LOGIC (V5.2.1)
+ * SCRIPT TOOL SETTINGS MODAL LOGIC (V5.3.0)
  * ============================================
  * This component handles all logic and UI for
  * the main settings modal, including:
@@ -13,10 +13,6 @@
  * - `appState`, `DOM` (global)
  * - `saveSettingsToStorage()`, `loadState()`, `initAppUI()` (from script.js)
  */
-
-// --- Module-level variables for drag-and-drop ---
-let draggedSupplement = null;
-let lastDragOverEl = null;
 
 // --- Module-level variables for auto-saving ---
 let autoSaveTimer = null;
@@ -32,19 +28,13 @@ AppUI.createSupplementEditorElement = function(supp) {
     // .settings-supplement-editor-card class
     suppEl.className = 'p-4 bg-gray-700 rounded-lg space-y-3 settings-supplement-editor-card';
     suppEl.dataset.suppId = supp.id;
-    // suppEl.draggable = true; // REMOVED: We only want the handle to be draggable
     
     const safeName = supp.name ? supp.name.replace(/"/g, '&quot;') : "Unnamed Supplement";
     
-    // Added drag handle icon and modified header structure
+    // REMOVED: Drag handle and draggable properties
     suppEl.innerHTML = `
         <div class="flex justify-between items-center pb-2 border-b border-gray-600">
-            <!-- MODIFIED: Added draggable=true to the handle itself -->
-            <svg draggable="true" class="drag-handle h-6 w-6 text-gray-400 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-
-            <div class="flex-1 ml-3"> <!-- Added ml-3 -->
+            <div class="flex-1"> <!-- Removed ml-3 -->
                 <label class="text-xs text-gray-400">Supplement Name</label>
                 <input type="text" value="${safeName}" class="supp-name-input w-full bg-gray-600 text-white rounded p-2 text-sm">
             </div>
@@ -214,11 +204,16 @@ AppUI.readAndSaveAllSettings = function() {
     appState.supplementDatabase.guaranteeDays = parseInt(DOM.baseProductGuaranteeSetting.value, 10) || 60;
     
     // Save Recommendations
-    // This logic automatically respects the new DOM order from drag-and-drop.
+    // REMOVED: This logic no longer respects drag-and-drop, as it's
+    // handled by the main page now. It just saves the content.
     const newRecommendations = [];
     const suppElements = DOM.supplementSettingsList.querySelectorAll('[data-supp-id]');
     suppElements.forEach(el => {
         const suppId = el.dataset.suppId;
+        
+        // Find the existing recommendation to preserve its order
+        const existingRec = appState.supplementDatabase.recommendations.find(r => r.id === suppId);
+        
         const nameInput = el.querySelector('.supp-name-input');
         const genderSelect = el.querySelector('.supp-gender-select');
         if (!nameInput || !genderSelect) return;
@@ -238,14 +233,87 @@ AppUI.readAndSaveAllSettings = function() {
                 });
             }
         });
-        newRecommendations.push({
+        
+        if (existingRec) {
+            // Update existing
+            existingRec.name = nameInput.value;
+            existingRec.gender = genderSelect.value;
+            existingRec.symptoms = newSymptoms;
+            newRecommendations.push(existingRec);
+        } else {
+            // Add new (this happens when user clicks "Add Supplement")
+             newRecommendations.push({
+                id: suppId,
+                name: nameInput.value,
+                gender: genderSelect.value,
+                symptoms: newSymptoms
+            });
+        }
+    });
+
+    // Handle deletions
+    // We must re-build the array based on the DOM *order* of the main page,
+    // but with the *content* from the settings modal.
+    // This is tricky. Let's rethink.
+
+    // --- NEW SAVE LOGIC ---
+    // 1. Get the current order from appState
+    const currentOrder = appState.supplementDatabase.recommendations.map(r => r.id);
+    const updatedRecs = [];
+
+    // 2. Loop through the *DOM elements* in the settings modal
+    suppElements.forEach(el => {
+         const suppId = el.dataset.suppId;
+         const nameInput = el.querySelector('.supp-name-input');
+         const genderSelect = el.querySelector('.supp-gender-select');
+         if (!nameInput || !genderSelect) return;
+
+         const newSymptoms = [];
+         const symptomElements = el.querySelectorAll('.symptom-input-group');
+         symptomElements.forEach(sympEl => {
+             // ... (symptom reading logic is correct) ...
+             const sympId = sympEl.dataset.sympId;
+             const sympTextInput = sympEl.querySelector('.supp-symptom-text-input');
+             const sympPitchInput = sympEl.querySelector('.supp-symptom-pitch-input');
+             const sympBenefitInput = sympEl.querySelector('.supp-symptom-benefit-input');
+             if (sympTextInput && sympTextInput.value && sympPitchInput && sympBenefitInput) {
+                 newSymptoms.push({
+                     id: sympId,
+                    text: sympTextInput.value,
+                    pitch: sympPitchInput.value,
+                    benefit: sympBenefitInput.value
+                 });
+             }
+         });
+        
+         updatedRecs.push({
             id: suppId,
             name: nameInput.value,
             gender: genderSelect.value,
             symptoms: newSymptoms
-        });
+         });
     });
-    appState.supplementDatabase.recommendations = newRecommendations;
+
+    // 3. Filter `appState.supplementDatabase.recommendations` to remove deleted items
+    // and update content for existing items, *preserving the order*.
+    const finalRecommendations = [];
+    appState.supplementDatabase.recommendations.forEach(rec => {
+        const updatedVersion = updatedRecs.find(u => u.id === rec.id);
+        if (updatedVersion) {
+            // Item exists, push the updated version
+            finalRecommendations.push(updatedVersion);
+        }
+        // If `updatedVersion` is not found, the item was deleted.
+    });
+    
+    // 4. Add any *new* supplements (which won't be in the original appState array)
+    updatedRecs.forEach(updatedRec => {
+        if (!finalRecommendations.find(f => f.id === updatedRec.id)) {
+            finalRecommendations.push(updatedRec);
+        }
+    });
+
+    appState.supplementDatabase.recommendations = finalRecommendations;
     
     // 3. Persist all settings to localStorage
     saveSettingsToStorage(); // This function lives in script.js
@@ -295,7 +363,6 @@ AppUI.resetSettingsToDefaults = function() {
 AppUI.initSettingsEventListeners = function() {
     DOM.settingsCogBtn.addEventListener('click', () => { appState.isSettingsOpen = true; AppUI.renderSettingsModal(); });
     DOM.settingsCloseBtn.addEventListener('click', () => { appState.isSettingsOpen = false; AppUI.renderSettingsModal(); });
-    // DOM.settingsSaveBtn.addEventListener('click', AppUI.saveSettings); // REMOVED
 
     // --- NEW: Auto-save triggers ---
     // 1. Listen for any text input
@@ -419,73 +486,5 @@ AppUI.initSettingsEventListeners = function() {
     DOM.resetDefaultsCancelBtn.addEventListener('click', () => DOM.resetDefaultsConfirmModal.classList.add('hidden'));
     DOM.resetDefaultsConfirmBtn.addEventListener('click', AppUI.resetSettingsToDefaults);
 
-    // --- MODIFIED: Drag-and-Drop Event Listeners ---
-    DOM.supplementSettingsList.addEventListener('dragstart', (e) => {
-        // MODIFIED: Simplified logic. The event only fires on the handle.
-        const handle = e.target.closest('.drag-handle');
-        if (!handle) {
-             e.preventDefault();
-             return;
-        }
-        
-        draggedSupplement = e.target.closest('.settings-supplement-editor-card');
-        if (!draggedSupplement) return;
-
-        e.dataTransfer.effectAllowed = 'move';
-        // Use a slight delay to allow the DOM to update
-        setTimeout(() => {
-            if (draggedSupplement) draggedSupplement.classList.add('dragging');
-        }, 0);
-    });
-
-    DOM.supplementSettingsList.addEventListener('dragover', (e) => {
-        e.preventDefault(); // Necessary to allow dropping
-        
-        const targetEl = e.target.closest('.settings-supplement-editor-card');
-        
-        // Clear previous target
-        if (lastDragOverEl && lastDragOverEl !== targetEl) {
-            lastDragOverEl.classList.remove('drag-over-target');
-        }
-
-        if (targetEl && targetEl !== draggedSupplement) {
-            targetEl.classList.add('drag-over-target');
-            lastDragOverEl = targetEl;
-        }
-    });
-
-    DOM.supplementSettingsList.addEventListener('dragend', () => {
-        if (draggedSupplement) {
-            draggedSupplement.classList.remove('dragging');
-        }
-        if (lastDragOverEl) {
-            lastDragOverEl.classList.remove('drag-over-target');
-        }
-        draggedSupplement = null;
-        lastDragOverEl = null;
-    });
-
-    DOM.supplementSettingsList.addEventListener('drop', (e) => {
-        e.preventDefault();
-        
-        if (lastDragOverEl) {
-            lastDragOverEl.classList.remove('drag-over-target');
-        }
-
-        const targetEl = e.target.closest('.settings-supplement-editor-card');
-        
-        if (targetEl && draggedSupplement && targetEl !== draggedSupplement) {
-            // Insert the dragged element *before* the target element
-            targetEl.parentNode.insertBefore(draggedSupplement, targetEl);
-        }
-        
-        if (draggedSupplement) {
-            draggedSupplement.classList.remove('dragging');
-        }
-        draggedSupplement = null;
-        lastDragOverEl = null;
-
-        // NEW: Trigger auto-save on drop
-        AppUI.triggerAutoSave(50);
-    });
+    // --- REMOVED: All drag-and-drop event listeners for settings modal ---
 }
