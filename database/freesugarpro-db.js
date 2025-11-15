@@ -3,10 +3,10 @@
  * Database file for the "GL Pro" supplement.
  * This file "self-registers" into the global DATABASE_CONFIGS object.
  */
-DATABASE_CONFIGS["GL Pro"] = {
+DATABASE_CONFIGS["Free Sugar Pro"] = {
     "baseProduct": {
-        "name": "GL Pro",
-        "pitch": "This helps to heal the pancreas."
+        "name": "Free Sugar Pro",
+        "pitch": "This helps with managing blood sugar."
     },
     "guaranteeDays": 60,
     "questions": [
@@ -147,37 +147,6 @@ DATABASE_CONFIGS["GL Pro"] = {
                     "text": "Not currently doing anything for gut health",
                     "pitch": "For your gut health: This one will help with absorbing nutrients, help with processing sugar, as well as helping with good bacterial balance in the gut.",
                     "benefit": "help with absorbing nutrients"
-                }
-            ]
-        },
-        {
-            "id": "sugar",
-            "name": "FreeSugar Pro",
-            "gender": "any",
-            "symptoms": [
-                {
-                    "id": "symp-sugar-1",
-                    "text": "Blood sugar still high",
-                    "pitch": "For your high blood sugar: While the GLPro is helping the pancreas, this one's gonna be helping with the blood sugar in general, helping it to stay lower longer.",
-                    "benefit": "help get your blood sugar under control"
-                },
-                {
-                    "id": "symp-1763239702440",
-                    "text": "Energy \"crashes\" or fatigue, particularly after meals.",
-                    "pitch": "For crashes after meals: This should be your fast acting blood sugar support, helping to maintain energy levels even after meals.",
-                    "benefit": "help with energy crashes after meals"
-                },
-                {
-                    "id": "symp-1763239776389",
-                    "text": "Persistent cravings for sugary foods.",
-                    "pitch": "For sugar cravings: This should be your go to for helping to combat disruptive sugar cravings, helping you to focus on work, your relationships, and life instead of sugar.",
-                    "benefit": "help with sugar cravings"
-                },
-                {
-                    "id": "symp-1763239865383",
-                    "text": "Low energy levels throughout the day.",
-                    "pitch": "For low energy throughout the day: This should be your help with maintaining good energy levels throughout the day. ",
-                    "benefit": "help with low energy throughout the day"
                 }
             ]
         },

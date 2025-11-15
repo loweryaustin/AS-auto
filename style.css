@@ -122,36 +122,54 @@ body { font-family: 'Inter', sans-serif; }
     padding-bottom: 0.5rem; /* 8px */
 }
 
-/* Styles for sidebar symptom cards */
-.sidebar-symptom-card {
+/* Styles for sidebar symptom cards (V4.2.0 REFACTOR) */
+.sidebar-supplement-card {
     background-color: #374151; /* gray-700 */
     padding: 0.75rem 1rem; /* 12px 16px */
     border-radius: 0.5rem; /* 8px */
     box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
     border-left: 4px solid #6ee7b7; /* green-300 */
 }
-.sidebar-symptom-card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.5rem; /* 8px */
+.sidebar-supplement-card-header {
+    margin-bottom: 0.75rem; /* 12px */
+    padding-bottom: 0.5rem; /* 8px */
+    border-bottom: 1px solid #4b5563; /* gray-600 */
 }
-.sidebar-symptom-card-supp-name {
-    font-size: 0.875rem; /* 14px */
+.sidebar-supplement-card-supp-name {
+    font-size: 1.125rem; /* 18px */
     font-weight: 600; /* semibold */
     color: #a7f3d0; /* green-200 */
 }
+.sidebar-symptom-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem; /* 12px */
+}
+.sidebar-symptom-item {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.5rem; /* 8px */
+}
+.sidebar-symptom-item-content {
+    flex: 1;
+}
 .sidebar-symptom-card-symptom-text {
-    font-size: 1.125rem; /* 18px */
+    font-size: 0.875rem; /* 14px */
     font-weight: 600; /* semibold */
     color: #ffffff; /* white */
-    margin-bottom: 0.5rem; /* 8px */
+    margin-bottom: 0.25rem; /* 4px */
 }
 .sidebar-symptom-card-pitch {
     font-size: 0.875rem; /* 14px */
     color: #d1d5db; /* gray-300 */
     font-style: italic;
 }
+.sidebar-symptom-item .remove-btn {
+    flex-shrink: 0;
+    margin-top: 2px; /* Align with top of symptom text */
+}
+
 
 /* Styles for Import Modal */
 .import-textarea {

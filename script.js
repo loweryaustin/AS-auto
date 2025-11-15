@@ -1,6 +1,6 @@
 /**
  * ============================================
- * SCRIPT TOOL APPLICATION LOGIC (V4.0.0)
+ * SCRIPT TOOL APPLICATION LOGIC (V4.1.1)
  * ============================================
  * This is the main "controller" file.
  * It handles state, core logic, and event listeners.
@@ -123,6 +123,9 @@ function cacheDOMElements() {
     // NEW: Guarantee Day Placeholders
     DOM.guaranteeDays1 = document.getElementById('guarantee-days-1');
     DOM.guaranteeDays2 = document.getElementById('guarantee-days-2');
+    
+    // NEW: Order breakdown completion wording
+    DOM.orderBreakdownCompletionWording = document.getElementById('order-breakdown-completion-wording');
 }
 
 
@@ -359,19 +362,34 @@ function renderAllScript() {
 
     const activeSupplementIds = new Set();
     const checkedBoxes = DOM.symptomChecklistContainer.querySelectorAll('.script-checkbox:checked');
-    const activeSymptomsData = [];
     
+    // REFACTOR V4.2.0: Group symptoms by supplement
+    const groupedActiveSymptoms = {};
+
     checkedBoxes.forEach(cb => {
         const suppId = cb.dataset.supplementId;
         const sympId = cb.dataset.symptomId;
         activeSupplementIds.add(suppId);
+        
         const supp = appState.supplementDatabase.recommendations.find(s => s.id === suppId);
         if (!supp) return;
         const symp = supp.symptoms.find(s => s.id === sympId);
         if (!symp) return;
-        activeSymptomsData.push({
-            checkboxId: cb.id, suppName: supp.name, sympText: symp.text,
-            sympPitch: symp.pitch, sympBenefit: symp.benefit
+
+        // Initialize group if it doesn't exist
+        if (!groupedActiveSymptoms[suppId]) {
+            groupedActiveSymptoms[suppId] = {
+                suppName: supp.name,
+                symptoms: []
+            };
+        }
+        
+        // Add symptom data to its supplement group
+        groupedActiveSymptoms[suppId].symptoms.push({
+            checkboxId: cb.id,
+            sympText: symp.text,
+            sympPitch: symp.pitch,
+            sympBenefit: symp.benefit
         });
     });
 
@@ -380,7 +398,7 @@ function renderAllScript() {
     );
     activeRecommendations.sort((a, b) => a.name.localeCompare(b.name));
     
-    // Get ALL addon names selected in checklist
+    // Get ALL addon names selected in checklist (for pitch)
     let addonNames = activeRecommendations.map(rec => rec.name.replace(/\(.*\)/, '').trim());
     let addonListString = AppUI.formatAddonList(addonNames);
 
@@ -391,18 +409,27 @@ function renderAllScript() {
     // Calculate how many *more* base bottles are needed
     const bottlesOfMainToOrder = Math.max(0, months - onlineBottlesOrdered);
 
-    // --- LOGIC FIX V3.3.3 ---
-    // Calculate how many *more* addon bottles are needed
-    // This MUST loop over activeRecommendations to get the *original* name for the lookup
-    let bottlesOfAddonsToOrder = 0;
+    // --- LOGIC FIX V4.1.0 ---
+    // Calculate *individual* addon bottles needed
+    let addonsToOrder = []; // e.g., [{name: "A", quantity: 12}, {name: "B", quantity: 6}]
+    let totalAddonBottlesToOrder = 0;
+
     for (const rec of activeRecommendations) {
         const originalAddonName = rec.name; // e.g., "FreePain Pro (FPP)"
         const onlineAddonQty = appState.onlineOrder.find(item => item.name === originalAddonName)?.quantity || 0;
-        bottlesOfAddonsToOrder += Math.max(0, months - onlineAddonQty);
+        const bottlesNeeded = Math.max(0, months - onlineAddonQty);
+        
+        if (bottlesNeeded > 0) {
+            addonsToOrder.push({
+                name: rec.name.replace(/\(.*\)/, '').trim(), // Clean name for script
+                quantity: bottlesNeeded
+            });
+        }
+        totalAddonBottlesToOrder += bottlesNeeded;
     }
     // --- END LOGIC FIX ---
     
-    const totalCost = (bottlesOfMainToOrder * pricePerBottle) + (bottlesOfAddonsToOrder * pricePerBottle);
+    const totalCost = (bottlesOfMainToOrder * pricePerBottle) + (totalAddonBottlesToOrder * pricePerBottle);
     // --- END NEW PRICING LOGIC ---
     
     const pitchedSupps = [mainSuppName, ...addonNames];
@@ -427,28 +454,52 @@ function renderAllScript() {
         DOM.dynamicPitchContent.innerHTML = pitch;
     }
     
-    const benefits = activeSymptomsData.map(s => s.sympBenefit);
+    // REFACTOR V4.2.0: Get benefits from new grouped object
+    let benefits = [];
+    Object.values(groupedActiveSymptoms).forEach(group => {
+        group.symptoms.forEach(s => benefits.push(s.sympBenefit));
+    });
     DOM.dynamicBenefitsList.innerHTML = `<p class="text-lg">${AppUI.formatBenefitsList(benefits)} Okay?</p>`;
 
     DOM.dynamicRecommendations.innerHTML = '';
-    if (activeSymptomsData.length === 0) {
+    
+    // REFACTOR V4.2.0: Render sidebar from new grouped object
+    const supplementGroups = Object.values(groupedActiveSymptoms);
+    if (supplementGroups.length === 0) {
         DOM.sidebarPlaceholder.style.display = 'block';
     } else {
         DOM.sidebarPlaceholder.style.display = 'none';
-        activeSymptomsData.forEach(symptom => {
-            const sidebarEl = document.createElement('div');
-            sidebarEl.className = 'sidebar-symptom-card sidebar-item-enter';
-            sidebarEl.innerHTML = `
-                <div class="sidebar-symptom-card-header">
-                    <span class="sidebar-symptom-card-supp-name">${symptom.suppName}</span>
-                    <button data-checkbox-id="${symptom.checkboxId}" class="remove-btn text-xs bg-red-600 hover:bg-red-700 text-white font-bold py-1 px-3 rounded-full transition-colors">
-                        Remove
-                    </button>
+        
+        supplementGroups.forEach(group => {
+            const sidebarGroupEl = document.createElement('div');
+            sidebarGroupEl.className = 'sidebar-supplement-card sidebar-item-enter';
+            
+            // Create the header with the supplement name
+            let headerHTML = `
+                <div class="sidebar-supplement-card-header">
+                    <h3 class="sidebar-supplement-card-supp-name">${group.suppName}</h3>
                 </div>
-                <h3 class="sidebar-symptom-card-symptom-text">${symptom.sympText}</h3>
-                <p class="sidebar-symptom-card-pitch">${symptom.sympPitch}</p>
             `;
-            DOM.dynamicRecommendations.appendChild(sidebarEl);
+            
+            // Create the list of symptoms
+            let symptomsHTML = '<div class="sidebar-symptom-list">';
+            group.symptoms.forEach(symptom => {
+                symptomsHTML += `
+                    <div class="sidebar-symptom-item">
+                        <div class="sidebar-symptom-item-content">
+                            <h4 class="sidebar-symptom-card-symptom-text">${symptom.sympText}</h4>
+                            <p class="sidebar-symptom-card-pitch">${symptom.sympPitch}</p>
+                        </div>
+                        <button data-checkbox-id="${symptom.checkboxId}" class="remove-btn text-xs bg-red-600 hover:bg-red-700 text-white font-bold py-1 px-3 rounded-full transition-colors">
+                            Remove
+                        </button>
+                    </div>
+                `;
+            });
+            symptomsHTML += '</div>';
+            
+            sidebarGroupEl.innerHTML = headerHTML + symptomsHTML;
+            DOM.dynamicRecommendations.appendChild(sidebarGroupEl);
         });
         
         setTimeout(() => {
@@ -477,21 +528,23 @@ function renderAllScript() {
 
     // 2. Populate the "So all I have left to do" line
     const needsMain = bottlesOfMainToOrder > 0;
-    const needsAddons = bottlesOfAddonsToOrder > 0;
+    const needsAddons = totalAddonBottlesToOrder > 0; // Use new total
     let authoScriptWording = "";
     
     const regimenCompletionText = (months < 18) 
         ? `for the first <strong class="text-yellow-400">${months} months</strong> of your regimen` 
         : "to complete your regimen";
 
-    // --- LOGIC FIX V3.3.2 (This logic is correct) ---
-    // Uses bottlesOfAddonsToOrder (which is now correctly calculated in V3.3.3)
+    // --- LOGIC FIX V4.1.0 ---
+    // Use new helper function for addon list
+    const addonQuantityListString = AppUI.formatAddonListWithQuantities(addonsToOrder);
+
     if (needsMain && needsAddons) {
-        authoScriptWording = `<p>So all I have left to do now is send you <strong class="text-yellow-400">${bottlesOfMainToOrder}</strong> more of the <strong class="text-yellow-400">${mainSuppName}</strong>, as well as <strong class="text-yellow-400">${bottlesOfAddonsToOrder}</strong> more of the <strong class="text-yellow-400">${addonListString}</strong> ${regimenCompletionText}.</p>`;
+        authoScriptWording = `<p>So all I have left to do now is send you <strong class="text-yellow-400">${bottlesOfMainToOrder}</strong> more of the <strong class="text-yellow-400">${mainSuppName}</strong>, as well as ${addonQuantityListString} ${regimenCompletionText}.</p>`;
     } else if (needsMain && !needsAddons) {
         authoScriptWording = `<p>So all I have left to do now is send you <strong class="text-yellow-400">${bottlesOfMainToOrder}</strong> more of the <strong class="text-yellow-400">${mainSuppName}</strong> ${regimenCompletionText}.</p>`;
     } else if (!needsMain && needsAddons) {
-        authoScriptWording = `<p>So all I have left to do now is send you <strong class="text-yellow-400">${bottlesOfAddonsToOrder}</strong> more of the <strong class="text-yellow-400">${addonListString}</strong> ${regimenCompletionText}.</p>`;
+        authoScriptWording = `<p>So all I have left to do now is send you ${addonQuantityListString} ${regimenCompletionText}.</p>`;
     } else {
         authoScriptWording = `<p>It looks like your order is already complete with everything you need for the full <strong class="text-yellow-400">${months}-month</strong> regimen.</p>`;
     }
@@ -506,16 +559,18 @@ function renderAllScript() {
     }
     DOM.orderBreakdownOnlinePart.innerHTML = onlineOrderText + " for [ONLINE ORDER COST]. This was already processed before.";
 
+    // --- LOGIC FIX V4.1.0 ---
     let orderBreakdownWording = "";
     if (needsMain && needsAddons) {
-        orderBreakdownWording = `<p>Now with your new order, you'll be getting <strong class="text-yellow-400">${bottlesOfMainToOrder}</strong> additional <strong class="text-yellow-400">${mainSuppName}</strong> and <strong class="text-yellow-400">${bottlesOfAddonsToOrder}</strong> additional bottle(s) of <strong class="text-yellow-400">${addonListString}</strong> for the additional <strong class="text-yellow-400">$<span id="order-cost">${totalCost.toFixed(2)}</span></strong>.</p>`;
+        orderBreakdownWording = `<p>Now with your new order, you'll be getting <strong class="text-yellow-400">${bottlesOfMainToOrder}</strong> additional <strong class="text-yellow-400">${mainSuppName}</strong> and ${addonQuantityListString} for the additional <strong class="text-yellow-400">$<span id="order-cost">${totalCost.toFixed(2)}</span></strong>.</p>`;
     } else if (needsMain && !needsAddons) {
         orderBreakdownWording = `<p>Now with your new order, you'll be getting <strong class="text-yellow-400">${bottlesOfMainToOrder}</strong> additional <strong class="text-yellow-400">${mainSuppName}</strong> for the additional <strong class="text-yellow-400">$<span id="order-cost">${totalCost.toFixed(2)}</span></strong>.</p>`;
     } else if (!needsMain && needsAddons) {
-        orderBreakdownWording = `<p>Now with your new order, you'll be getting <strong class="text-yellow-400">${bottlesOfAddonsToOrder}</strong> additional bottle(s) of <strong class="text-yellow-400">${addonListString}</strong> for the additional <strong class="text-yellow-400">$<span id="order-cost">${totalCost.toFixed(2)}</span></strong>.</p>`;
+        orderBreakdownWording = `<p>Now with your new order, you'll be getting ${addonQuantityListString} for the additional <strong class="text-yellow-400">$<span id="order-cost">${totalCost.toFixed(2)}</span></strong>.</p>`;
     } else {
         orderBreakdownWording = `<p>Now with your new order, it looks like your order is already complete.</p>`;
     }
+    // --- END LOGIC FIX ---
     
     document.getElementById('autho-length-1').textContent = months;
     document.getElementById('autho-script-dynamic-wording').innerHTML = authoScriptWording;
@@ -528,6 +583,15 @@ function renderAllScript() {
     // NEW: Update guarantee day placeholders
     if (DOM.guaranteeDays1) DOM.guaranteeDays1.textContent = guaranteeDays;
     if (DOM.guaranteeDays2) DOM.guaranteeDays2.textContent = guaranteeDays;
+
+    // NEW V4.1.1: Update order breakdown completion wording
+    if (DOM.orderBreakdownCompletionWording) {
+        if (months < 18) {
+            DOM.orderBreakdownCompletionWording.innerHTML = `That will complete the first <strong class="text-yellow-400">${months} months</strong> of your regimen and you'll see this coming out in two different packages. Give the order 5 to 7 business days to reach you, okay? And for your clarity, the bank statement will be from "Supplement Phone Order."`;
+        } else {
+            DOM.orderBreakdownCompletionWording.innerHTML = `That will complete your regiment and you'll see this coming out in two different packages. Give the order 5 to 7 business days to reach you, okay? And for your clarity, the bank statement will be from "Supplement Phone Order."`;
+        }
+    }
 }
 
 // --- Call Reset Functions ---

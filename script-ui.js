@@ -55,6 +55,31 @@ AppUI.formatAddonList = function(names) {
     return names.slice(0, -1).join(', ') + ', and '.concat(names.slice(-1));
 }
 
+/**
+ * NEW: Formats a list of addon objects with their quantities.
+ * @param {Array<Object>} addons - e.g., [{name: "A", quantity: 12}, {name: "B", quantity: 6}]
+ * @returns {string} - e.g., "12 more of the A and 6 more of the B"
+ */
+AppUI.formatAddonListWithQuantities = function(addons) {
+    if (!addons || addons.length === 0) return "";
+    
+    const formattedItems = addons.map(item => 
+        `<strong class="text-yellow-400">${item.quantity}</strong> more of the <strong class="text-yellow-400">${item.name}</strong>`
+    );
+
+    if (formattedItems.length === 1) {
+        return formattedItems[0];
+    }
+    
+    if (formattedItems.length === 2) {
+        return formattedItems.join(' and ');
+    }
+    
+    // For 3 or more: "A, B, and C"
+    return formattedItems.slice(0, -1).join(', ') + ', and ' + formattedItems.slice(-1);
+}
+
+
 AppUI.formatBenefitsList = function(benefits) {
     if (benefits.length === 0) return "This regimen is designed to help your pancreas heal.";
     let benefitString = "Now, this is going to " + benefits.slice(0, -1).join(', ') + (benefits.length > 1 ? ', and ' : '') + benefits.slice(-1) + ".";
@@ -286,7 +311,7 @@ AppUI.createSupplementEditorElement = function(supp) {
                 <div class="symptom-input-row">
                     <input type="text" value="${safeSympText}" class="supp-symptom-text-input w-full bg-gray-500 text-white rounded p-2 text-sm" placeholder="Symptom Text">
                     <button class="remove-symptom-btn bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                        <svg xmlns="[http://www.w3.org/2000/svg](http://www.w3.org/2000/svg)" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                     </button>
                 </div>
                 <div>
@@ -338,7 +363,7 @@ AppUI.renderSettingsModal = function() {
                     <input type="number" value="${segment.duration}" class="segment-duration-input w-full bg-gray-600 text-white rounded p-2 text-sm">
                 </div>
                 <button data-segment-id="${segment.id}" class="remove-segment-btn bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                    <svg xmlns="[http://www.w3.org/2000/svg](http://www.w3.org/2000/svg)" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                 </button>
             `;
             DOM.segmentSettingsList.appendChild(segmentEl);
@@ -354,7 +379,7 @@ AppUI.renderSettingsModal = function() {
                 questionEl.innerHTML = `
                     <input type="text" value="${question.replace(/"/g, '&quot;')}" class="question-input w-full bg-gray-600 text-white rounded p-2 text-sm">
                     <button class="remove-question-btn bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                        <svg xmlns="[http://www.w3.org/2000/svg](http://www.w3.org/2000/svg)" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                     </button>
                 `;
                 DOM.questionsEditorList.appendChild(questionEl);
@@ -692,7 +717,7 @@ AppUI.renderOnlineOrderEditor = function() {
             <span class="online-order-item-name">${item.name}</span>
             <input type="number" class="online-order-item-qty" value="${item.quantity}" min="0" data-index="${index}" onfocus="this.select()">
             <button class="online-order-item-remove-btn" data-index="${index}">
-                <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                <svg class="h-4 w-4" xmlns="[http://www.w3.org/2000/svg](http://www.w3.org/2000/svg)" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
             </button>
@@ -728,4 +753,66 @@ AppUI.renderOnlineOrderSearchResults = function(query) {
         `).join('');
     }
     DOM.onlineOrderSearchResults.classList.remove('hidden');
+}
+
+
+/**
+ * NEW: Renders the grouped supplement cards in the sidebar.
+ * @param {Array} activeRecommendations - List of active supplement objects.
+ * @param {Array} activeSymptomsData - Flat list of active symptom objects.
+ */
+AppUI.renderSidebar = function(activeRecommendations, activeSymptomsData) {
+    DOM.dynamicRecommendations.innerHTML = ''; // Clear existing
+    
+    if (activeRecommendations.length === 0) {
+        DOM.sidebarPlaceholder.style.display = 'block';
+        return;
+    }
+    
+    DOM.sidebarPlaceholder.style.display = 'none';
+
+    activeRecommendations.forEach(supp => {
+        // 1. Create the main card for the supplement
+        const suppCardEl = document.createElement('div');
+        suppCardEl.className = 'sidebar-supp-card sidebar-item-enter';
+        suppCardEl.innerHTML = `
+            <div class="sidebar-supp-card-header">
+                <h3 class="sidebar-supp-card-title">${supp.name}</h3>
+            </div>
+        `;
+
+        // 2. Get all active symptoms *for this supplement*
+        const symptomsForThisSupp = activeSymptomsData.filter(s => s.suppName === supp.name);
+
+        // 3. Create the list container
+        const symptomsListEl = document.createElement('div');
+        symptomsListEl.className = 'sidebar-supp-card-symptoms-list';
+
+        // 4. Create and append each symptom item
+        symptomsForThisSupp.forEach(symptom => {
+            const symptomItemEl = document.createElement('div');
+            symptomItemEl.className = 'sidebar-supp-card-symptom-item';
+            symptomItemEl.innerHTML = `
+                <div class="flex justify-between items-start gap-2">
+                    <span class="sidebar-supp-card-symptom-text">${symptom.sympText}</span>
+                    <button data-checkbox-id="${symptom.checkboxId}" class="remove-btn text-xs bg-red-600 hover:bg-red-700 text-white font-bold py-1 px-3 rounded-full transition-colors flex-shrink-0">
+                        Remove
+                    </button>
+                </div>
+                <p class="sidebar-supp-card-pitch">${symptom.sympPitch}</p>
+            `;
+            symptomsListEl.appendChild(symptomItemEl);
+        });
+
+        // 5. Append the list to the card and the card to the DOM
+        suppCardEl.appendChild(symptomsListEl);
+        DOM.dynamicRecommendations.appendChild(suppCardEl);
+    });
+
+    // 6. Trigger the enter animation
+    setTimeout(() => {
+        document.querySelectorAll('.sidebar-item-enter').forEach(el => {
+            el.classList.add('sidebar-item-enter-active');
+        });
+    }, 10);
 }

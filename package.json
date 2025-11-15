@@ -1,6 +1,6 @@
 {
   "name": "AS-Auto",
-  "version": "4.0.1",
-  "description": "Dynamic call script tool for multiple supplements. This version is the master record for the entire project.",
+  "version": "4.2.2",
+  "description": "Dynamic call script tool for multiple supplements. The version number maintained in this file is the master version number for the entire project.",
   "private": true
 }
