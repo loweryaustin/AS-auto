@@ -187,8 +187,21 @@
                 <div class="flex justify-between items-start mb-6"> <!-- Changed to items-start for better alignment -->
                     <!-- NEW: Dynamic Title/Search Component -->
                     <div id="title-search-container" class="relative flex-1">
-                        <h1 id="script-title-display" class="text-3xl font-bold text-white mb-0 cursor-pointer hover:text-gray-300 transition-colors">[Script Title]</h1>
-                        <input type="text" id="script-search-input" class="hidden w-full max-w-sm bg-gray-700 border-gray-600 text-white rounded-lg p-3 text-2xl font-bold focus:ring-2 focus:ring-blue-500" placeholder="Search supplements..." style="line-height: 1.1;"> <!-- Added line-height -->
+                        
+                        <!-- NEW: Clickable wrapper for title and note -->
+                        <div id="title-click-wrapper" class="cursor-pointer group flex items-baseline">
+                            <h1 id="script-title-display" class="text-3xl font-bold text-white mb-0 group-hover:text-gray-300 transition-colors">[Script Title]</h1>
+                            
+                            <!-- NEW: Instructional Note -->
+                            <span id="title-search-note" class="ml-3 text-sm text-gray-400 font-normal inline-flex items-center group-hover:text-gray-300 transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                                Click to change
+                            </span>
+                        </div>
+
+                        <input type="text" id="script-search-input" class="hidden w-full max-w-sm bg-gray-700 border-gray-600 text-white rounded-lg p-3 text-2xl font-bold focus:ring-2 focus:ring-blue-500" placeholder="Search supplements..." style="line-height: 1.1;">
                         <div id="script-search-results" class="hidden absolute top-full left-0 w-full max-w-sm bg-gray-700 border border-gray-600 rounded-lg shadow-lg mt-2 z-10 overflow-hidden">
                             <!-- Search results will be populated by script.js -->
                         </div>

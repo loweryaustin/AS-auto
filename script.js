@@ -87,6 +87,8 @@ function cacheDOMElements() {
     // NEW: Title Search Elements
     DOM.titleSearchContainer = document.getElementById('title-search-container');
     DOM.scriptTitleDisplay = document.getElementById('script-title-display');
+    DOM.titleClickWrapper = document.getElementById('title-click-wrapper'); // NEW
+    DOM.titleSearchNote = document.getElementById('title-search-note'); // NEW
     DOM.scriptSearchInput = document.getElementById('script-search-input');
     DOM.scriptSearchResults = document.getElementById('script-search-results');
 }
@@ -192,20 +194,21 @@ function loadState() {
 function loadSupplementDb(dbName, resetCall = true) {
     appState.isSearching = false; // Close search on load
     
-    // Add a log to confirm function execution and data
-    // console.log(`Loading database: ${dbName}`); // Removed for fix
-
+    // Check default DBs
     let defaultConfig = appState.allDatabaseDefaults[dbName];
-    if (!defaultConfig) {
+    // If not in defaults, check edited DBs (for user-created ones)
+    let editedConfig = appState.editedDatabases[dbName];
+    
+    if (!defaultConfig && !editedConfig) {
         console.error(`Database "${dbName}" not found. Loading first available.`);
         dbName = Object.keys(appState.allDatabaseDefaults)[0];
         defaultConfig = appState.allDatabaseDefaults[dbName];
+        editedConfig = appState.editedDatabases[dbName]; // May be undefined, that's fine
     }
     
-    const editedConfig = appState.editedDatabases[dbName];
-    
     // Merge edited version over the default
-    appState.supplementDatabase = simpleDeepMerge(deepCopy(defaultConfig), editedConfig || {});
+    // If defaultConfig is null (user-created), it just uses the editedConfig
+    appState.supplementDatabase = simpleDeepMerge(deepCopy(defaultConfig) || {}, editedConfig || {});
     appState.currentDbName = dbName;
     localStorage.setItem(LAST_DB_NAME_KEY, dbName);
 
@@ -247,45 +250,65 @@ function saveSettingsToStorage() {
 // NEW: Title/Search UI Functions
 function renderTitleUI() {
     if (appState.isSearching) {
-        DOM.scriptTitleDisplay.classList.add('hidden');
+        DOM.titleClickWrapper.classList.add('hidden'); // UPDATED
         DOM.scriptSearchInput.classList.remove('hidden');
         DOM.scriptSearchInput.value = '';
         DOM.scriptSearchInput.focus();
         renderSearchResults('');
     } else {
-        DOM.scriptTitleDisplay.classList.remove('hidden');
+        DOM.titleClickWrapper.classList.remove('hidden'); // UPDATED
         DOM.scriptSearchInput.classList.add('hidden');
         DOM.scriptSearchResults.classList.add('hidden');
         
         if (appState.supplementDatabase && appState.supplementDatabase.baseProduct) {
             const baseProductName = appState.supplementDatabase.baseProduct.name.replace(' (Base)', '');
-            // ADDED CONSOLE LOG FOR DEBUGGING
-            // console.log(`renderTitleUI: Setting title to "${baseProductName} Call Script"`); // Removed for fix
+            // console.log(`renderTitleUI: Setting title to "${baseProductName} Call Script"`);
             DOM.scriptTitleDisplay.textContent = `${baseProductName} Call Script`;
         } else {
-            // console.log("renderTitleUI: No supplement data, setting default title."); // Removed for fix
+            // console.log("renderTitleUI: No supplement data, setting default title.");
             DOM.scriptTitleDisplay.textContent = 'Call Script';
         }
     }
 }
 
 function renderSearchResults(query) {
-    const lowerQuery = query.toLowerCase();
-    const allDbNames = Object.keys(appState.allDatabaseDefaults);
-    
+    const lowerQuery = query.toLowerCase().trim();
+
+    // NEW: Search both default and user-created (edited) databases
+    const defaultDbNames = Object.keys(appState.allDatabaseDefaults);
+    const editedDbNames = Object.keys(appState.editedDatabases);
+    const allDbNames = Array.from(new Set([...defaultDbNames, ...editedDbNames])).sort();
+
+    // Filter based on query
     const filteredDbNames = allDbNames.filter(name => 
         name.toLowerCase().includes(lowerQuery)
     );
 
-    if (filteredDbNames.length === 0) {
-        DOM.scriptSearchResults.innerHTML = `<div class="search-result-empty">No supplements found.</div>`;
+    let html = '';
+
+    if (filteredDbNames.length === 0 && lowerQuery.length > 0) {
+        html = `<div class="search-result-empty">No supplements found.</div>`;
     } else {
-        DOM.scriptSearchResults.innerHTML = filteredDbNames.map(name => `
+         html = filteredDbNames.map(name => `
             <div class="search-result-item" data-dbname="${name.replace(/"/g, '&quot;')}">
                 ${name}
             </div>
         `).join('');
     }
+
+    // NEW: Add "Create" button if query is new and valid
+    const exactMatchFound = allDbNames.some(name => name.toLowerCase() === lowerQuery);
+    if (lowerQuery.length > 0 && !exactMatchFound) {
+        // Sanitize query for HTML attribute
+        const safeDbName = query.trim().replace(/"/g, '&quot;');
+        html += `
+            <div class="search-result-create-btn" data-dbname="${safeDbName}">
+                + Create "${safeDbName}"
+            </div>
+        `;
+    }
+
+    DOM.scriptSearchResults.innerHTML = html;
     DOM.scriptSearchResults.classList.remove('hidden');
 }
 
@@ -655,8 +678,8 @@ function importConfig() {
         }
 
         // Save to localStorage
-        localStorage.setItem('appSettings', JSON.stringify(importedConfig.settings));
-        localStorage.setItem('editedDatabases', JSON.stringify(importedConfig.databases));
+        localStorage.setItem(APP_SETTINGS_KEY, JSON.stringify(importedConfig.settings));
+        localStorage.setItem(EDITED_DATABASES_KEY, JSON.stringify(importedConfig.databases));
         
         DOM.importMessage.textContent = 'Success! Reloading application...';
         DOM.importMessage.classList.add('success');
@@ -675,6 +698,31 @@ function importConfig() {
         DOM.importMessage.textContent = `Error: ${e.message}. Please check console.`;
         DOM.importMessage.classList.add('error');
     }
+}
+
+
+// NEW: Function to create a new supplement database
+function createNewSupplement(dbName) {
+    console.log(`Creating new supplement: ${dbName}`);
+    
+    // 1. Create the blank template
+    const newDbConfig = {
+        "baseProduct": {
+            name: `${dbName} (Base)`,
+            pitch: "Click the settings cog to edit this pitch."
+        },
+        "recommendations": []
+    };
+
+    // 2. Add to the editedDatabases in memory
+    appState.editedDatabases[dbName] = newDbConfig;
+
+    // 3. Save to localStorage
+    saveSettingsToStorage();
+
+    // 4. Load the new DB
+    // This will reset the call and update all UI
+    loadSupplementDb(dbName);
 }
 
 
@@ -733,6 +781,11 @@ function renderSymptomChecklist() {
 // --- Main Script Rendering Function ---
 
 function renderAllScript() {
+    // Gracefully handle missing baseProduct
+    if (!appState.supplementDatabase || !appState.supplementDatabase.baseProduct) {
+        console.error("RenderAllScript: supplementDatabase.baseProduct is missing. Cannot render.");
+        return; // Stop execution
+    }
     const months = parseInt(DOM.regimenLengthSelect.value, 10);
     const onlineBottlesOrdered = parseInt(DOM.onlineBottlesSelect.value, 10);
     const mainSuppName = appState.supplementDatabase.baseProduct.name.replace(' (Base)', '');
@@ -1042,26 +1095,34 @@ function setupEventListeners() {
     // });
 
     // NEW: Title Search Listeners
-    DOM.scriptTitleDisplay.addEventListener('click', () => {
+    DOM.titleClickWrapper.addEventListener('click', () => { // UPDATED
         appState.isSearching = true;
         renderTitleUI();
     });
 
-    // FIX: Removed the "D:" typo which was causing a SyntaxError
-    // and preventing subsequent listeners from being attached.
     DOM.scriptSearchInput.addEventListener('input', () => {
         renderSearchResults(DOM.scriptSearchInput.value);
     });
 
     DOM.scriptSearchResults.addEventListener('click', (e) => {
+        // NEW: Check for click on a create button
+        const createBtn = e.target.closest('.search-result-create-btn');
+        if (createBtn) {
+            const dbName = createBtn.dataset.dbname;
+            if (dbName) {
+                createNewSupplement(dbName);
+                // createNewSupplement will call loadSupplementDb, which
+                // handles closing the search UI.
+            }
+            return; // Stop execution
+        }
+
+        // Check for click on an existing item
         const resultItem = e.target.closest('.search-result-item');
         if (resultItem) {
             const dbName = resultItem.dataset.dbname;
             if (dbName) {
-                // FIX: Removed redundant calls.
-                // Let loadSupplementDb handle all state changes,
-                // including closing the search box and re-rendering.
-                loadSupplementDb(dbName);
+                loadSupplementDb(dbName); // This will reset the call
             }
         }
     });
@@ -1091,10 +1152,11 @@ function initAppUI() {
  */
 function init() {
     // 1. Check for critical config files
-    if (typeof APP_CONFIG === 'undefined' || typeof DATABASE_CONFIGS === 'undefined') {
+    if (typeof APP_CONFIG === 'undefined' || typeof DATABASE_CONFIGS === 'undefined' || typeof SCRIPT_VERSION === 'undefined') {
         let error = "CRITICAL ERROR: Failed to load config files.";
         if (typeof APP_CONFIG === 'undefined') error += " `APP_CONFIG` is missing. ";
         if (typeof DATABASE_CONFIGS === 'undefined') error += " `DATABASE_CONFIGS` is missing. ";
+        if (typeof SCRIPT_VERSION === 'undefined') error += " `SCRIPT_VERSION` is missing (build error). ";
         console.error(error);
         // Defer the error message slightly to ensure body exists
         setTimeout(() => {
