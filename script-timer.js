@@ -1,6 +1,6 @@
 /**
  * ============================================
- * SCRIPT TOOL TIMER LOGIC (V5.3.5)
+ * SCRIPT TOOL TIMER LOGIC (V5.3.8)
  * ============================================
  * This component handles all logic and UI for
  * the floating call timer bar.
@@ -124,7 +124,10 @@ AppUI.updateTimerBarUI = function() {
         let segmentBaseClass = 'timer-segment relative w-36 h-12 flex flex-col items-center justify-center rounded-full text-white font-semibold shadow-md transition-all duration-300';
         let progressBaseClass = 'timer-segment-progress absolute top-0 left-0 h-full rounded-full transition-all duration-300';
 
-        if (segment.state === 'complete' || segment.state === 'overtime' || segment.state === 'active' || segment.state === 'overtime-complete') {
+        // MODIFIED: Check for attention-pulse to apply correct bg
+        if (extraSegmentClasses === 'attention-pulse') {
+             segmentBaseClass += ' bg-gray-600'; // Base for animation
+        } else if (segment.state === 'complete' || segment.state === 'overtime' || segment.state === 'active' || segment.state === 'overtime-complete') {
             segmentBaseClass += ' bg-gray-600';
         } else {
             segmentBaseClass += ` ${bgClass}`; // Add hover state for pending
@@ -227,20 +230,22 @@ AppUI.startSegment = function(index) {
 // --- Encapsulated listener logic for {once: true} ---
 
 /**
- * The specific function that handles the *first* keydown
+ * MODIFIED: Renamed to handleFirstInput
+ * The specific function that handles the *first* input
  * to start the timer.
  */
-function handleFirstKeydown() {
+function handleFirstInput() {
     if (appState.currentSegmentIndex === -1) {
         AppUI.tryStartSegment(0);
     }
 }
 
 /**
- * Attaches the one-time keydown listener.
+ * MODIFIED: Changed from 'keydown' to 'input'
+ * Attaches the one-time input listener.
  */
 function attachTimerStartListener() {
-    DOM.clientNameInput.addEventListener('keydown', handleFirstKeydown, { once: true });
+    DOM.clientNameInput.addEventListener('input', handleFirstInput, { once: true });
 }
 
 /**
@@ -248,8 +253,8 @@ function attachTimerStartListener() {
  * after a call reset.
  */
 AppUI.reAttachTimerStartListener = function() {
-    // We remove it just in case it's still there (e.g., reset w/o typing)
-    DOM.clientNameInput.removeEventListener('keydown', handleFirstKeydown, { capture: false }); // Ensure removal
+    // MODIFIED: Changed from 'keydown' to 'input'
+    DOM.clientNameInput.removeEventListener('input', handleFirstInput, { capture: false }); // Ensure removal
     attachTimerStartListener();
 }
 
