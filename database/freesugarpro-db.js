@@ -1,6 +1,6 @@
 /**
- * GL Pro
- * Database file for the "GL Pro" supplement.
+ * Free Sugar Pro
+ * Database file for the "Free Sugar Pro" supplement.
  * This file "self-registers" into the global DATABASE_CONFIGS object.
  */
 DATABASE_CONFIGS["Free Sugar Pro"] = {
@@ -9,7 +9,7 @@ DATABASE_CONFIGS["Free Sugar Pro"] = {
         "pitch": "This helps with managing blood sugar."
     },
     "guaranteeDays": 60,
-    "references": [], // NEW: Added for V6.1.0
+    "references": [],
     "questions": [
         "How long have you been dealing with the diabetes?",
         "Are you dealing with any other underlying health conditions such as high blood pressure or cholesterol?",
@@ -38,6 +38,32 @@ DATABASE_CONFIGS["Free Sugar Pro"] = {
             ]
         },
         {
+            "id": "slim",
+            "name": "Slim Boost Pro",
+            "gender": "any",
+            "symptoms": [
+                {
+                    "id": "symp-slim-1",
+                    "text": "Need to lose weight",
+                    "pitch": "This is for your weight loss goal/energy, This one's gonna help with the metabolism, help to retrain it and speed it up... helping your body to focus on metabolizing the fat for more sustained energy.'",
+                    "benefit": "help you get rid of the excess weight and boost energy"
+                }
+            ]
+        },
+        {
+            "id": "core",
+            "name": "Core Vitality Pro",
+            "gender": "any",
+            "symptoms": [
+                {
+                    "id": "symp-core-1",
+                    "text": "High Blood Pressure / Cholesterol",
+                    "pitch": "For your high blood pressure/cholesterol: This one's gonna help with circulation, cardiovascular health, as well as helping with healthy bone density.",
+                    "benefit": "help with cardiovascular health and circulation"
+                }
+            ]
+        },
+        {
             "id": "sleep",
             "name": "Deep Sleep Pro",
             "gender": "any",
@@ -53,19 +79,6 @@ DATABASE_CONFIGS["Free Sugar Pro"] = {
                     "text": "Feelings of restlessness or an inability to \"turn off\" your mind at bedtime.",
                     "pitch": "For calm before bed: This should help you to more quickly wind down, help calm your mind before bed to help get to sleep and stay asleep.",
                     "benefit": "help with restlessness before bed"
-                }
-            ]
-        },
-        {
-            "id": "slim",
-            "name": "Slim Boost Pro",
-            "gender": "any",
-            "symptoms": [
-                {
-                    "id": "symp-slim-1",
-                    "text": "Need to lose weight",
-                    "pitch": "This is for your weight loss goal/energy, This one's gonna help with the metabolism, help to retrain it and speed it up... helping your body to focus on metabolizing the fat for more sustained energy.'",
-                    "benefit": "help you get rid of the excess weight and boost energy"
                 }
             ]
         },
@@ -116,19 +129,6 @@ DATABASE_CONFIGS["Free Sugar Pro"] = {
                     "text": "Enlarged prostate diagnoses",
                     "pitch": "For enlarged prostate: This helps with mitigating issues that come with an enlarged prostate, weak stream, waking up in the night, urgent and frequent urination.",
                     "benefit": "help with your enlarged prostate diagnoses"
-                }
-            ]
-        },
-        {
-            "id": "core",
-            "name": "Core Vitality Pro",
-            "gender": "any",
-            "symptoms": [
-                {
-                    "id":"symp-core-1",
-                    "text": "High Blood Pressure / Cholesterol",
-                    "pitch": "For your high blood pressure/cholesterol: This one's gonna help with circulation, cardiovascular health, as well as helping with healthy bone density.",
-                    "benefit": "help with cardiovascular health and circulation"
                 }
             ]
         },
@@ -197,3 +197,4 @@ DATABASE_CONFIGS["Free Sugar Pro"] = {
         }
     ]
 };
+

@@ -1,12 +1,12 @@
 /**
  * ============================================
- * SCRIPT TOOL SETTINGS MODAL LOGIC (V6.1.0)
+ * SCRIPT TOOL SETTINGS MODAL LOGIC (V6.1.2)
  * ============================================
  * This component handles all logic and UI for
  * the main settings modal, including:
  * - App Settings (Agent, Segments)
  * - Database Editor (Base Product, Questions, Recommendations)
- * - NEW: Reference Editor
+ * - Reference Editor
  * - Reset functions
  * - Auto-saving
  *
@@ -18,8 +18,17 @@
 
 // --- Module-level variables ---
 let autoSaveTimer = null;
-let lucideIconNames = []; // NEW: Cache for icon names
-let activeIconPicker = null; // NEW: Track which icon picker is open
+let lucideIconNames = []; // Cache for icon names
+let activeIconPicker = null; // Track which icon picker is open
+
+/**
+ * NEW: Helper function to fix icon name format.
+ * Converts "camelCase" to "kebab-case".
+ * e.g., "NotebookPen" -> "notebook-pen"
+ */
+function camelToKebab(s) {
+    return s.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
+}
 
 /**
  * Creates the HTML element for a single supplement
@@ -155,9 +164,11 @@ AppUI.createReferenceEditorElement = function(ref) {
     `;
 
     // Manually call createIcons on the new element
-    lucide.createIcons({
-        nodes: [refEl.querySelector('.icon-picker-preview i')]
-    });
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons({
+            nodes: [refEl.querySelector('.icon-picker-preview i')]
+        });
+    }
 
     return refEl;
 }
@@ -170,11 +181,14 @@ AppUI.createReferenceEditorElement = function(ref) {
 AppUI.renderIconPickerResults = function(query, resultsContainer) {
     if (!lucideIconNames || lucideIconNames.length === 0) {
         resultsContainer.innerHTML = '<div class="p-2 text-sm text-gray-400">Loading icons...</div>';
+        resultsContainer.classList.remove('hidden'); // Show "Loading"
         return;
     }
 
     const lowerQuery = query.toLowerCase();
-    const filteredIcons = lucideIconNames.filter(name => name.includes(lowerQuery)).slice(0, 50); // Limit to 50 results
+    const filteredIcons = lowerQuery.length > 0 
+        ? lucideIconNames.filter(name => name.includes(lowerQuery)) 
+        : lucideIconNames; // Show all if no query
 
     if (filteredIcons.length === 0) {
         resultsContainer.innerHTML = '<div class="p-2 text-sm text-gray-400">No icons found.</div>';
@@ -182,16 +196,19 @@ AppUI.renderIconPickerResults = function(query, resultsContainer) {
         return;
     }
 
-    resultsContainer.innerHTML = filteredIcons.map(name => `
-        <div class="icon-picker-item" data-icon-name="${name}">
-            <i data-lucide="${name}" class="w-4 h-4"></i>
-            <span>${name}</span>
+    // MODIFIED: Render a grid of icons instead of a list
+    resultsContainer.innerHTML = filteredIcons.slice(0, 100).map(name => `
+        <div class="icon-picker-item" data-icon-name="${name}" title="${name}">
+            <i data-lucide="${name}"></i>
+            <span class="icon-name">${name}</span>
         </div>
-    `).join('');
+    `).join(''); // Limit to 100 results for performance
 
-    lucide.createIcons({
-        nodes: resultsContainer.querySelectorAll('i')
-    });
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons({
+            nodes: resultsContainer.querySelectorAll('i')
+        });
+    }
     
     resultsContainer.classList.remove('hidden');
 }
@@ -203,6 +220,18 @@ AppUI.renderIconPickerResults = function(query, resultsContainer) {
  */
 AppUI.renderSettingsModal = function() {
     if (appState.isSettingsOpen) {
+        // --- THIS IS THE FIX ---
+        // Get the icon list *from the loaded library* and convert
+        // names to the correct format.
+        if (lucideIconNames.length === 0 && typeof lucide !== 'undefined' && lucide.icons) {
+            // Get the internal (camelCase) list
+            const iconObject = lucide.icons || {};
+            // Convert all names to kebab-case
+            lucideIconNames = Object.keys(iconObject).map(camelToKebab); 
+            console.log(`Loaded ${lucideIconNames.length} Lucide icon names in correct kebab-case format.`);
+        }
+        // --- END FIX ---
+        
         DOM.settingsModal.classList.remove('hidden');
         DOM.agentNameSettingInput.value = appState.settings.agentName;
         DOM.currentDbNameDisplay.textContent = appState.currentDbName;
@@ -267,7 +296,7 @@ AppUI.renderSettingsModal = function() {
             });
         }
         
-        // NEW: Populate References
+        // Populate References
         DOM.referenceSettingsList.innerHTML = '';
         if (appState.supplementDatabase.references) {
              appState.supplementDatabase.references.forEach(ref => {
@@ -441,22 +470,6 @@ AppUI.resetSettingsToDefaults = function() {
 }
 
 /**
- * NEW: Fetches the list of all Lucide icon names.
- */
-AppUI.fetchIconNames = async function() {
-    if (lucideIconNames.length > 0) return; // Already fetched
-    try {
-        const response = await fetch('https://cdn.jsdelivr.net/npm/lucide-static@latest/icon-names.json');
-        if (!response.ok) throw new Error('Failed to fetch icon list');
-        lucideIconNames = await response.json();
-        console.log(`Loaded ${lucideIconNames.length} icon names.`);
-    } catch (error) {
-        console.error("Error fetching Lucide icon names:", error);
-        lucideIconNames = ['book', 'link', 'image', 'alert-circle']; // Fallback
-    }
-}
-
-/**
  * Attaches event listeners for the Settings Modal component.
  */
 AppUI.initSettingsEventListeners = function() {
@@ -464,11 +477,9 @@ AppUI.initSettingsEventListeners = function() {
     DOM.addReferenceBtn = document.getElementById('add-reference-btn');
     DOM.referenceSettingsList = document.getElementById('reference-settings-list');
     
-    // NEW: Fetch icon names when settings are first opened
     DOM.settingsCogBtn.addEventListener('click', () => { 
         appState.isSettingsOpen = true; 
         AppUI.renderSettingsModal(); 
-        AppUI.fetchIconNames(); // Fetch icon list
     });
     
     DOM.settingsCloseBtn.addEventListener('click', () => { 
@@ -481,7 +492,7 @@ AppUI.initSettingsEventListeners = function() {
         // Standard auto-save for most inputs
         AppUI.triggerAutoSave(500); // 500ms delay for typing
 
-        // NEW: Handle icon picker search
+        // Handle icon picker search
         const iconInput = e.target.closest('.icon-picker-input');
         if (iconInput) {
             const container = iconInput.closest('.icon-picker-container');
@@ -492,7 +503,7 @@ AppUI.initSettingsEventListeners = function() {
     });
     
     DOM.settingsModal.addEventListener('focusin', (e) => {
-        // NEW: Show icon picker results on focus
+        // Show icon picker results on focus
         const iconInput = e.target.closest('.icon-picker-input');
          if (iconInput) {
             const container = iconInput.closest('.icon-picker-container');
@@ -502,7 +513,7 @@ AppUI.initSettingsEventListeners = function() {
         }
     });
     
-    // NEW: Close icon picker when clicking outside
+    // Close icon picker when clicking outside
     document.addEventListener('click', (e) => {
         if (activeIconPicker && !activeIconPicker.closest('.icon-picker-container').contains(e.target)) {
             activeIconPicker.classList.add('hidden');
@@ -518,19 +529,30 @@ AppUI.initSettingsEventListeners = function() {
             AppUI.triggerAutoSave(50); // 50ms delay, just to let DOM update first
         }
         
-        // NEW: Handle clicking an icon from the picker
+        // --- THIS IS THE BUG FIX ---
+        // Handle clicking an icon from the picker
         const iconItem = e.target.closest('.icon-picker-item');
         if (iconItem) {
             const iconName = iconItem.dataset.iconName;
             const container = iconItem.closest('.icon-picker-container');
             const input = container.querySelector('.icon-picker-input');
-            const preview = container.querySelector('.icon-picker-preview i');
+            const previewIcon = container.querySelector('.icon-picker-preview i'); // Get the <i> tag
             
             input.value = iconName;
-            preview.setAttribute('data-lucide', iconName);
-            lucide.createIcons({
-                nodes: [preview]
-            });
+            
+            if (previewIcon) {
+                // 1. Remove any old SVG content inside the <i> tag
+                previewIcon.innerHTML = ''; 
+                // 2. Set the new data-lucide attribute
+                previewIcon.setAttribute('data-lucide', iconName);
+                // 3. Tell Lucide to process *just this one icon*
+                if (typeof lucide !== 'undefined') {
+                    lucide.createIcons({
+                        nodes: [previewIcon]
+                    });
+                }
+            }
+            // --- END BUG FIX ---
             
             container.querySelector('.icon-picker-results').classList.add('hidden');
             activeIconPicker = null;
@@ -631,7 +653,7 @@ AppUI.initSettingsEventListeners = function() {
         DOM.supplementSettingsList.appendChild(newSuppElement);
     });
     
-    // NEW: Listeners for Reference Editor
+    // Listeners for Reference Editor
     DOM.addReferenceBtn.addEventListener('click', () => {
         const newRef = {
             id: `ref-${Date.now()}`,

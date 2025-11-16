@@ -1,6 +1,6 @@
 /**
  * ============================================
- * SCRIPT TOOL APPLICATION LOGIC (V6.1.0)
+ * SCRIPT TOOL APPLICATION LOGIC (V6.1.1)
  * ============================================
  * This is the main "controller" file.
  * It handles state, core logic, and event listeners.
@@ -221,6 +221,13 @@ function loadSupplementDb(dbName, resetCall = true) {
     // NEW: Guardrail for old data that might be missing references
     if (!appState.supplementDatabase.references) {
         appState.supplementDatabase.references = []; // Add it if it's missing
+    } else {
+        // NEW: Guardrail for references missing new properties
+        appState.supplementDatabase.references.forEach(ref => {
+            if (!ref.icon) ref.icon = 'book';
+            if (!ref.type) ref.type = 'website';
+            if (!ref.id) ref.id = `ref-${Date.now()}-${Math.random()}`;
+        });
     }
 
     // Set default online order
@@ -736,7 +743,7 @@ function resetForNextCall() {
 // --- Event Listeners ---
 
 /**
- * NEW: Encapsulated DND listeners for the main page
+ * Encapsulated DND listeners for the main page
  */
 function initDragAndDropEventListeners() {
     DOM.symptomChecklistContainer.addEventListener('dragstart', (e) => {
@@ -820,7 +827,7 @@ function initDragAndDropEventListeners() {
 }
 
 
-// --- NEW: Reference Modal Logic ---
+// --- Reference Modal Logic ---
 
 /**
  * Opens the reference modal with the content
@@ -939,7 +946,7 @@ function setupEventListeners() {
     DOM.resetCancelBtn.addEventListener('click', () => DOM.resetConfirmModal.classList.add('hidden'));
     DOM.resetConfirmBtn.addEventListener('click', resetForNextCall);
     
-    // --- NEW: Reference Modal Listeners ---
+    // --- Reference Modal Listeners ---
     DOM.referenceButtonsContainer.addEventListener('click', (e) => {
         const button = e.target.closest('.reference-btn');
         if (button) {
@@ -953,7 +960,7 @@ function setupEventListeners() {
     
     DOM.referenceModalCloseBtn.addEventListener('click', AppUI.closeReferenceModal);
 
-    // --- NEW: Global Shortcut Listener ---
+    // --- Global Shortcut Listener ---
     document.addEventListener('keydown', handleGlobalKeydown);
 
     // --- Initialize Component Event Listeners ---

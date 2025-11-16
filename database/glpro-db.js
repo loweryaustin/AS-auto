@@ -9,7 +9,40 @@ DATABASE_CONFIGS["GL Pro"] = {
         "pitch": "This helps to heal the pancreas."
     },
     "guaranteeDays": 60,
-    "references": [], // NEW: Added for V6.1.0
+    "references": [
+        {
+            "id": "ref-1763256437923",
+            "title": "Chart",
+            "icon": "scale",
+            "type": "image",
+            "shortcut": "1",
+            "url": "https://www.vertex42.com/ExcelTemplates/Images/body-mass-index-line-chart.png"
+        },
+        {
+            "id": "ref-1763256516598",
+            "title": "Table",
+            "icon": "scale",
+            "type": "image",
+            "shortcut": "2",
+            "url": "https://www.vertex42.com/ExcelTemplates/Images/body-mass-index-chart-portrait.png"
+        },
+        {
+            "id": "ref-1763256602461",
+            "title": "BMI-Calc",
+            "icon": "scale",
+            "type": "website",
+            "shortcut": "3",
+            "url": "https://www.calculator.net/bmi-calculator.html"
+        },
+        {
+            "id": "ref-1763256702258",
+            "title": "A1C",
+            "icon": "area-chart",
+            "type": "image",
+            "shortcut": "4",
+            "url": "https://my.clevelandclinic.org/-/scassets/images/org/health/articles/9731-a1c-glucose-levels"
+        }
+    ],
     "questions": [
         "How long have you been dealing with the diabetes?",
         "Are you dealing with any other underlying health conditions such as high blood pressure or cholesterol?",
@@ -38,6 +71,63 @@ DATABASE_CONFIGS["GL Pro"] = {
             ]
         },
         {
+            "id": "sugar",
+            "name": "FreeSugar Pro",
+            "gender": "any",
+            "symptoms": [
+                {
+                    "id": "symp-sugar-1",
+                    "text": "Blood sugar still high",
+                    "pitch": "For your high blood sugar: While the GLPro is helping the pancreas, this one's gonna be helping with the blood sugar in general, helping it to stay lower longer.",
+                    "benefit": "help get your blood sugar under control"
+                },
+                {
+                    "id": "symp-1763239702440",
+                    "text": "Energy \"crashes\" or fatigue, particularly after meals.",
+                    "pitch": "For crashes after meals: This should be your fast acting blood sugar support, helping to maintain energy levels even after meals.",
+                    "benefit": "help with energy crashes after meals"
+                },
+                {
+                    "id": "symp-1763239776389",
+                    "text": "Persistent cravings for sugary foods.",
+                    "pitch": "For sugar cravings: This should be your go to for helping to combat disruptive sugar cravings, helping you to focus on work, your relationships, and life instead of sugar.",
+                    "benefit": "help with sugar cravings"
+                },
+                {
+                    "id": "symp-1763239865383",
+                    "text": "Low energy levels throughout the day.",
+                    "pitch": "For low energy throughout the day: This should be your help with maintaining good energy levels throughout the day. ",
+                    "benefit": "help with low energy throughout the day"
+                }
+            ]
+        },
+        {
+            "id": "slim",
+            "name": "Slim Boost Pro",
+            "gender": "any",
+            "symptoms": [
+                {
+                    "id": "symp-slim-1",
+                    "text": "Need to lose weight",
+                    "pitch": "This is for your weight loss goal/energy, This one's gonna help with the metabolism, help to retrain it and speed it up... helping your body to focus on metabolizing the fat for more sustained energy.'",
+                    "benefit": "help you get rid of the excess weight and boost energy"
+                }
+            ]
+        },
+        {
+            "id": "core",
+            "name": "Core Vitality Pro",
+            "gender": "any",
+            "symptoms": [
+                {
+                    "id": "symp-core-1",
+                    "text": "High Blood Pressure / Cholesterol",
+                    "pitch": "For your high blood pressure/cholesterol: This one's gonna help with circulation, cardiovascular health, as well as helping with healthy bone density.",
+                    "benefit": "help with cardiovascular health and circulation"
+                }
+            ]
+        },
+        {
             "id": "sleep",
             "name": "Deep Sleep Pro",
             "gender": "any",
@@ -53,19 +143,6 @@ DATABASE_CONFIGS["GL Pro"] = {
                     "text": "Feelings of restlessness or an inability to \"turn off\" your mind at bedtime.",
                     "pitch": "For calm before bed: This should help you to more quickly wind down, help calm your mind before bed to help get to sleep and stay asleep.",
                     "benefit": "help with restlessness before bed"
-                }
-            ]
-        },
-        {
-            "id": "slim",
-            "name": "Slim Boost Pro",
-            "gender": "any",
-            "symptoms": [
-                {
-                    "id": "symp-slim-1",
-                    "text": "Need to lose weight",
-                    "pitch": "This is for your weight loss goal/energy, This one's gonna help with the metabolism, help to retrain it and speed it up... helping your body to focus on metabolizing the fat for more sustained energy.'",
-                    "benefit": "help you get rid of the excess weight and boost energy"
                 }
             ]
         },
@@ -120,19 +197,6 @@ DATABASE_CONFIGS["GL Pro"] = {
             ]
         },
         {
-            "id": "core",
-            "name": "Core Vitality Pro",
-            "gender": "any",
-            "symptoms": [
-                {
-                    "id": "symp-core-1",
-                    "text": "High Blood Pressure / Cholesterol",
-                    "pitch": "For your high blood pressure/cholesterol: This one's gonna help with circulation, cardiovascular health, as well as helping with healthy bone density.",
-                    "benefit": "help with cardiovascular health and circulation"
-                }
-            ]
-        },
-        {
             "id": "flora",
             "name": "Flora Flo",
             "gender": "any",
@@ -148,37 +212,6 @@ DATABASE_CONFIGS["GL Pro"] = {
                     "text": "Not currently doing anything for gut health",
                     "pitch": "For your gut health: This one will help with absorbing nutrients, help with processing sugar, as well as helping with good bacterial balance in the gut.",
                     "benefit": "help with absorbing nutrients"
-                }
-            ]
-        },
-        {
-            "id": "sugar",
-            "name": "FreeSugar Pro",
-            "gender": "any",
-            "symptoms": [
-                {
-                    "id": "symp-sugar-1",
-                    "text": "Blood sugar still high",
-                    "pitch": "For your high blood sugar: While the GLPro is helping the pancreas, this one's gonna be helping with the blood sugar in general, helping it to stay lower longer.",
-                    "benefit": "help get your blood sugar under control"
-                },
-                {
-                    "id": "symp-1763239702440",
-                    "text": "Energy \"crashes\" or fatigue, particularly after meals.",
-                    "pitch": "For crashes after meals: This should be your fast acting blood sugar support, helping to maintain energy levels even after meals.",
-                    "benefit": "help with energy crashes after meals"
-                },
-                {
-                    "id": "symp-1763239776389",
-                    "text": "Persistent cravings for sugary foods.",
-                    "pitch": "For sugar cravings: This should be your go to for helping to combat disruptive sugar cravings, helping you to focus on work, your relationships, and life instead of sugar.",
-                    "benefit": "help with sugar cravings"
-                },
-                {
-                    "id": "symp-1763239865383",
-                    "text": "Low energy levels throughout the day.",
-                    "pitch": "For low energy throughout the day: This should be your help with maintaining good energy levels throughout the day. ",
-                    "benefit": "help with low energy throughout the day"
                 }
             ]
         },
@@ -228,3 +261,4 @@ DATABASE_CONFIGS["GL Pro"] = {
         }
     ]
 };
+

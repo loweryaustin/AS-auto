@@ -412,12 +412,13 @@ body { font-family: 'Inter', sans-serif; }
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    width: 6rem; /* w-24 */
-    height: 6rem; /* h-24 */
+    /* MODIFIED: Half size */
+    width: 4rem; /* w-16 */
+    height: 4rem; /* h-16 */
     border-radius: 0.5rem; /* rounded-lg */
     border: 1px solid #4b5563; /* gray-600 */
     transition: all 0.15s ease;
-    padding: 0.5rem;
+    padding: 0.25rem; /* p-1 */
     text-align: center;
 }
 .reference-btn:hover {
@@ -425,10 +426,15 @@ body { font-family: 'Inter', sans-serif; }
     color: #ffffff; /* white */
     border-color: #6b7280; /* gray-500 */
 }
+/* MODIFIED: Adjust icon size in button */
+.reference-btn > i {
+    width: 1.25rem; /* w-5 */
+    height: 1.25rem; /* h-5 */
+}
 .reference-btn-title {
     font-size: 0.75rem; /* 12px */
     font-weight: 500;
-    margin-top: 0.5rem;
+    margin-top: 0.25rem; /* MODIFIED: Reduced margin */
     line-height: 1.2;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -447,10 +453,11 @@ body { font-family: 'Inter', sans-serif; }
     border-radius: 0.5rem;
 }
 .reference-image {
+    /* MODIFIED: This ensures the image scales down */
     width: 100%;
     height: auto;
     max-height: 75vh;
-    object-fit: contain;
+    object-fit: contain; /* This is the key fix */
     border-radius: 0.5rem;
 }
 
@@ -500,32 +507,57 @@ body { font-family: 'Inter', sans-serif; }
     transform: translateY(-50%);
     color: #9ca3af; /* gray-400 */
     pointer-events: none;
+    /* MODIFIED: Ensure icon inside scales */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.icon-picker-preview > i {
+    width: 1rem; /* w-4 */
+    height: 1rem; /* h-4 */
 }
 .icon-picker-input {
     padding-left: 2.25rem !important; /* pl-9 */
 }
 
+/* MODIFIED: Styles for the new icon GRID */
 .icon-picker-results {
     position: absolute;
     top: 100%;
     left: 0;
     width: 100%;
-    max-height: 200px;
+    max-height: 200px; /* Limit height */
     overflow-y: auto;
     background-color: #374151; /* gray-700 */
     border: 1px solid #4b5563; /* gray-600 */
     border-top: none;
     border-radius: 0 0 0.5rem 0.5rem;
     z-index: 20;
+    /* NEW: Grid layout */
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(2.5rem, 1fr)); /* Responsive grid */
+    gap: 0.25rem; /* p-1 */
+    padding: 0.5rem; /* p-2 */
 }
 .icon-picker-item {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 0.75rem;
+    justify-content: center; /* Center the icon */
+    height: 2.5rem; /* w-10 h-10 */
+    width: 2.5rem;
     cursor: pointer;
-    font-size: 0.875rem; /* 14px */
+    border-radius: 0.375rem; /* rounded-md */
+    color: #d1d5db; /* gray-300 */
 }
 .icon-picker-item:hover {
     background-color: #4b5563; /* gray-600 */
+    color: #ffffff; /* white */
+}
+.icon-picker-item svg {
+    width: 1.25rem; /* w-5 h-5 */
+    height: 1.25rem;
+}
+.icon-picker-item .icon-name {
+    /* NEW: Hide the name, as requested */
+    display: none;
 }
