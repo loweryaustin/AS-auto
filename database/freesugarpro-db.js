@@ -9,6 +9,7 @@ DATABASE_CONFIGS["Free Sugar Pro"] = {
         "pitch": "This helps with managing blood sugar."
     },
     "guaranteeDays": 60,
+    "references": [], // NEW: Added for V6.1.0
     "questions": [
         "How long have you been dealing with the diabetes?",
         "Are you dealing with any other underlying health conditions such as high blood pressure or cholesterol?",
@@ -124,7 +125,7 @@ DATABASE_CONFIGS["Free Sugar Pro"] = {
             "gender": "any",
             "symptoms": [
                 {
-                    "id": "symp-core-1",
+                    "id":"symp-core-1",
                     "text": "High Blood Pressure / Cholesterol",
                     "pitch": "For your high blood pressure/cholesterol: This one's gonna help with circulation, cardiovascular health, as well as helping with healthy bone density.",
                     "benefit": "help with cardiovascular health and circulation"
@@ -196,4 +197,3 @@ DATABASE_CONFIGS["Free Sugar Pro"] = {
         }
     ]
 };
-

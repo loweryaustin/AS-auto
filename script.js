@@ -1,6 +1,6 @@
 /**
  * ============================================
- * SCRIPT TOOL APPLICATION LOGIC (V5.3.5)
+ * SCRIPT TOOL APPLICATION LOGIC (V6.1.0)
  * ============================================
  * This is the main "controller" file.
  * It handles state, core logic, and event listeners.
@@ -34,7 +34,8 @@ let appState = {
     currentSegmentIndex: -1,
     globalTimerInterval: null,
     isSettingsOpen: false,
-    isSearching: false
+    isSearching: false,
+    isReferenceModalOpen: false // NEW: Track reference modal state
 };
 
 // --- Module-level drag variables ---
@@ -74,13 +75,12 @@ function cacheDOMElements() {
     // Timer
     DOM.floatingTimerBar = document.getElementById('floating-timer-bar');
     DOM.startTimerManualBtn = document.getElementById('start-timer-manual-btn');
-    DOM.timerSegments = []; // NEW: Array to hold timer segment DOM elements
+    DOM.timerSegments = []; // Array to hold timer segment DOM elements
     
     // Settings
     DOM.settingsCogBtn = document.getElementById('settings-cog-btn');
     DOM.settingsModal = document.getElementById('settings-modal');
     DOM.settingsCloseBtn = document.getElementById('settings-close-btn');
-    // DOM.settingsSaveBtn = document.getElementById('settings-save-btn'); // REMOVED
     DOM.agentNameSettingInput = document.getElementById('agent-name-setting');
     DOM.segmentSettingsList = document.getElementById('segment-settings-list');
     DOM.addSegmentBtn = document.getElementById('add-segment-btn');
@@ -133,6 +133,14 @@ function cacheDOMElements() {
     DOM.onlineOrderSearchResults = document.getElementById('online-order-search-results');
     DOM.orderBreakdownOnlinePart = document.getElementById('order-breakdown-online-part');
     DOM.authoScriptOnlinePart = document.getElementById('autho-script-online-part');
+    
+    // NEW: Reference Feature
+    DOM.referenceModal = document.getElementById('reference-modal');
+    DOM.referenceModalTitle = document.getElementById('reference-modal-title');
+    DOM.referenceModalContent = document.getElementById('reference-modal-content');
+    DOM.referenceModalCloseBtn = document.getElementById('reference-modal-close-btn');
+    DOM.referenceButtonsContainer = document.getElementById('reference-buttons-container');
+    DOM.noReferencesPlaceholder = document.getElementById('no-references-placeholder');
 }
 
 
@@ -209,6 +217,11 @@ function loadSupplementDb(dbName, resetCall = true) {
     if (!appState.supplementDatabase.guaranteeDays) {
         appState.supplementDatabase.guaranteeDays = 60; // Add it if it's missing
     }
+    
+    // NEW: Guardrail for old data that might be missing references
+    if (!appState.supplementDatabase.references) {
+        appState.supplementDatabase.references = []; // Add it if it's missing
+    }
 
     // Set default online order
     // This MUST happen after supplementDatabase is set
@@ -220,6 +233,9 @@ function loadSupplementDb(dbName, resetCall = true) {
     
     // 1. Render the title and sidebar
     updateSupplementWordingUI();
+    
+    // 1b. NEW: Render reference buttons
+    renderReferenceSidebar();
 
     // 2. Render the new discovery questions
     renderDiscoveryQuestions();
@@ -307,6 +323,44 @@ function updateTimerControlsVisibility() {
 }
 
 // --- Symptom Checklist Rendering ---
+
+/**
+ * NEW: Renders the reference buttons in the sidebar.
+ */
+function renderReferenceSidebar() {
+    const refs = appState.supplementDatabase.references;
+    if (!refs || refs.length === 0) {
+        DOM.referenceButtonsContainer.innerHTML = ''; // Clear
+        DOM.noReferencesPlaceholder.classList.remove('hidden');
+        return;
+    }
+    
+    DOM.noReferencesPlaceholder.classList.add('hidden');
+    DOM.referenceButtonsContainer.innerHTML = ''; // Clear existing
+    
+    refs.forEach((ref, index) => {
+        // Guardrail for old data without icons
+        const iconName = ref.icon || 'book';
+        
+        const button = document.createElement('button');
+        button.className = 'reference-btn';
+        button.dataset.index = index;
+        button.title = `${ref.title} (Shortcut: ${ref.shortcut || 'None'})`;
+        
+        button.innerHTML = `
+            <i data-lucide="${iconName}" class="w-8 h-8"></i>
+            <span class="reference-btn-title">${ref.title}</span>
+        `;
+        DOM.referenceButtonsContainer.appendChild(button);
+    });
+    
+    // NEW: We must call this AFTER injecting the HTML
+    // so Lucide can find the `data-lucide` attributes.
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+}
+
 
 /**
  * Renders the list of discovery questions in Part 2.
@@ -672,7 +726,7 @@ function resetForNextCall() {
     updateTimerControlsVisibility();
     DOM.resetConfirmModal.classList.add('hidden');
     
-    // NEW: Re-attach the one-time keydown listener for the timer
+    // Re-attach the one-time keydown listener for the timer
     if(AppUI.reAttachTimerStartListener) {
         AppUI.reAttachTimerStartListener();
     }
@@ -766,6 +820,79 @@ function initDragAndDropEventListeners() {
 }
 
 
+// --- NEW: Reference Modal Logic ---
+
+/**
+ * Opens the reference modal with the content
+ * from the selected reference object.
+ * @param {object} ref - The reference object from the database.
+ */
+AppUI.openReferenceModal = function(ref) {
+    if (!ref) return;
+    
+    DOM.referenceModalTitle.textContent = ref.title;
+    DOM.referenceModalContent.innerHTML = ''; // Clear previous content
+    
+    if (ref.type === 'image') {
+        DOM.referenceModalContent.innerHTML = `<img src="${ref.url}" alt="${ref.title}" class="reference-image">`;
+    } else { // 'website'
+        DOM.referenceModalContent.innerHTML = `<iframe src="${ref.url}" class="reference-iframe" title="${ref.title}"></iframe>`;
+    }
+    
+    DOM.referenceModal.classList.remove('hidden');
+    appState.isReferenceModalOpen = true;
+}
+
+/**
+ * Closes the reference modal and clears its content.
+ */
+AppUI.closeReferenceModal = function() {
+    DOM.referenceModal.classList.add('hidden');
+    DOM.referenceModalTitle.textContent = 'Reference';
+    DOM.referenceModalContent.innerHTML = '';
+    appState.isReferenceModalOpen = false;
+}
+
+/**
+ * NEW: Global keydown listener for shortcuts.
+ */
+function handleGlobalKeydown(e) {
+    // Do not run shortcuts if user is typing in an input
+    const activeEl = document.activeElement;
+    if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA')) {
+        return;
+    }
+    
+    // Do not run if settings modal is open
+    if (appState.isSettingsOpen) {
+        return;
+    }
+
+    const refs = appState.supplementDatabase.references;
+    if (!refs || refs.length === 0) return;
+
+    // Find a reference that matches the pressed key
+    const pressedKey = e.key.toLowerCase();
+    const matchingRef = refs.find(ref => ref.shortcut && ref.shortcut.toLowerCase() === pressedKey);
+    
+    if (matchingRef) {
+        e.preventDefault(); // Prevent default browser action (e.g., 'f' for find)
+        
+        // Toggle logic
+        if (appState.isReferenceModalOpen) {
+            AppUI.closeReferenceModal();
+        } else {
+            AppUI.openReferenceModal(matchingRef);
+        }
+    }
+    
+    // Allow closing with Escape key
+    if (appState.isReferenceModalOpen && e.key === 'Escape') {
+        AppUI.closeReferenceModal();
+    }
+}
+
+
 /**
  * Attaches all event listeners for the main application
  * and initializes all component event listeners.
@@ -811,6 +938,23 @@ function setupEventListeners() {
     DOM.resetAppBtn.addEventListener('click', () => DOM.resetConfirmModal.classList.remove('hidden'));
     DOM.resetCancelBtn.addEventListener('click', () => DOM.resetConfirmModal.classList.add('hidden'));
     DOM.resetConfirmBtn.addEventListener('click', resetForNextCall);
+    
+    // --- NEW: Reference Modal Listeners ---
+    DOM.referenceButtonsContainer.addEventListener('click', (e) => {
+        const button = e.target.closest('.reference-btn');
+        if (button) {
+            const index = parseInt(button.dataset.index, 10);
+            const ref = appState.supplementDatabase.references[index];
+            if (ref) {
+                AppUI.openReferenceModal(ref);
+            }
+        }
+    });
+    
+    DOM.referenceModalCloseBtn.addEventListener('click', AppUI.closeReferenceModal);
+
+    // --- NEW: Global Shortcut Listener ---
+    document.addEventListener('keydown', handleGlobalKeydown);
 
     // --- Initialize Component Event Listeners ---
     AppUI.initUtilityEventListeners(); // Notes
@@ -831,6 +975,7 @@ function setupEventListeners() {
 function initAppUI() {
     updateAgentNameUI();
     updateSupplementWordingUI(); // This will also call AppUI.renderTitleUI()
+    renderReferenceSidebar(); // NEW
     renderDiscoveryQuestions();
     renderSymptomChecklist();
     AppUI.renderOnlineOrderEditor();

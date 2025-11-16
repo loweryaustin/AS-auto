@@ -8,6 +8,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- NEW: Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     
 <!-- CSS_INJECTION_POINT -->
 
@@ -36,7 +38,7 @@
                 </button>
             </div>
 
-            <!-- NEW: LocalStorage Warning -->
+            <!-- LocalStorage Warning -->
             <div id="settings-warning-box" class="settings-warning-box hidden p-4 rounded-lg mb-4">
                 <div class="flex">
                     <div class="flex-shrink-0">
@@ -96,7 +98,7 @@
                     <div class="settings-subsection">
                         <h4 class="text-lg font-semibold text-yellow-400 mb-3">Edit Current Supplement: <span id="current-db-name-display" class="font-bold">...</span></h4>
                         
-                        <!-- NEW: Discovery Questions Editor -->
+                        <!-- Discovery Questions Editor -->
                         <div class="p-4 bg-gray-900 rounded-lg mb-4">
                             <div class="flex justify-between items-center mb-3">
                                 <h4 class="text-md font-semibold text-blue-300">Discovery Questions</h4>
@@ -121,7 +123,6 @@
                                     <label class="text-xs text-gray-400">Pitch (in sidebar)</label>
                                     <textarea id="base-product-pitch-setting" rows="2" class="w-full bg-gray-700 text-white rounded p-2 text-sm"></textarea>
                                 </div>
-                                <!-- NEW: Guarantee Length Input -->
                                 <div>
                                     <label class="text-xs text-gray-400">Guarantee Length (Days)</label>
                                     <input type="number" id="base-product-guarantee-setting" class="w-full bg-gray-700 text-white rounded p-2 text-sm">
@@ -150,6 +151,23 @@
                         </div>
                     </div>
                 </section>
+
+                <!-- NEW: Section 3: References -->
+                <section class="settings-section">
+                    <h3 class="settings-section-title">3. References</h3>
+                    <div class="settings-subsection">
+                        <div class="flex justify-between items-center mb-3">
+                            <h4 class="text-lg font-semibold text-gray-300">Reference Links & Shortcuts</h4>
+                            <button id="add-reference-btn" class="bg-green-600 hover:bg-green-700 text-white text-sm font-bold py-2 px-4 rounded-lg transition-colors">
+                                Add Reference
+                            </button>
+                        </div>
+                        <div id="reference-settings-list" class="space-y-3">
+                            <!-- References will be dynamically inserted here by script-settings.js -->
+                        </div>
+                    </div>
+                </section>
+
             </div>
 
             <!-- Settings Footer -->
@@ -159,7 +177,6 @@
                         Reset All
                     </button>
                 </div>
-                <!-- MODIFIED: Removed Save button and replaced with auto-save text -->
                 <div class="flex flex-wrap gap-4">
                     <span class="text-sm text-gray-400 italic">All changes are saved automatically.</span>
                 </div>
@@ -225,24 +242,39 @@
         </div>
     </div>
 
+    <!-- NEW: Reference Modal -->
+    <div id="reference-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-80 flex items-center justify-center z-50 p-4">
+        <div class="bg-gray-800 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
+            <!-- Modal Header -->
+            <div class="flex justify-between items-center p-4 md:p-6 border-b border-gray-700 flex-shrink-0">
+                <h2 id="reference-modal-title" class="text-2xl font-bold text-white">Reference</h2>
+                <button id="reference-modal-close-btn" class="text-gray-400 hover:text-white transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <!-- Modal Content (Scrollable) -->
+            <div id="reference-modal-content" class="p-4 md:p-6 overflow-y-auto flex-1">
+                <!-- Content (Image or iFrame) will be injected here -->
+            </div>
+        </div>
+    </div>
+
 
     <div class="flex flex-col lg:flex-row min-h-screen">
         
         <!-- Main Script Content -->
-        <!-- MODIFIED: Added pb-24 for timer clearance -->
         <main class="flex-1 p-6 md:p-10 lg:p-12 overflow-y-auto pb-24">
             <div class="max-w-3xl mx-auto prose prose-lg prose-dark">
                 
                 <!-- Title container -->
-                <div class="flex justify-between items-start mb-6"> <!-- Changed to items-start for better alignment -->
-                    <!-- NEW: Dynamic Title/Search Component -->
+                <div class="flex justify-between items-start mb-6">
                     <div id="title-search-container" class="relative flex-1">
                         
-                        <!-- NEW: Clickable wrapper for title and note -->
                         <div id="title-click-wrapper" class="cursor-pointer group flex items-baseline">
                             <h1 id="script-title-display" class="text-3xl font-bold text-white mb-0 group-hover:text-gray-300 transition-colors">[Script Title]</h1>
                             
-                            <!-- NEW: Instructional Note -->
                             <span id="title-search-note" class="ml-3 text-sm text-gray-400 font-normal inline-flex items-center group-hover:text-gray-300 transition-colors">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -257,7 +289,7 @@
                         </div>
                     </div>
                     <!-- Reset Button -->
-                    <button id="reset-app-btn" class="text-blue-400 hover:text-blue-300 border border-blue-400 hover:border-blue-300 rounded-lg px-4 py-2 text-sm font-semibold transition-colors ml-4 flex-shrink-0"> <!-- Added flex-shrink-0 -->
+                    <button id="reset-app-btn" class="text-blue-400 hover:text-blue-300 border border-blue-400 hover:border-blue-300 rounded-lg px-4 py-2 text-sm font-semibold transition-colors ml-4 flex-shrink-0">
                         Next Call
                     </button>
                 </div>
@@ -294,8 +326,6 @@
                                 <option value="3">3 Months (Walk-down 3)</option>
                             </select>
                             
-                            <!-- REMOVED Online Order Dropdown -->
-                            
                             <div>
                                 <label for="gender" class="block text-sm font-semibold text-gray-300 mb-2">Client Gender:</label>
                                 <select id="gender" class="w-full bg-gray-700 border-gray-600 text-white rounded-lg p-3 focus:ring-2 focus:ring-blue-500">
@@ -309,14 +339,12 @@
                         <!-- Questions -->
                         <p class="font-semibold text-lg mt-4">Questions:</p>
                         
-                        <!-- MODIFIED: Static list removed, replaced by dynamic container -->
                         <div id="discovery-questions-list" class="list-decimal pl-5 space-y-2">
                             <!-- Questions will be dynamically inserted here by script-ui.js -->
                         </div>
 
                         <!-- Interactive Symptom Checkboxes -->
                         <p class="font-semibold text-lg mt-6">Symptoms Checklist:</p>
-                        <!-- This container will be populated by script.js -->
                         <div id="symptom-checklist-container" class="space-y-4">
                             <!-- Dynamically generated symptoms go here -->
                         </div>
@@ -329,12 +357,10 @@
                     
                     <p>Great. So for your regiment here, you're going to take your <span id="base-product-name-tell" class="base-product-name-script">...</span> daily, first thing in the morning. Okay?</p>
                     
-                    <!-- Dynamic Add-on Pitch -->
                     <div id="dynamic-pitch-content" class="mt-6 p-6 bg-gray-800 rounded-2xl shadow-inner">
                         <p class="italic text-yellow-400">Your personalized add-on pitch will appear here as you select symptoms...</p>
                     </div>
 
-                    <!-- Dynamic Benefits List -->
                     <div id="dynamic-benefits-list" class="mt-6 p-6 bg-gray-800 rounded-2xl shadow-inner">
                          <p class="italic text-yellow-400">Your summary of benefits will appear here...</p>
                     </div>
@@ -349,7 +375,6 @@
                     <h2>Part 4: The Close</h2>
                     <p>Alright. And it is going to be this phone number here that I'm calling you from, this <span id="agent-phone-placeholder" class="editable-span text-yellow-400 font-bold">[###]</span> number. And, again, my name is <span class="agent-name-placeholder text-yellow-400 font-bold">[Agent Name]</span>. Feel free to save that in your phone. I'm going to be your main point of contact, so I'll be here to help you monday through friday, 9 to 5 central time. Okay?</p>
                     
-                    <!-- MODIFIED: Replaced "60 days" with a dynamic span -->
                     <p>I do also like to mention, <span class="client-name-placeholder text-yellow-400">[Client Name]</span>, if for some reason you are not seeing any initial results or any improvement within the first <strong class="text-yellow-400"><span id="guarantee-days-1">60</span> days</strong>, just go ahead and give me a call, and we will make sure to get this whole thing refunded to you. Okay? Because we wanna make sure that this is working for you. Okay?</p>
                     
                     <p>Now I'm going to re-verify a couple of pieces of information with you before I get you going on the rest of your regimen. Your shipping address is [ADDRESS] correct? [IF NO, CORRECT IT]. And your email is [EMAIL], is that right? [IF NO, CORRECT IT]</p>
@@ -377,7 +402,6 @@
                     be a onetime purchase. Okay?</p>
                     
 
-                    <!-- NEW: Online Order Editor -->
                     <div id="online-order-editor" class="online-order-editor my-6">
                         <label class="block text-lg font-semibold text-gray-300 mb-3">Online Order Items</label>
                         <div id="online-order-list" class="space-y-2 mb-3">
@@ -391,10 +415,8 @@
                         </div>
                     </div>
 
-                    <!-- NEW: This line is re-added and will be made dynamic -->
                     <p id="autho-script-online-part" class="my-4">Now online you've already ordered...</p>
                     
-                    <!-- This div will be populated by JS with the correct wording -->
                     <div id="autho-script-dynamic-wording" class="my-4">
                         <p>So all I have left to do now is send you ...</p>
                     </div>
@@ -405,7 +427,6 @@
                     <p>For your safety, I always say it twice. You do authorize the one-time additional payment of the
                     <strong class="text-yellow-400">$<span id="autho-cost-2">...</span></strong> US Dollars on the <strong class="text-yellow-400">[CARD TYPE]</strong> ending in <strong class="text-yellow-400">[XXXX]</strong>, is that correct?</p>
                     
-                    <!-- Walkdown Selector (MOVED) -->
                     <div class="my-6 p-4 bg-gray-800 rounded-lg">
                         <label for="autho-regimen-length" class="block text-lg font-semibold text-yellow-400 mb-2">Regimen Length (Walkdown):</label>
                         <p class="text-sm text-gray-400 mb-2 italic">If client has price objection, use this to walk down the price. It will sync and recalculate the script.</p>
@@ -418,16 +439,13 @@
                     </div>
 
                     <h3 class="mt-6">ORDER BREAKDOWN</h3>
-                    <!-- MODIFIED: Replaced static text with a span -->
                     <p><span id="order-breakdown-online-part">Online, you ordered...</span></p>
                     
-                    <!-- This div will be populated by JS with the correct wording -->
                     <div id="order-breakdown-dynamic-wording" class="my-4">
                         <p>Now with your new order,
                         you'll be getting <strong class="text-yellow-400"><span id="order-main-supp-needed">...</span></strong> additional <strong class="text-yellow-400 order-main-supp-2 base-product-name-script">...</span></strong> and the full <strong class="text-yellow-400"><span id="order-length">18</span>-month</strong> supply of <strong class="text-yellow-400"><span id="order-addons-list">...</span></strong> for the additional <strong class="text-yellow-400">$<span id="order-cost">...</span></strong>.</p>
                     </div>
 
-                    <!-- MODIFIED: This paragraph now has an ID -->
                     <p id="order-breakdown-completion-wording">That will complete your
                     regiment and you'll see this coming out in two different packages. Give the order 5 to 7
                     business days to reach you, okay? And for your clarity, the bank statement will be from
@@ -436,7 +454,6 @@
                     <p>Okay, the company policy enforces me to say this disclaimer, are you ready, I just need you to
                     agree, okay?</p>
                     
-                    <!-- MODIFIED: Replaced "60-day" with a dynamic span -->
                     <p class="my-4 p-4 bg-gray-700 rounded-lg italic border-l-4 border-yellow-500">
                     Now to clarify, I’m obviously not a medical professional, and these supplements aren’t intended
                     to diagnose, treat, cure, or prevent any disease. The FDA has not evaluated these statements.
@@ -480,9 +497,17 @@
         </main>
 
         <!-- Sidebar -->
-        <!-- MODIFIED: Added pb-24 for timer clearance -->
         <aside class="w-full lg:w-1/3 xl:w-1/4 bg-gray-800 p-6 shadow-2xl overflow-y-auto lg:sticky lg:top-0 lg:h-screen pb-24">
             
+            <!-- NEW: Reference Buttons -->
+            <div class="mb-6">
+                <h2 class="text-2xl font-semibold text-white border-b border-gray-700 pb-3 mb-4">References</h2>
+                <div id="reference-buttons-container" class="flex flex-wrap gap-2">
+                    <!-- Reference buttons will be injected here -->
+                    <p id="no-references-placeholder" class="text-sm text-gray-400 italic">No references set for this supplement. (Edit in Settings > Section 3)</p>
+                </div>
+            </div>
+
             <!-- Notes Section -->
             <div class="mb-6">
                 <h2 class="text-2xl font-semibold text-white border-b border-gray-700 pb-3 mb-4">Call Notes</h2>

@@ -9,6 +9,7 @@ DATABASE_CONFIGS["MEN Balance Pro"] = {
         "pitch": "This helps with prostate health."
     },
     "guaranteeDays": 60,
+    "references": [], // NEW: Added for V6.1.0
     "questions": [
         "Are you dealing with any other underlying health conditions such as high blood pressure, cholesterol, or diabetes?",
         "Okay, do you take medications for those?",
@@ -165,7 +166,7 @@ DATABASE_CONFIGS["MEN Balance Pro"] = {
             "gender": "any",
             "symptoms": [
                 {
-                    "id": "symp-1763239197391",
+                    "id":"symp-1763239197391",
                     "text": "Difficulty concentrating or maintaining focus.",
                     "pitch": "For concentration and focus: This should be your concentration and focus relief, helping you to accomplish more and helping to think clearly.",
                     "benefit": "help with clear focus"
@@ -230,4 +231,3 @@ DATABASE_CONFIGS["MEN Balance Pro"] = {
         }
     ]
 };
-

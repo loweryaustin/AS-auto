@@ -9,6 +9,7 @@ DATABASE_CONFIGS["GL Pro"] = {
         "pitch": "This helps to heal the pancreas."
     },
     "guaranteeDays": 60,
+    "references": [], // NEW: Added for V6.1.0
     "questions": [
         "How long have you been dealing with the diabetes?",
         "Are you dealing with any other underlying health conditions such as high blood pressure or cholesterol?",
@@ -227,4 +228,3 @@ DATABASE_CONFIGS["GL Pro"] = {
         }
     ]
 };
-

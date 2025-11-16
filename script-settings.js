@@ -1,21 +1,25 @@
 /**
  * ============================================
- * SCRIPT TOOL SETTINGS MODAL LOGIC (V5.3.0)
+ * SCRIPT TOOL SETTINGS MODAL LOGIC (V6.1.0)
  * ============================================
  * This component handles all logic and UI for
  * the main settings modal, including:
  * - App Settings (Agent, Segments)
  * - Database Editor (Base Product, Questions, Recommendations)
+ * - NEW: Reference Editor
  * - Reset functions
  * - Auto-saving
  *
  * It depends on:
  * - `appState`, `DOM` (global)
  * - `saveSettingsToStorage()`, `loadState()`, `initAppUI()` (from script.js)
+ * - `lucide` (from CDN)
  */
 
-// --- Module-level variables for auto-saving ---
+// --- Module-level variables ---
 let autoSaveTimer = null;
+let lucideIconNames = []; // NEW: Cache for icon names
+let activeIconPicker = null; // NEW: Track which icon picker is open
 
 /**
  * Creates the HTML element for a single supplement
@@ -25,16 +29,14 @@ let autoSaveTimer = null;
  */
 AppUI.createSupplementEditorElement = function(supp) {
     const suppEl = document.createElement('div');
-    // .settings-supplement-editor-card class
     suppEl.className = 'p-4 bg-gray-700 rounded-lg space-y-3 settings-supplement-editor-card';
     suppEl.dataset.suppId = supp.id;
     
     const safeName = supp.name ? supp.name.replace(/"/g, '&quot;') : "Unnamed Supplement";
     
-    // REMOVED: Drag handle and draggable properties
     suppEl.innerHTML = `
         <div class="flex justify-between items-center pb-2 border-b border-gray-600">
-            <div class="flex-1"> <!-- Removed ml-3 -->
+            <div class="flex-1">
                 <label class="text-xs text-gray-400">Supplement Name</label>
                 <input type="text" value="${safeName}" class="supp-name-input w-full bg-gray-600 text-white rounded p-2 text-sm">
             </div>
@@ -87,6 +89,113 @@ AppUI.createSupplementEditorElement = function(supp) {
     suppEl.appendChild(addSymptomBtn);
     return suppEl;
 }
+
+/**
+ * NEW: Creates the HTML element for a single reference
+ * in the settings modal editor.
+ * @param {object} ref - The reference configuration object.
+ * @returns {HTMLElement} - The fully constructed div element.
+ */
+AppUI.createReferenceEditorElement = function(ref) {
+    const refEl = document.createElement('div');
+    refEl.className = 'reference-editor-card';
+    refEl.dataset.refId = ref.id;
+
+    // Sanitize values
+    const safeTitle = ref.title ? ref.title.replace(/"/g, '&quot;') : "";
+    const safeUrl = ref.url ? ref.url.replace(/"/g, '&quot;') : "";
+    const safeShortcut = ref.shortcut ? ref.shortcut.replace(/"/g, '&quot;') : "";
+    const safeIcon = ref.icon ? ref.icon.replace(/"/g, '&quot;') : "book";
+
+    refEl.innerHTML = `
+        <div class="reference-editor-grid sm:grid-cols-4">
+            <!-- Column 1: Title -->
+            <div>
+                <label>Title</label>
+                <input type="text" value="${safeTitle}" class="ref-input ref-title-input" placeholder="e.g., Study Link">
+            </div>
+            
+            <!-- Column 2: Icon -->
+            <div class="icon-picker-container">
+                <label>Icon</label>
+                <div class="icon-picker-input-wrap">
+                    <span class="icon-picker-preview">
+                        <i data-lucide="${safeIcon}"></i>
+                    </span>
+                    <input type="text" value="${safeIcon}" class="ref-input ref-icon-input icon-picker-input" placeholder="Search icons...">
+                </div>
+                <div class="icon-picker-results hidden"></div>
+            </div>
+
+            <!-- Column 3: Type -->
+            <div>
+                <label>Type</label>
+                <select class="ref-input ref-type-select">
+                    <option value="website" ${ref.type === 'website' ? 'selected' : ''}>Website URL</option>
+                    <option value="image" ${ref.type === 'image' ? 'selected' : ''}>Image URL</option>
+                </select>
+            </div>
+            
+            <!-- Column 4: Shortcut -->
+            <div>
+                <label>Shortcut Key</label>
+                <input type="text" value="${safeShortcut}" class="ref-input ref-shortcut-input" placeholder="e.g., 1, a, A" maxlength="1">
+            </div>
+        </div>
+        
+        <!-- Full-width URL -->
+        <div class="mt-2">
+            <label>URL (Image link or Website link)</label>
+            <input type="text" value="${safeUrl}" class="ref-input ref-url-input" placeholder="https://...">
+        </div>
+        
+        <button class="remove-reference-btn bg-red-600 hover:bg-red-700 text-white text-xs font-bold py-1 px-3 rounded-lg mt-3">
+            Remove Reference
+        </button>
+    `;
+
+    // Manually call createIcons on the new element
+    lucide.createIcons({
+        nodes: [refEl.querySelector('.icon-picker-preview i')]
+    });
+
+    return refEl;
+}
+
+/**
+ * NEW: Renders the search results for the icon picker.
+ * @param {string} query - The search query.
+ * @param {HTMLElement} resultsContainer - The DOM element to fill.
+ */
+AppUI.renderIconPickerResults = function(query, resultsContainer) {
+    if (!lucideIconNames || lucideIconNames.length === 0) {
+        resultsContainer.innerHTML = '<div class="p-2 text-sm text-gray-400">Loading icons...</div>';
+        return;
+    }
+
+    const lowerQuery = query.toLowerCase();
+    const filteredIcons = lucideIconNames.filter(name => name.includes(lowerQuery)).slice(0, 50); // Limit to 50 results
+
+    if (filteredIcons.length === 0) {
+        resultsContainer.innerHTML = '<div class="p-2 text-sm text-gray-400">No icons found.</div>';
+        resultsContainer.classList.remove('hidden');
+        return;
+    }
+
+    resultsContainer.innerHTML = filteredIcons.map(name => `
+        <div class="icon-picker-item" data-icon-name="${name}">
+            <i data-lucide="${name}" class="w-4 h-4"></i>
+            <span>${name}</span>
+        </div>
+    `).join('');
+
+    lucide.createIcons({
+        nodes: resultsContainer.querySelectorAll('i')
+    });
+    
+    resultsContainer.classList.remove('hidden');
+}
+
 
 /**
  * Renders the entire settings modal, populating
@@ -157,6 +266,16 @@ AppUI.renderSettingsModal = function() {
                 DOM.supplementSettingsList.appendChild(suppEl);
             });
         }
+        
+        // NEW: Populate References
+        DOM.referenceSettingsList.innerHTML = '';
+        if (appState.supplementDatabase.references) {
+             appState.supplementDatabase.references.forEach(ref => {
+                const refEl = AppUI.createReferenceEditorElement(ref);
+                DOM.referenceSettingsList.appendChild(refEl);
+            });
+        }
+
 
     } else {
         DOM.settingsModal.classList.add('hidden');
@@ -164,7 +283,7 @@ AppUI.renderSettingsModal = function() {
 }
 
 /**
- * NEW: Reads all values from the settings modal,
+ * Reads all values from the settings modal,
  * updates appState, saves to localStorage, and
  * re-renders the main UI.
  */
@@ -204,19 +323,26 @@ AppUI.readAndSaveAllSettings = function() {
     appState.supplementDatabase.guaranteeDays = parseInt(DOM.baseProductGuaranteeSetting.value, 10) || 60;
     
     // Save Recommendations
-    // REMOVED: This logic no longer respects drag-and-drop, as it's
-    // handled by the main page now. It just saves the content.
+    // This logic respects the drag-and-drop order from the main page
+    // by only updating/deleting items, not re-ordering them.
     const newRecommendations = [];
     const suppElements = DOM.supplementSettingsList.querySelectorAll('[data-supp-id]');
+    const domSuppIds = Array.from(suppElements).map(el => el.dataset.suppId);
+
+    // Filter appState to only include items that still exist in the DOM
+    appState.supplementDatabase.recommendations = appState.supplementDatabase.recommendations.filter(rec => 
+        domSuppIds.includes(rec.id)
+    );
+
+    // Update the content of the remaining items
     suppElements.forEach(el => {
         const suppId = el.dataset.suppId;
-        
-        // Find the existing recommendation to preserve its order
         const existingRec = appState.supplementDatabase.recommendations.find(r => r.id === suppId);
         
         const nameInput = el.querySelector('.supp-name-input');
         const genderSelect = el.querySelector('.supp-gender-select');
         if (!nameInput || !genderSelect) return;
+
         const newSymptoms = [];
         const symptomElements = el.querySelectorAll('.symptom-input-group');
         symptomElements.forEach(sympEl => {
@@ -235,14 +361,13 @@ AppUI.readAndSaveAllSettings = function() {
         });
         
         if (existingRec) {
-            // Update existing
+            // Update existing record
             existingRec.name = nameInput.value;
             existingRec.gender = genderSelect.value;
             existingRec.symptoms = newSymptoms;
-            newRecommendations.push(existingRec);
         } else {
-            // Add new (this happens when user clicks "Add Supplement")
-             newRecommendations.push({
+            // Add new record (was just created)
+            appState.supplementDatabase.recommendations.push({
                 id: suppId,
                 name: nameInput.value,
                 gender: genderSelect.value,
@@ -250,70 +375,30 @@ AppUI.readAndSaveAllSettings = function() {
             });
         }
     });
-
-    // Handle deletions
-    // We must re-build the array based on the DOM *order* of the main page,
-    // but with the *content* from the settings modal.
-    // This is tricky. Let's rethink.
-
-    // --- NEW SAVE LOGIC ---
-    // 1. Get the current order from appState
-    const currentOrder = appState.supplementDatabase.recommendations.map(r => r.id);
-    const updatedRecs = [];
-
-    // 2. Loop through the *DOM elements* in the settings modal
-    suppElements.forEach(el => {
-         const suppId = el.dataset.suppId;
-         const nameInput = el.querySelector('.supp-name-input');
-         const genderSelect = el.querySelector('.supp-gender-select');
-         if (!nameInput || !genderSelect) return;
-
-         const newSymptoms = [];
-         const symptomElements = el.querySelectorAll('.symptom-input-group');
-         symptomElements.forEach(sympEl => {
-             // ... (symptom reading logic is correct) ...
-             const sympId = sympEl.dataset.sympId;
-             const sympTextInput = sympEl.querySelector('.supp-symptom-text-input');
-             const sympPitchInput = sympEl.querySelector('.supp-symptom-pitch-input');
-             const sympBenefitInput = sympEl.querySelector('.supp-symptom-benefit-input');
-             if (sympTextInput && sympTextInput.value && sympPitchInput && sympBenefitInput) {
-                 newSymptoms.push({
-                     id: sympId,
-                    text: sympTextInput.value,
-                    pitch: sympPitchInput.value,
-                    benefit: sympBenefitInput.value
-                 });
-             }
-         });
-        
-         updatedRecs.push({
-            id: suppId,
-            name: nameInput.value,
-            gender: genderSelect.value,
-            symptoms: newSymptoms
-         });
-    });
-
-    // 3. Filter `appState.supplementDatabase.recommendations` to remove deleted items
-    // and update content for existing items, *preserving the order*.
-    const finalRecommendations = [];
-    appState.supplementDatabase.recommendations.forEach(rec => {
-        const updatedVersion = updatedRecs.find(u => u.id === rec.id);
-        if (updatedVersion) {
-            // Item exists, push the updated version
-            finalRecommendations.push(updatedVersion);
-        }
-        // If `updatedVersion` is not found, the item was deleted.
-    });
     
-    // 4. Add any *new* supplements (which won't be in the original appState array)
-    updatedRecs.forEach(updatedRec => {
-        if (!finalRecommendations.find(f => f.id === updatedRec.id)) {
-            finalRecommendations.push(updatedRec);
+    // NEW: Save References
+    const newReferences = [];
+    const refElements = DOM.referenceSettingsList.querySelectorAll('[data-ref-id]');
+    refElements.forEach(el => {
+        const id = el.dataset.refId;
+        const title = el.querySelector('.ref-title-input').value;
+        const icon = el.querySelector('.ref-icon-input').value;
+        const type = el.querySelector('.ref-type-select').value;
+        const shortcut = el.querySelector('.ref-shortcut-input').value;
+        const url = el.querySelector('.ref-url-input').value;
+        
+        if (title && url) { // Only save if title and URL are present
+             newReferences.push({
+                id: id,
+                title: title,
+                icon: icon || 'book', // Default to 'book' if empty
+                type: type,
+                shortcut: shortcut.trim().slice(0, 1), // Only first char
+                url: url
+            });
         }
     });
-
-    appState.supplementDatabase.recommendations = finalRecommendations;
+    appState.supplementDatabase.references = newReferences;
     
     // 3. Persist all settings to localStorage
     saveSettingsToStorage(); // This function lives in script.js
@@ -325,14 +410,12 @@ AppUI.readAndSaveAllSettings = function() {
 }
 
 /**
- * NEW: Debouncer function to trigger auto-save.
+ * Debouncer function to trigger auto-save.
  * @param {number} [delay=500] - The delay in milliseconds.
  */
 AppUI.triggerAutoSave = function(delay = 500) {
     clearTimeout(autoSaveTimer);
     autoSaveTimer = setTimeout(() => {
-        // Must check if modal is still open. If user closes it,
-        // we don't need to read values.
         if (appState.isSettingsOpen) {
             AppUI.readAndSaveAllSettings();
         }
@@ -358,25 +441,100 @@ AppUI.resetSettingsToDefaults = function() {
 }
 
 /**
+ * NEW: Fetches the list of all Lucide icon names.
+ */
+AppUI.fetchIconNames = async function() {
+    if (lucideIconNames.length > 0) return; // Already fetched
+    try {
+        const response = await fetch('https://cdn.jsdelivr.net/npm/lucide-static@latest/icon-names.json');
+        if (!response.ok) throw new Error('Failed to fetch icon list');
+        lucideIconNames = await response.json();
+        console.log(`Loaded ${lucideIconNames.length} icon names.`);
+    } catch (error) {
+        console.error("Error fetching Lucide icon names:", error);
+        lucideIconNames = ['book', 'link', 'image', 'alert-circle']; // Fallback
+    }
+}
+
+/**
  * Attaches event listeners for the Settings Modal component.
  */
 AppUI.initSettingsEventListeners = function() {
-    DOM.settingsCogBtn.addEventListener('click', () => { appState.isSettingsOpen = true; AppUI.renderSettingsModal(); });
-    DOM.settingsCloseBtn.addEventListener('click', () => { appState.isSettingsOpen = false; AppUI.renderSettingsModal(); });
-
-    // --- NEW: Auto-save triggers ---
-    // 1. Listen for any text input
-    DOM.settingsModal.addEventListener('input', () => {
-        AppUI.triggerAutoSave(500); // 500ms delay for typing
+    // NEW: Add reference section DOM elements
+    DOM.addReferenceBtn = document.getElementById('add-reference-btn');
+    DOM.referenceSettingsList = document.getElementById('reference-settings-list');
+    
+    // NEW: Fetch icon names when settings are first opened
+    DOM.settingsCogBtn.addEventListener('click', () => { 
+        appState.isSettingsOpen = true; 
+        AppUI.renderSettingsModal(); 
+        AppUI.fetchIconNames(); // Fetch icon list
+    });
+    
+    DOM.settingsCloseBtn.addEventListener('click', () => { 
+        appState.isSettingsOpen = false; 
+        AppUI.renderSettingsModal(); 
     });
 
-    // 2. Listen for discrete actions (add/remove buttons)
+    // --- Auto-save triggers ---
+    DOM.settingsModal.addEventListener('input', (e) => {
+        // Standard auto-save for most inputs
+        AppUI.triggerAutoSave(500); // 500ms delay for typing
+
+        // NEW: Handle icon picker search
+        const iconInput = e.target.closest('.icon-picker-input');
+        if (iconInput) {
+            const container = iconInput.closest('.icon-picker-container');
+            const results = container.querySelector('.icon-picker-results');
+            AppUI.renderIconPickerResults(iconInput.value, results);
+            activeIconPicker = results;
+        }
+    });
+    
+    DOM.settingsModal.addEventListener('focusin', (e) => {
+        // NEW: Show icon picker results on focus
+        const iconInput = e.target.closest('.icon-picker-input');
+         if (iconInput) {
+            const container = iconInput.closest('.icon-picker-container');
+            const results = container.querySelector('.icon-picker-results');
+            AppUI.renderIconPickerResults(iconInput.value, results);
+            activeIconPicker = results;
+        }
+    });
+    
+    // NEW: Close icon picker when clicking outside
+    document.addEventListener('click', (e) => {
+        if (activeIconPicker && !activeIconPicker.closest('.icon-picker-container').contains(e.target)) {
+            activeIconPicker.classList.add('hidden');
+            activeIconPicker = null;
+        }
+    });
+
     DOM.settingsModal.addEventListener('click', (e) => {
         const actionButton = e.target.closest(
-            '.remove-segment-btn, .add-segment-btn, .remove-question-btn, .add-question-btn, .remove-symptom-btn, .add-symptom-btn, .remove-supplement-btn, .add-supplement-btn'
+            '.remove-segment-btn, .add-segment-btn, .remove-question-btn, .add-question-btn, .remove-symptom-btn, .add-symptom-btn, .remove-supplement-btn, .add-supplement-btn, .remove-reference-btn, .add-reference-btn'
         );
         if (actionButton) {
             AppUI.triggerAutoSave(50); // 50ms delay, just to let DOM update first
+        }
+        
+        // NEW: Handle clicking an icon from the picker
+        const iconItem = e.target.closest('.icon-picker-item');
+        if (iconItem) {
+            const iconName = iconItem.dataset.iconName;
+            const container = iconItem.closest('.icon-picker-container');
+            const input = container.querySelector('.icon-picker-input');
+            const preview = container.querySelector('.icon-picker-preview i');
+            
+            input.value = iconName;
+            preview.setAttribute('data-lucide', iconName);
+            lucide.createIcons({
+                nodes: [preview]
+            });
+            
+            container.querySelector('.icon-picker-results').classList.add('hidden');
+            activeIconPicker = null;
+            AppUI.triggerAutoSave(50); // Save the change
         }
     });
 
@@ -387,8 +545,7 @@ AppUI.initSettingsEventListeners = function() {
             id: `seg-${Date.now()}`, title: "New Segment", duration: 60,
             progress: 0, state: 'pending', overtime: 0, startTime: null
         });
-        AppUI.renderSettingsModal(); // Re-render to show new segment
-        // Auto-save will be triggered by the click listener above
+        AppUI.renderSettingsModal(); 
     });
 
     DOM.segmentSettingsList.addEventListener('click', (e) => {
@@ -396,8 +553,7 @@ AppUI.initSettingsEventListeners = function() {
         if (removeBtn) {
             const idToRemove = removeBtn.dataset.segmentId;
             appState.settings.segments = appState.settings.segments.filter(s => s.id !== idToRemove);
-            AppUI.renderSettingsModal(); // Re-render to remove segment
-            // Auto-save will be triggered by the click listener above
+            AppUI.renderSettingsModal(); 
         }
     });
 
@@ -412,14 +568,12 @@ AppUI.initSettingsEventListeners = function() {
             </button>
         `;
         DOM.questionsEditorList.appendChild(questionEl);
-        // Auto-save will be triggered by the click listener above
     });
 
     DOM.questionsEditorList.addEventListener('click', (e) => {
         const removeBtn = e.target.closest('.remove-question-btn');
         if (removeBtn) {
             removeBtn.parentElement.remove();
-            // Auto-save will be triggered by the click listener above
         }
     });
 
@@ -429,7 +583,6 @@ AppUI.initSettingsEventListeners = function() {
         const removeSymptomBtn = e.target.closest('.remove-symptom-btn');
         if (removeSymptomBtn) {
             removeSymptomBtn.closest('.symptom-input-group').remove();
-            // Auto-save will be triggered by the click listener above
             return;
         }
 
@@ -456,14 +609,12 @@ AppUI.initSettingsEventListeners = function() {
                 </div>
             `;
             symptomsListDiv.appendChild(newSymptomGroup);
-            // Auto-save will be triggered by the click listener above
             return;
         }
 
         const removeSuppBtn = e.target.closest('.remove-supplement-btn');
         if (removeSuppBtn) {
             removeSuppBtn.closest('[data-supp-id]').remove();
-            // Auto-save will be triggered by the click listener above
             return;
         }
     });
@@ -478,13 +629,33 @@ AppUI.initSettingsEventListeners = function() {
         };
         const newSuppElement = AppUI.createSupplementEditorElement(newSupp);
         DOM.supplementSettingsList.appendChild(newSuppElement);
-        // Auto-save will be triggered by the click listener above
     });
     
+    // NEW: Listeners for Reference Editor
+    DOM.addReferenceBtn.addEventListener('click', () => {
+        const newRef = {
+            id: `ref-${Date.now()}`,
+            title: "New Reference",
+            icon: "book",
+            type: "website",
+            shortcut: "",
+            url: ""
+        };
+        const newRefElement = AppUI.createReferenceEditorElement(newRef);
+        DOM.referenceSettingsList.appendChild(newRefElement);
+        // Auto-save will be triggered by the main 'click' listener
+    });
+
+    DOM.referenceSettingsList.addEventListener('click', (e) => {
+        const removeBtn = e.target.closest('.remove-reference-btn');
+        if (removeBtn) {
+            removeBtn.closest('.reference-editor-card').remove();
+            // Auto-save will be triggered by the main 'click' listener
+        }
+    });
+
     // Reset to Defaults Modal
     DOM.resetToDefaultsBtn.addEventListener('click', () => DOM.resetDefaultsConfirmModal.classList.remove('hidden'));
     DOM.resetDefaultsCancelBtn.addEventListener('click', () => DOM.resetDefaultsConfirmModal.classList.add('hidden'));
     DOM.resetDefaultsConfirmBtn.addEventListener('click', AppUI.resetSettingsToDefaults);
-
-    // --- REMOVED: All drag-and-drop event listeners for settings modal ---
 }
