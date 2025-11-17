@@ -1,0 +1,388 @@
+/**
+ * ============================================
+ * SCRIPT TOOL REFERENCES COMPONENT (V6.2.0)
+ * ============================================
+ * This component handles all logic and UI for the
+ * References feature, including:
+ * - Sidebar button rendering
+ * - Modal (open/close, content injection)
+ * - Keyboard shortcuts
+ * - Settings modal editor UI (icon picker, add/remove)
+ *
+ * It depends on:
+ * - `appState`, `DOM` (global)
+ * - `lucide` (from CDN)
+ * - `saveSettingsToStorage()` (from script.js)
+ * - `AppUI.triggerAutoSave()` (from script-settings.js)
+ */
+
+// --- Module-level variables ---
+let lucideIconNames = []; // Cache for icon names
+let activeIconPicker = null; // Track which icon picker is open
+
+/**
+ * Helper function to fix icon name format.
+ * Converts "camelCase" to "kebab-case".
+ * e.g., "NotebookPen" -> "notebook-pen"
+ */
+function camelToKebab(s) {
+    return s.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
+}
+
+/**
+ * Caches DOM elements specific to the References feature.
+ * Called by the main `cacheDOMElements` in script.js.
+ */
+AppUI.cacheReferenceDOMElements = function() {
+    DOM.referenceModal = document.getElementById('reference-modal');
+    DOM.referenceModalTitle = document.getElementById('reference-modal-title');
+    DOM.referenceModalContent = document.getElementById('reference-modal-content');
+    DOM.referenceModalCloseBtn = document.getElementById('reference-modal-close-btn');
+    DOM.referenceButtonsContainer = document.getElementById('reference-buttons-container');
+    DOM.noReferencesPlaceholder = document.getElementById('no-references-placeholder');
+    // Settings-specific elements
+    DOM.addReferenceBtn = document.getElementById('add-reference-btn');
+    DOM.referenceSettingsList = document.getElementById('reference-settings-list');
+}
+
+/**
+ * Renders the reference buttons in the sidebar.
+ * (Moved from script.js)
+ */
+AppUI.renderReferenceSidebar = function() {
+    const refs = appState.supplementDatabase.references;
+    if (!refs || refs.length === 0) {
+        DOM.referenceButtonsContainer.innerHTML = ''; // Clear
+        DOM.noReferencesPlaceholder.classList.remove('hidden');
+        return;
+    }
+    
+    DOM.noReferencesPlaceholder.classList.add('hidden');
+    DOM.referenceButtonsContainer.innerHTML = ''; // Clear existing
+    
+    refs.forEach((ref, index) => {
+        // Guardrail for old data without icons
+        const iconName = ref.icon || 'book';
+        
+        const button = document.createElement('button');
+        button.className = 'reference-btn';
+        button.dataset.index = index;
+        button.title = `${ref.title} (Shortcut: ${ref.shortcut || 'None'})`;
+        
+        button.innerHTML = `
+            <i data-lucide="${iconName}" class="w-8 h-8"></i>
+            <span class="reference-btn-title">${ref.title}</span>
+        `;
+        DOM.referenceButtonsContainer.appendChild(button);
+    });
+    
+    // We must call this AFTER injecting the HTML
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+}
+
+/**
+ * Opens the reference modal with the content
+ * from the selected reference object.
+ * (Moved from script.js)
+ * @param {object} ref - The reference object from the database.
+ */
+AppUI.openReferenceModal = function(ref) {
+    if (!ref) return;
+    
+    DOM.referenceModalTitle.textContent = ref.title;
+    DOM.referenceModalContent.innerHTML = ''; // Clear previous content
+    
+    if (ref.type === 'image') {
+        DOM.referenceModalContent.innerHTML = `<img src="${ref.url}" alt="${ref.title}" class="reference-image">`;
+    } else { // 'website'
+        DOM.referenceModalContent.innerHTML = `<iframe src="${ref.url}" class="reference-iframe" title="${ref.title}"></iframe>`;
+    }
+    
+    DOM.referenceModal.classList.remove('hidden');
+    appState.isReferenceModalOpen = true;
+}
+
+/**
+ * Closes the reference modal and clears its content.
+ * (Moved from script.js)
+ */
+AppUI.closeReferenceModal = function() {
+    DOM.referenceModal.classList.add('hidden');
+    DOM.referenceModalTitle.textContent = 'Reference';
+    DOM.referenceModalContent.innerHTML = '';
+    appState.isReferenceModalOpen = false;
+}
+
+/**
+ * Global keydown listener for shortcuts.
+ * (Moved from script.js)
+ */
+AppUI.handleReferenceKeydown = function(e) {
+    // Do not run shortcuts if user is typing in an input
+    const activeEl = document.activeElement;
+    if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA')) {
+        return;
+    }
+    
+    // Do not run if settings modal is open
+    if (appState.isSettingsOpen) {
+        return;
+    }
+
+    const refs = appState.supplementDatabase.references;
+    if (!refs || refs.length === 0) return;
+
+    // Find a reference that matches the pressed key
+    const pressedKey = e.key.toLowerCase();
+    const matchingRef = refs.find(ref => ref.shortcut && ref.shortcut.toLowerCase() === pressedKey);
+    
+    if (matchingRef) {
+        e.preventDefault(); // Prevent default browser action (e.g., 'f' for find)
+        
+        // Toggle logic
+        if (appState.isReferenceModalOpen) {
+            AppUI.closeReferenceModal();
+        } else {
+            AppUI.openReferenceModal(matchingRef);
+        }
+    }
+    
+    // Allow closing with Escape key
+    if (appState.isReferenceModalOpen && e.key === 'Escape') {
+        AppUI.closeReferenceModal();
+    }
+}
+
+// --- Settings Modal Logic ---
+
+/**
+ * Creates the HTML element for a single reference
+ * in the settings modal editor.
+ * (Moved from script-settings.js)
+ * @param {object} ref - The reference configuration object.
+ * @returns {HTMLElement} - The fully constructed div element.
+ */
+AppUI.createReferenceEditorElement = function(ref) {
+    const refEl = document.createElement('div');
+    refEl.className = 'reference-editor-card';
+    refEl.dataset.refId = ref.id;
+
+    // Sanitize values
+    const safeTitle = ref.title ? ref.title.replace(/"/g, '&quot;') : "";
+    const safeUrl = ref.url ? ref.url.replace(/"/g, '&quot;') : "";
+    const safeShortcut = ref.shortcut ? ref.shortcut.replace(/"/g, '&quot;') : "";
+    const safeIcon = ref.icon ? ref.icon.replace(/"/g, '&quot;') : "book";
+
+    refEl.innerHTML = `
+        <div class="reference-editor-grid sm:grid-cols-4">
+            <!-- Column 1: Title -->
+            <div>
+                <label>Title</label>
+                <input type="text" value="${safeTitle}" class="ref-input ref-title-input" placeholder="e.g., Study Link">
+            </div>
+            
+            <!-- Column 2: Icon -->
+            <div class="icon-picker-container">
+                <label>Icon</label>
+                <div class="icon-picker-input-wrap">
+                    <span class="icon-picker-preview">
+                        <i data-lucide="${safeIcon}"></i>
+                    </span>
+                    <input type="text" value="${safeIcon}" class="ref-input ref-icon-input icon-picker-input" placeholder="Search icons...">
+                </div>
+                <div class="icon-picker-results hidden"></div>
+            </div>
+
+            <!-- Column 3: Type -->
+            <div>
+                <label>Type</label>
+                <select class="ref-input ref-type-select">
+                    <option value="website" ${ref.type === 'website' ? 'selected' : ''}>Website URL</option>
+                    <option value="image" ${ref.type === 'image' ? 'selected' : ''}>Image URL</option>
+                </select>
+            </div>
+            
+            <!-- Column 4: Shortcut -->
+            <div>
+                <label>Shortcut Key</label>
+                <input type="text" value="${safeShortcut}" class="ref-input ref-shortcut-input" placeholder="e.g., 1, a, A" maxlength="1">
+            </div>
+        </div>
+        
+        <!-- Full-width URL -->
+        <div class="mt-2">
+            <label>URL (Image link or Website link)</label>
+            <input type="text" value="${safeUrl}" class="ref-input ref-url-input" placeholder="https://...">
+        </div>
+        
+        <button class="remove-reference-btn bg-red-600 hover:bg-red-700 text-white text-xs font-bold py-1 px-3 rounded-lg mt-3">
+            Remove Reference
+        </button>
+    `;
+
+    // Manually call createIcons on the new element
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons({
+            nodes: [refEl.querySelector('.icon-picker-preview i')]
+        });
+    }
+
+    return refEl;
+}
+
+/**
+ * Renders the search results for the icon picker.
+ * (Moved from script-settings.js)
+ * @param {string} query - The search query.
+ * @param {HTMLElement} resultsContainer - The DOM element to fill.
+ */
+AppUI.renderIconPickerResults = function(query, resultsContainer) {
+    if (!lucideIconNames || lucideIconNames.length === 0) {
+        // Load icon names on demand
+        if (lucideIconNames.length === 0 && typeof lucide !== 'undefined' && lucide.icons) {
+            const iconObject = lucide.icons || {};
+            lucideIconNames = Object.keys(iconObject).map(camelToKebab); 
+            console.log(`Loaded ${lucideIconNames.length} Lucide icon names.`);
+        } else {
+            resultsContainer.innerHTML = '<div class="p-2 text-sm text-gray-400">Loading icons...</div>';
+            resultsContainer.classList.remove('hidden'); // Show "Loading"
+            return;
+        }
+    }
+
+    const lowerQuery = query.toLowerCase();
+    const filteredIcons = lowerQuery.length > 0 
+        ? lucideIconNames.filter(name => name.includes(lowerQuery)) 
+        : lucideIconNames; // Show all if no query
+
+    if (filteredIcons.length === 0) {
+        resultsContainer.innerHTML = '<div class="p-2 text-sm text-gray-400">No icons found.</div>';
+        resultsContainer.classList.remove('hidden');
+        return;
+    }
+
+    resultsContainer.innerHTML = filteredIcons.slice(0, 100).map(name => `
+        <div class="icon-picker-item" data-icon-name="${name}" title="${name}">
+            <i data-lucide="${name}"></i>
+            <span class="icon-name">${name}</span>
+        </div>
+    `).join(''); // Limit to 100 results for performance
+
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons({
+            nodes: resultsContainer.querySelectorAll('i')
+        });
+    }
+    
+    resultsContainer.classList.remove('hidden');
+}
+
+/**
+ * Attaches event listeners for the Reference Settings Editor
+ * (called by initSettingsEventListeners)
+ */
+AppUI.initReferenceSettingsEventListeners = function() {
+    // Listeners for Reference Editor
+    DOM.addReferenceBtn.addEventListener('click', () => {
+        const newRef = {
+            id: `ref-${Date.now()}`,
+            title: "New Reference",
+            icon: "book",
+            type: "website",
+            shortcut: "",
+            url: ""
+        };
+        const newRefElement = AppUI.createReferenceEditorElement(newRef);
+        DOM.referenceSettingsList.appendChild(newRefElement);
+        // Auto-save will be triggered by the main 'click' listener in script-settings.js
+    });
+
+    DOM.referenceSettingsList.addEventListener('click', (e) => {
+        const removeBtn = e.target.closest('.remove-reference-btn');
+        if (removeBtn) {
+            removeBtn.closest('.reference-editor-card').remove();
+            // Auto-save will be triggered by the main 'click' listener in script-settings.js
+        }
+    });
+
+    // --- Icon Picker Listeners (from script-settings.js) ---
+    DOM.settingsModal.addEventListener('input', (e) => {
+        // Handle icon picker search
+        const iconInput = e.target.closest('.icon-picker-input');
+        if (iconInput) {
+            const container = iconInput.closest('.icon-picker-container');
+            const results = container.querySelector('.icon-picker-results');
+            AppUI.renderIconPickerResults(iconInput.value, results);
+            activeIconPicker = results;
+        }
+    });
+    
+    DOM.settingsModal.addEventListener('focusin', (e) => {
+        // Show icon picker results on focus
+        const iconInput = e.target.closest('.icon-picker-input');
+         if (iconInput) {
+            const container = iconInput.closest('.icon-picker-container');
+            const results = container.querySelector('.icon-picker-results');
+            AppUI.renderIconPickerResults(iconInput.value, results);
+            activeIconPicker = results;
+        }
+    });
+    
+    // Close icon picker when clicking outside (moved from script-settings.js)
+    document.addEventListener('click', (e) => {
+        if (activeIconPicker && !activeIconPicker.closest('.icon-picker-container').contains(e.target)) {
+            activeIconPicker.classList.add('hidden');
+            activeIconPicker = null;
+        }
+    });
+
+    // Handle clicking an icon from the picker
+    DOM.settingsModal.addEventListener('click', (e) => {
+        const iconItem = e.target.closest('.icon-picker-item');
+        if (iconItem) {
+            const iconName = iconItem.dataset.iconName;
+            const container = iconItem.closest('.icon-picker-container');
+            const input = container.querySelector('.icon-picker-input');
+            const previewIcon = container.querySelector('.icon-picker-preview i');
+            
+            input.value = iconName;
+            
+            if (previewIcon) {
+                previewIcon.innerHTML = ''; 
+                previewIcon.setAttribute('data-lucide', iconName);
+                if (typeof lucide !== 'undefined') {
+                    lucide.createIcons({ nodes: [previewIcon] });
+                }
+            }
+            
+            container.querySelector('.icon-picker-results').classList.add('hidden');
+            activeIconPicker = null;
+            AppUI.triggerAutoSave(50); // Save the change
+        }
+    });
+}
+
+/**
+ * Attaches event listeners for the main UI (sidebar, modal)
+ * (called by setupEventListeners)
+ */
+AppUI.initReferenceEventListeners = function() {
+    // --- Reference Modal Listeners ---
+    DOM.referenceButtonsContainer.addEventListener('click', (e) => {
+        const button = e.target.closest('.reference-btn');
+        if (button) {
+            const index = parseInt(button.dataset.index, 10);
+            const ref = appState.supplementDatabase.references[index];
+            if (ref) {
+                AppUI.openReferenceModal(ref);
+            }
+        }
+    });
+    
+    DOM.referenceModalCloseBtn.addEventListener('click', AppUI.closeReferenceModal);
+
+    // --- Global Shortcut Listener ---
+    document.addEventListener('keydown', AppUI.handleReferenceKeydown);
+}

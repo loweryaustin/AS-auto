@@ -6,7 +6,6 @@
  * the main settings modal, including:
  * - App Settings (Agent, Segments)
  * - Database Editor (Base Product, Questions, Recommendations)
- * - Reference Editor
  * - Reset functions
  * - Auto-saving
  *
@@ -14,21 +13,12 @@
  * - `appState`, `DOM` (global)
  * - `saveSettingsToStorage()`, `loadState()`, `initAppUI()` (from script.js)
  * - `lucide` (from CDN)
+ * - `AppUI.initReferenceSettingsEventListeners()` (from script-references.js)
  */
 
 // --- Module-level variables ---
 let autoSaveTimer = null;
-let lucideIconNames = []; // Cache for icon names
-let activeIconPicker = null; // Track which icon picker is open
-
-/**
- * NEW: Helper function to fix icon name format.
- * Converts "camelCase" to "kebab-case".
- * e.g., "NotebookPen" -> "notebook-pen"
- */
-function camelToKebab(s) {
-    return s.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
-}
+// Note: lucideIconNames and activeIconPicker moved to script-references.js
 
 /**
  * Creates the HTML element for a single supplement
@@ -99,120 +89,9 @@ AppUI.createSupplementEditorElement = function(supp) {
     return suppEl;
 }
 
-/**
- * NEW: Creates the HTML element for a single reference
- * in the settings modal editor.
- * @param {object} ref - The reference configuration object.
- * @returns {HTMLElement} - The fully constructed div element.
- */
-AppUI.createReferenceEditorElement = function(ref) {
-    const refEl = document.createElement('div');
-    refEl.className = 'reference-editor-card';
-    refEl.dataset.refId = ref.id;
+// REMOVED: AppUI.createReferenceEditorElement (moved to script-references.js)
 
-    // Sanitize values
-    const safeTitle = ref.title ? ref.title.replace(/"/g, '&quot;') : "";
-    const safeUrl = ref.url ? ref.url.replace(/"/g, '&quot;') : "";
-    const safeShortcut = ref.shortcut ? ref.shortcut.replace(/"/g, '&quot;') : "";
-    const safeIcon = ref.icon ? ref.icon.replace(/"/g, '&quot;') : "book";
-
-    refEl.innerHTML = `
-        <div class="reference-editor-grid sm:grid-cols-4">
-            <!-- Column 1: Title -->
-            <div>
-                <label>Title</label>
-                <input type="text" value="${safeTitle}" class="ref-input ref-title-input" placeholder="e.g., Study Link">
-            </div>
-            
-            <!-- Column 2: Icon -->
-            <div class="icon-picker-container">
-                <label>Icon</label>
-                <div class="icon-picker-input-wrap">
-                    <span class="icon-picker-preview">
-                        <i data-lucide="${safeIcon}"></i>
-                    </span>
-                    <input type="text" value="${safeIcon}" class="ref-input ref-icon-input icon-picker-input" placeholder="Search icons...">
-                </div>
-                <div class="icon-picker-results hidden"></div>
-            </div>
-
-            <!-- Column 3: Type -->
-            <div>
-                <label>Type</label>
-                <select class="ref-input ref-type-select">
-                    <option value="website" ${ref.type === 'website' ? 'selected' : ''}>Website URL</option>
-                    <option value="image" ${ref.type === 'image' ? 'selected' : ''}>Image URL</option>
-                </select>
-            </div>
-            
-            <!-- Column 4: Shortcut -->
-            <div>
-                <label>Shortcut Key</label>
-                <input type="text" value="${safeShortcut}" class="ref-input ref-shortcut-input" placeholder="e.g., 1, a, A" maxlength="1">
-            </div>
-        </div>
-        
-        <!-- Full-width URL -->
-        <div class="mt-2">
-            <label>URL (Image link or Website link)</label>
-            <input type="text" value="${safeUrl}" class="ref-input ref-url-input" placeholder="https://...">
-        </div>
-        
-        <button class="remove-reference-btn bg-red-600 hover:bg-red-700 text-white text-xs font-bold py-1 px-3 rounded-lg mt-3">
-            Remove Reference
-        </button>
-    `;
-
-    // Manually call createIcons on the new element
-    if (typeof lucide !== 'undefined') {
-        lucide.createIcons({
-            nodes: [refEl.querySelector('.icon-picker-preview i')]
-        });
-    }
-
-    return refEl;
-}
-
-/**
- * NEW: Renders the search results for the icon picker.
- * @param {string} query - The search query.
- * @param {HTMLElement} resultsContainer - The DOM element to fill.
- */
-AppUI.renderIconPickerResults = function(query, resultsContainer) {
-    if (!lucideIconNames || lucideIconNames.length === 0) {
-        resultsContainer.innerHTML = '<div class="p-2 text-sm text-gray-400">Loading icons...</div>';
-        resultsContainer.classList.remove('hidden'); // Show "Loading"
-        return;
-    }
-
-    const lowerQuery = query.toLowerCase();
-    const filteredIcons = lowerQuery.length > 0 
-        ? lucideIconNames.filter(name => name.includes(lowerQuery)) 
-        : lucideIconNames; // Show all if no query
-
-    if (filteredIcons.length === 0) {
-        resultsContainer.innerHTML = '<div class="p-2 text-sm text-gray-400">No icons found.</div>';
-        resultsContainer.classList.remove('hidden');
-        return;
-    }
-
-    // MODIFIED: Render a grid of icons instead of a list
-    resultsContainer.innerHTML = filteredIcons.slice(0, 100).map(name => `
-        <div class="icon-picker-item" data-icon-name="${name}" title="${name}">
-            <i data-lucide="${name}"></i>
-            <span class="icon-name">${name}</span>
-        </div>
-    `).join(''); // Limit to 100 results for performance
-
-    if (typeof lucide !== 'undefined') {
-        lucide.createIcons({
-            nodes: resultsContainer.querySelectorAll('i')
-        });
-    }
-    
-    resultsContainer.classList.remove('hidden');
-}
-
+// REMOVED: AppUI.renderIconPickerResults (moved to script-references.js)
 
 /**
  * Renders the entire settings modal, populating
@@ -220,17 +99,7 @@ AppUI.renderIconPickerResults = function(query, resultsContainer) {
  */
 AppUI.renderSettingsModal = function() {
     if (appState.isSettingsOpen) {
-        // --- THIS IS THE FIX ---
-        // Get the icon list *from the loaded library* and convert
-        // names to the correct format.
-        if (lucideIconNames.length === 0 && typeof lucide !== 'undefined' && lucide.icons) {
-            // Get the internal (camelCase) list
-            const iconObject = lucide.icons || {};
-            // Convert all names to kebab-case
-            lucideIconNames = Object.keys(iconObject).map(camelToKebab); 
-            console.log(`Loaded ${lucideIconNames.length} Lucide icon names in correct kebab-case format.`);
-        }
-        // --- END FIX ---
+        // REMOVED: lucide icon loading block (moved to script-references.js)
         
         DOM.settingsModal.classList.remove('hidden');
         DOM.agentNameSettingInput.value = appState.settings.agentName;
@@ -300,6 +169,7 @@ AppUI.renderSettingsModal = function() {
         DOM.referenceSettingsList.innerHTML = '';
         if (appState.supplementDatabase.references) {
              appState.supplementDatabase.references.forEach(ref => {
+                // MODIFIED: Call the function from the new component
                 const refEl = AppUI.createReferenceEditorElement(ref);
                 DOM.referenceSettingsList.appendChild(refEl);
             });
@@ -473,9 +343,7 @@ AppUI.resetSettingsToDefaults = function() {
  * Attaches event listeners for the Settings Modal component.
  */
 AppUI.initSettingsEventListeners = function() {
-    // NEW: Add reference section DOM elements
-    DOM.addReferenceBtn = document.getElementById('add-reference-btn');
-    DOM.referenceSettingsList = document.getElementById('reference-settings-list');
+    // REMOVED: DOM cache for reference elements (moved to script-references.js)
     
     DOM.settingsCogBtn.addEventListener('click', () => { 
         appState.isSettingsOpen = true; 
@@ -492,34 +360,14 @@ AppUI.initSettingsEventListeners = function() {
         // Standard auto-save for most inputs
         AppUI.triggerAutoSave(500); // 500ms delay for typing
 
-        // Handle icon picker search
-        const iconInput = e.target.closest('.icon-picker-input');
-        if (iconInput) {
-            const container = iconInput.closest('.icon-picker-container');
-            const results = container.querySelector('.icon-picker-results');
-            AppUI.renderIconPickerResults(iconInput.value, results);
-            activeIconPicker = results;
-        }
+        // REMOVED: Icon picker search logic (moved to script-references.js)
     });
     
     DOM.settingsModal.addEventListener('focusin', (e) => {
-        // Show icon picker results on focus
-        const iconInput = e.target.closest('.icon-picker-input');
-         if (iconInput) {
-            const container = iconInput.closest('.icon-picker-container');
-            const results = container.querySelector('.icon-picker-results');
-            AppUI.renderIconPickerResults(iconInput.value, results);
-            activeIconPicker = results;
-        }
+        // REMOVED: Icon picker focus logic (moved to script-references.js)
     });
     
-    // Close icon picker when clicking outside
-    document.addEventListener('click', (e) => {
-        if (activeIconPicker && !activeIconPicker.closest('.icon-picker-container').contains(e.target)) {
-            activeIconPicker.classList.add('hidden');
-            activeIconPicker = null;
-        }
-    });
+    // REMOVED: Icon picker close listener (moved to script-references.js)
 
     DOM.settingsModal.addEventListener('click', (e) => {
         const actionButton = e.target.closest(
@@ -529,35 +377,7 @@ AppUI.initSettingsEventListeners = function() {
             AppUI.triggerAutoSave(50); // 50ms delay, just to let DOM update first
         }
         
-        // --- THIS IS THE BUG FIX ---
-        // Handle clicking an icon from the picker
-        const iconItem = e.target.closest('.icon-picker-item');
-        if (iconItem) {
-            const iconName = iconItem.dataset.iconName;
-            const container = iconItem.closest('.icon-picker-container');
-            const input = container.querySelector('.icon-picker-input');
-            const previewIcon = container.querySelector('.icon-picker-preview i'); // Get the <i> tag
-            
-            input.value = iconName;
-            
-            if (previewIcon) {
-                // 1. Remove any old SVG content inside the <i> tag
-                previewIcon.innerHTML = ''; 
-                // 2. Set the new data-lucide attribute
-                previewIcon.setAttribute('data-lucide', iconName);
-                // 3. Tell Lucide to process *just this one icon*
-                if (typeof lucide !== 'undefined') {
-                    lucide.createIcons({
-                        nodes: [previewIcon]
-                    });
-                }
-            }
-            // --- END BUG FIX ---
-            
-            container.querySelector('.icon-picker-results').classList.add('hidden');
-            activeIconPicker = null;
-            AppUI.triggerAutoSave(50); // Save the change
-        }
+        // REMOVED: Icon picker click logic (moved to script-references.js)
     });
 
     // --- End of Auto-save triggers ---
@@ -612,7 +432,7 @@ AppUI.initSettingsEventListeners = function() {
         if (addSymptomBtn) {
             const symptomsListDiv = addSymptomBtn.closest('[data-supp-id]').querySelector('.supp-symptoms-list');
             const newSymptomGroup = document.createElement('div');
-            newSymptomGroup.className = 'symptom-input-group';
+newSymptomGroup.className = 'symptom-input-group';
             newSymptomGroup.dataset.sympId = `symp-${Date.now()}`;
             newSymptomGroup.innerHTML = `
                 <div class="symptom-input-row">
@@ -653,31 +473,13 @@ AppUI.initSettingsEventListeners = function() {
         DOM.supplementSettingsList.appendChild(newSuppElement);
     });
     
-    // Listeners for Reference Editor
-    DOM.addReferenceBtn.addEventListener('click', () => {
-        const newRef = {
-            id: `ref-${Date.now()}`,
-            title: "New Reference",
-            icon: "book",
-            type: "website",
-            shortcut: "",
-            url: ""
-        };
-        const newRefElement = AppUI.createReferenceEditorElement(newRef);
-        DOM.referenceSettingsList.appendChild(newRefElement);
-        // Auto-save will be triggered by the main 'click' listener
-    });
-
-    DOM.referenceSettingsList.addEventListener('click', (e) => {
-        const removeBtn = e.target.closest('.remove-reference-btn');
-        if (removeBtn) {
-            removeBtn.closest('.reference-editor-card').remove();
-            // Auto-save will be triggered by the main 'click' listener
-        }
-    });
+    // REMOVED: Reference editor listeners (moved to script-references.js)
 
     // Reset to Defaults Modal
     DOM.resetToDefaultsBtn.addEventListener('click', () => DOM.resetDefaultsConfirmModal.classList.remove('hidden'));
     DOM.resetDefaultsCancelBtn.addEventListener('click', () => DOM.resetDefaultsConfirmModal.classList.add('hidden'));
     DOM.resetDefaultsConfirmBtn.addEventListener('click', AppUI.resetSettingsToDefaults);
+
+    // NEW: Initialize the refactored reference settings listeners
+    AppUI.initReferenceSettingsEventListeners();
 }

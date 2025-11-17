@@ -66,6 +66,9 @@ cat script-io.js >> $TEMP_JS
 echo "" >> $TEMP_JS
 cat script-order-editor.js >> $TEMP_JS
 echo "" >> $TEMP_JS
+# NEW: Add script-references.js before script-settings.js
+cat script-references.js >> $TEMP_JS
+echo "" >> $TEMP_JS
 cat script-settings.js >> $TEMP_JS
 echo "" >> $TEMP_JS
 
