@@ -18,38 +18,32 @@ DATABASE_CONFIGS["MEN Balance Pro"] = {
         "Have you been dealing with any prostate or urinary issues?",
         "How many times a night are you typically waking up to urinate?",
         "Are you having issues with producing ejaculatory fluids?",
-        "Has this impacted your ability to achieve or maintain an erection?"
+        "Has this impacted your ability to achieve or maintain an erection?",
+        "Are you still getting morning erections?"
     ],
     "recommendations": [
         {
-            "id": "fpp",
-            "name": "FreePain Pro",
-            "gender": "any",
+            "id": "tmax",
+            "name": "Tmax Pro",
+            "gender": "male",
             "symptoms": [
                 {
-                    "id": "symp-fpp-1",
-                    "text": "Tingling or numbness in extremities (Neuropathy)",
-                    "pitch": "That one is going to help with the tingling and numbness,  help the nerves to start to regrow, and help to alleviate some of the pain.",
-                    "benefit": "help with the tingling and numbness"
+                    "id": "symp-tmax-1",
+                    "text": "Fatigue / Low Energy",
+                    "pitch": "For your fatigue and recovery... This will boost those natural testosterone levels, helping you feel like a younger man again, but more importantly, helping your body recover like a younger man again.",
+                    "benefit": "help with fatigue and recovery"
                 },
                 {
-                    "id": "symp-1763190484075",
-                    "text": "General aches and discomfort related to inflammation (arthritis)",
-                    "pitch": "This is for helping with aches and pains due to to inflammation such as arthritis. ",
-                    "benefit": "help with inflammation pain / arthritis "
-                }
-            ]
-        },
-        {
-            "id": "core",
-            "name": "Core Vitality Pro",
-            "gender": "any",
-            "symptoms": [
+                    "id": "symp-tmax-2",
+                    "text": "Symptoms of ED?",
+                    "pitch": "This is for your ED symptoms... This will boost those natural testosterone levels... helping your body recover like a younger man again.",
+                    "benefit": "help with ED symptoms"
+                },
                 {
-                    "id": "symp-core-1",
-                    "text": "High Blood Pressure / Cholesterol",
-                    "pitch": "For your high blood pressure/cholesterol: This one's gonna help with circulation, cardiovascular health, as well as helping with healthy bone density.",
-                    "benefit": "help with cardiovascular health and circulation"
+                    "id": "symp-1763190285863",
+                    "text": "No sex drive",
+                    "pitch": "This is for your masculine drive: Helping you to feel like a young man again, ready to pursue your romantic interest with renewed vigor.",
+                    "benefit": "help with low libido"
                 }
             ]
         },
@@ -79,27 +73,34 @@ DATABASE_CONFIGS["MEN Balance Pro"] = {
             ]
         },
         {
-            "id": "tmax",
-            "name": "Tmax Pro",
-            "gender": "male",
+            "id": "core",
+            "name": "Core Vitality Pro",
+            "gender": "any",
             "symptoms": [
                 {
-                    "id": "symp-tmax-1",
-                    "text": "Fatigue / Low Energy",
-                    "pitch": "For your fatigue and recovery... This will boost those natural testosterone levels, helping you feel like a younger man again, but more importantly, helping your body recover like a younger man again.",
-                    "benefit": "help with fatigue and recovery"
+                    "id": "symp-core-1",
+                    "text": "High Blood Pressure / Cholesterol",
+                    "pitch": "For your high blood pressure/cholesterol: This one's gonna help with circulation, cardiovascular health, as well as helping with healthy bone density.",
+                    "benefit": "help with cardiovascular health and circulation"
+                }
+            ]
+        },
+        {
+            "id": "fpp",
+            "name": "FreePain Pro",
+            "gender": "any",
+            "symptoms": [
+                {
+                    "id": "symp-fpp-1",
+                    "text": "Tingling or numbness in extremities (Neuropathy)",
+                    "pitch": "That one is going to help with the tingling and numbness,  help the nerves to start to regrow, and help to alleviate some of the pain.",
+                    "benefit": "help with the tingling and numbness"
                 },
                 {
-                    "id": "symp-tmax-2",
-                    "text": "Symptoms of ED?",
-                    "pitch": "This is for your ED symptoms... This will boost those natural testosterone levels... helping your body recover like a younger man again.",
-                    "benefit": "help with ED symptoms"
-                },
-                {
-                    "id": "symp-1763190285863",
-                    "text": "No sex drive",
-                    "pitch": "This is for your masculine drive: Helping you to feel like a young man again, ready to pursue your romantic interest with renewed vigor.",
-                    "benefit": "help with low libido"
+                    "id": "symp-1763190484075",
+                    "text": "General aches and discomfort related to inflammation (arthritis)",
+                    "pitch": "This is for helping with aches and pains due to to inflammation such as arthritis. ",
+                    "benefit": "help with inflammation pain / arthritis "
                 }
             ]
         },
