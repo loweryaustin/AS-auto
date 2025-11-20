@@ -1,6 +1,6 @@
 /**
  * ============================================
- * SCRIPT TOOL SETTINGS MODAL LOGIC (V6.1.2)
+ * SCRIPT TOOL SETTINGS MODAL LOGIC (V6.4.0)
  * ============================================
  * This component handles all logic and UI for
  * the main settings modal, including:
@@ -140,7 +140,24 @@ AppUI.renderSettingsModal = function() {
                 const questionEl = document.createElement('div');
                 questionEl.className = 'flex items-center gap-2';
                 questionEl.dataset.index = index;
+                
+                // Disable Up/Down buttons based on position
+                const isFirst = index === 0;
+                const isLast = index === appState.supplementDatabase.questions.length - 1;
+
                 questionEl.innerHTML = `
+                    <div class="flex flex-col gap-1 mr-1">
+                         <button class="move-question-up-btn p-1 bg-gray-600 hover:bg-gray-500 text-white rounded ${isFirst ? 'opacity-30 cursor-not-allowed' : ''}" ${isFirst ? 'disabled' : ''}>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7" />
+                            </svg>
+                        </button>
+                        <button class="move-question-down-btn p-1 bg-gray-600 hover:bg-gray-500 text-white rounded ${isLast ? 'opacity-30 cursor-not-allowed' : ''}" ${isLast ? 'disabled' : ''}>
+                             <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+                    </div>
                     <input type="text" value="${question.replace(/"/g, '&quot;')}" class="question-input w-full bg-gray-600 text-white rounded p-2 text-sm">
                     <button class="remove-question-btn bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
@@ -404,6 +421,15 @@ AppUI.initSettingsEventListeners = function() {
         const questionEl = document.createElement('div');
         questionEl.className = 'flex items-center gap-2';
         questionEl.innerHTML = `
+            <div class="flex flex-col gap-1 mr-1">
+                <!-- Placeholder buttons for new items, they will work on save/reload -->
+                <button class="move-question-up-btn p-1 bg-gray-600 hover:bg-gray-500 text-white rounded opacity-30 cursor-not-allowed" disabled>
+                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7" /></svg>
+                </button>
+                <button class="move-question-down-btn p-1 bg-gray-600 hover:bg-gray-500 text-white rounded opacity-30 cursor-not-allowed" disabled>
+                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                </button>
+            </div>
             <input type="text" value="" class="question-input w-full bg-gray-600 text-white rounded p-2 text-sm" placeholder="New question...">
             <button class="remove-question-btn bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
@@ -413,9 +439,59 @@ AppUI.initSettingsEventListeners = function() {
     });
 
     DOM.questionsEditorList.addEventListener('click', (e) => {
+        // Remove
         const removeBtn = e.target.closest('.remove-question-btn');
         if (removeBtn) {
             removeBtn.parentElement.remove();
+            return; // Exit early
+        }
+
+        // Move Up
+        const upBtn = e.target.closest('.move-question-up-btn');
+        if (upBtn && !upBtn.disabled) {
+            const row = upBtn.closest('[data-index]');
+            const index = parseInt(row.dataset.index, 10);
+            if (index > 0) {
+                // 1. Get current values from DOM to preserve unsaved text
+                const currentQuestions = [];
+                DOM.questionsEditorList.querySelectorAll('.question-input').forEach(input => currentQuestions.push(input.value));
+                
+                // 2. Swap
+                const temp = currentQuestions[index];
+                currentQuestions[index] = currentQuestions[index - 1];
+                currentQuestions[index - 1] = temp;
+
+                // 3. Update state and re-render
+                appState.supplementDatabase.questions = currentQuestions;
+                AppUI.renderSettingsModal();
+                AppUI.triggerAutoSave(50);
+            }
+            return;
+        }
+
+        // Move Down
+        const downBtn = e.target.closest('.move-question-down-btn');
+        if (downBtn && !downBtn.disabled) {
+            const row = downBtn.closest('[data-index]');
+            const index = parseInt(row.dataset.index, 10);
+            
+            // 1. Get current values from DOM
+            const currentQuestions = [];
+            DOM.questionsEditorList.querySelectorAll('.question-input').forEach(input => currentQuestions.push(input.value));
+            
+            // Check if swap is valid
+            if (index < currentQuestions.length - 1) {
+                 // 2. Swap
+                const temp = currentQuestions[index];
+                currentQuestions[index] = currentQuestions[index + 1];
+                currentQuestions[index + 1] = temp;
+
+                // 3. Update state and re-render
+                appState.supplementDatabase.questions = currentQuestions;
+                AppUI.renderSettingsModal();
+                AppUI.triggerAutoSave(50);
+            }
+            return;
         }
     });
 
