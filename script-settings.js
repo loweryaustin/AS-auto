@@ -1,6 +1,6 @@
 /**
  * ============================================
- * SCRIPT TOOL SETTINGS MODAL LOGIC (V6.4.0)
+ * SCRIPT TOOL SETTINGS MODAL LOGIC (V6.5.0)
  * ============================================
  * This component handles all logic and UI for
  * the main settings modal, including:
@@ -334,8 +334,74 @@ AppUI.triggerAutoSave = function(delay = 500) {
     autoSaveTimer = setTimeout(() => {
         if (appState.isSettingsOpen) {
             AppUI.readAndSaveAllSettings();
+        } else if (DOM.quickEditModal && !DOM.quickEditModal.classList.contains('hidden')) {
+            // NEW: Handle Quick Edit Auto-save
+            AppUI.saveQuickEdit();
         }
     }, delay);
+}
+
+/**
+ * NEW: Opens the Quick Edit modal for a specific supplement.
+ * @param {string} suppId - The ID of the supplement to edit.
+ */
+AppUI.openQuickEdit = function(suppId) {
+    const supp = appState.supplementDatabase.recommendations.find(s => s.id === suppId);
+    if (!supp) return;
+
+    DOM.quickEditContent.innerHTML = '';
+    const editorEl = AppUI.createSupplementEditorElement(supp);
+    
+    // Hide the "Remove Supplement" button in Quick Edit mode
+    const removeBtn = editorEl.querySelector('.remove-supplement-btn');
+    if (removeBtn) removeBtn.classList.add('hidden');
+
+    DOM.quickEditContent.appendChild(editorEl);
+    DOM.quickEditModal.classList.remove('hidden');
+}
+
+/**
+ * NEW: Saves the changes from the Quick Edit modal specifically.
+ */
+AppUI.saveQuickEdit = function() {
+    const editorEl = DOM.quickEditContent.querySelector('.settings-supplement-editor-card');
+    if (!editorEl) return;
+    
+    const suppId = editorEl.dataset.suppId;
+    const existingRec = appState.supplementDatabase.recommendations.find(r => r.id === suppId);
+    if (!existingRec) return;
+    
+    const nameInput = editorEl.querySelector('.supp-name-input');
+    const genderSelect = editorEl.querySelector('.supp-gender-select');
+    if (!nameInput || !genderSelect) return;
+
+    const newSymptoms = [];
+    const symptomElements = editorEl.querySelectorAll('.symptom-input-group');
+    symptomElements.forEach(sympEl => {
+        const sympId = sympEl.dataset.sympId;
+        const sympTextInput = sympEl.querySelector('.supp-symptom-text-input');
+        const sympPitchInput = sympEl.querySelector('.supp-symptom-pitch-input');
+        const sympBenefitInput = sympEl.querySelector('.supp-symptom-benefit-input');
+        if (sympTextInput && sympTextInput.value && sympPitchInput && sympBenefitInput) {
+            newSymptoms.push({
+                id: sympId,
+                text: sympTextInput.value,
+                pitch: sympPitchInput.value,
+                benefit: sympBenefitInput.value
+            });
+        }
+    });
+    
+    // Update just this record
+    existingRec.name = nameInput.value;
+    existingRec.gender = genderSelect.value;
+    existingRec.symptoms = newSymptoms;
+    
+    // Save and update UI
+    saveSettingsToStorage();
+    initAppUI();
+    
+    console.log(`Quick-saved supplement: ${suppId}`);
 }
 
 
@@ -372,20 +438,12 @@ AppUI.initSettingsEventListeners = function() {
         AppUI.renderSettingsModal(); 
     });
 
-    // --- Auto-save triggers ---
+    // --- Auto-save triggers for Main Settings ---
     DOM.settingsModal.addEventListener('input', (e) => {
         // Standard auto-save for most inputs
         AppUI.triggerAutoSave(500); // 500ms delay for typing
-
-        // REMOVED: Icon picker search logic (moved to script-references.js)
     });
     
-    DOM.settingsModal.addEventListener('focusin', (e) => {
-        // REMOVED: Icon picker focus logic (moved to script-references.js)
-    });
-    
-    // REMOVED: Icon picker close listener (moved to script-references.js)
-
     DOM.settingsModal.addEventListener('click', (e) => {
         const actionButton = e.target.closest(
             '.remove-segment-btn, .add-segment-btn, .remove-question-btn, .add-question-btn, .remove-symptom-btn, .add-symptom-btn, .remove-supplement-btn, .add-supplement-btn, .remove-reference-btn, .add-reference-btn'
@@ -393,11 +451,52 @@ AppUI.initSettingsEventListeners = function() {
         if (actionButton) {
             AppUI.triggerAutoSave(50); // 50ms delay, just to let DOM update first
         }
-        
-        // REMOVED: Icon picker click logic (moved to script-references.js)
     });
 
-    // --- End of Auto-save triggers ---
+    // NEW: Listeners for Quick Edit Modal
+    if (DOM.quickEditModal) {
+        DOM.quickEditModal.addEventListener('input', () => {
+            AppUI.triggerAutoSave(500);
+        });
+        
+        DOM.quickEditModal.addEventListener('click', (e) => {
+            const removeSymptomBtn = e.target.closest('.remove-symptom-btn');
+            if (removeSymptomBtn) {
+                removeSymptomBtn.closest('.symptom-input-group').remove();
+                AppUI.triggerAutoSave(50);
+                return;
+            }
+
+            const addSymptomBtn = e.target.closest('.add-symptom-btn');
+            if (addSymptomBtn) {
+                const symptomsListDiv = addSymptomBtn.closest('.settings-supplement-editor-card').querySelector('.supp-symptoms-list');
+                const newSymptomGroup = document.createElement('div');
+                newSymptomGroup.className = 'symptom-input-group';
+                newSymptomGroup.dataset.sympId = `symp-${Date.now()}`;
+                newSymptomGroup.innerHTML = `
+                    <div class="symptom-input-row">
+                        <input type="text" class="supp-symptom-text-input w-full bg-gray-500 text-white rounded p-2 text-sm" placeholder="Symptom Text">
+                        <button class="remove-symptom-btn bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                        </button>
+                    </div>
+                    <div>
+                        <label>Sidebar Pitch</label>
+                        <textarea rows="2" class="supp-symptom-pitch-input w-full bg-gray-500 text-white rounded p-2 text-sm" placeholder="Sidebar pitch for this symptom..."></textarea>
+                    </div>
+                    <div>
+                        <label>Script Benefit</label>
+                        <input type="text" value="" class="supp-symptom-benefit-input w-full bg-gray-500 text-white rounded p-2 text-sm" placeholder="Script benefit for this symptom...">
+                    </div>
+                `;
+                symptomsListDiv.appendChild(newSymptomGroup);
+                AppUI.triggerAutoSave(50);
+                return;
+            }
+        });
+    }
+    // --- End of Quick Edit Listeners ---
+
 
     DOM.addSegmentBtn.addEventListener('click', () => {
         appState.settings.segments.push({
@@ -496,7 +595,7 @@ AppUI.initSettingsEventListeners = function() {
     });
 
 
-    // Listeners for Supplement/Symptom Editor
+    // Listeners for Supplement/Symptom Editor (MAIN SETTINGS)
     DOM.supplementSettingsList.addEventListener('click', (e) => {
         const removeSymptomBtn = e.target.closest('.remove-symptom-btn');
         if (removeSymptomBtn) {
@@ -508,7 +607,7 @@ AppUI.initSettingsEventListeners = function() {
         if (addSymptomBtn) {
             const symptomsListDiv = addSymptomBtn.closest('[data-supp-id]').querySelector('.supp-symptoms-list');
             const newSymptomGroup = document.createElement('div');
-newSymptomGroup.className = 'symptom-input-group';
+            newSymptomGroup.className = 'symptom-input-group';
             newSymptomGroup.dataset.sympId = `symp-${Date.now()}`;
             newSymptomGroup.innerHTML = `
                 <div class="symptom-input-row">

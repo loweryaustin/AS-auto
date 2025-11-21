@@ -1,6 +1,6 @@
 /**
  * ============================================
- * SCRIPT TOOL APPLICATION LOGIC (V6.2.0)
+ * SCRIPT TOOL APPLICATION LOGIC (V6.5.0)
  * ============================================
  * This is the main "controller" file.
  * It handles state, core logic, and event listeners.
@@ -95,6 +95,12 @@ function cacheDOMElements() {
     DOM.resetToDefaultsBtn = document.getElementById('reset-to-defaults-btn');
     DOM.settingsWarningBox = document.getElementById('settings-warning-box');
     DOM.currentDbNameDisplay = document.getElementById('current-db-name-display');
+    
+    // NEW: Quick Edit Modal Elements
+    DOM.quickEditModal = document.getElementById('quick-edit-modal');
+    DOM.quickEditTitle = document.getElementById('quick-edit-title');
+    DOM.quickEditContent = document.getElementById('quick-edit-content');
+    DOM.quickEditCloseBtn = document.getElementById('quick-edit-close-btn');
 
     // Reset Modals
     DOM.resetAppBtn = document.getElementById('reset-app-btn');
@@ -376,13 +382,22 @@ function renderSymptomChecklist() {
         groupEl.dataset.suppId = supp.id; // Add data-id for drag-and-drop
 
         // MODIFIED: Wrapped the SVG in a larger, draggable div
+        // MODIFIED V6.5.0: Added Quick Edit Cog button
         groupEl.innerHTML = `
             <h4 class="symptom-group-header flex justify-between items-center">
                 <span>${supp.name}</span>
-                <div draggable="true" class="drag-handle-main h-8 w-8 flex items-center justify-center rounded-md text-gray-500">
-                    <svg class="h-6 w-6 pointer-events-none" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                    </svg>
+                <div class="flex items-center gap-2">
+                    <button class="quick-edit-btn text-gray-500 hover:text-white transition-colors p-1 rounded" data-supp-id="${supp.id}" title="Quick Edit">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826 3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                    </button>
+                    <div draggable="true" class="drag-handle-main h-8 w-8 flex items-center justify-center rounded-md text-gray-500 cursor-grab hover:text-white transition-colors">
+                        <svg class="h-6 w-6 pointer-events-none" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </div>
                 </div>
             </h4>`;
 
@@ -843,6 +858,26 @@ function setupEventListeners() {
             }
         }
     });
+
+    // NEW: Quick Edit Listener
+    DOM.symptomChecklistContainer.addEventListener('click', (e) => {
+        const editBtn = e.target.closest('.quick-edit-btn');
+        if (editBtn) {
+            const suppId = editBtn.dataset.suppId;
+            if (AppUI.openQuickEdit && suppId) {
+                AppUI.openQuickEdit(suppId);
+            } else {
+                console.error("Quick edit function or ID missing.");
+            }
+        }
+    });
+    
+    // NEW: Quick Edit Modal Close
+    if(DOM.quickEditCloseBtn) {
+        DOM.quickEditCloseBtn.addEventListener('click', () => {
+            DOM.quickEditModal.classList.add('hidden');
+        });
+    }
 
     // --- Reset Modal Listeners ---
     DOM.resetAppBtn.addEventListener('click', () => DOM.resetConfirmModal.classList.remove('hidden'));

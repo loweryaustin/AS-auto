@@ -11,15 +11,15 @@ DATABASE_CONFIGS["MEN Balance Pro"] = {
     "guaranteeDays": 60,
     "references": [],
     "questions": [
-        "Are you dealing with any other underlying health conditions such as high blood pressure, cholesterol, or diabetes?",
-        "Okay, do you take medications for those?",
-        "How does this affect your life?",
-        "What is your biggest concern when it to comes to your health?",
         "Have you been dealing with any prostate or urinary issues?",
         "How many times a night are you typically waking up to urinate?",
-        "Are you having issues with producing ejaculatory fluids?",
-        "Has this impacted your ability to achieve or maintain an erection?",
-        "Are you still getting morning erections?"
+        "Are you dealing with any other underlying health conditions such as high blood pressure, cholesterol, or diabetes?",
+        "Okay, do you take medications for those?",
+        "Do you have a problem with getting or maintaining the erections?",
+        "Are you able to get fully erect or just part way?",
+        "Are you able to maintain the erections all the way to climax or is that diminishing before then?",
+        "Are you still getting morning erections?",
+        "Most of my clients that are dealing with prostate issues are also dealing with erectile dysfunction. Is that the same for you?"
     ],
     "recommendations": [
         {
@@ -54,9 +54,9 @@ DATABASE_CONFIGS["MEN Balance Pro"] = {
             "symptoms": [
                 {
                     "id": "symp-1763241210013",
-                    "text": "A decrease in sexual desire or drive (low libido)",
-                    "pitch": "This should be the fuel to your rocket, boosting your energy and desire helping to pursue your romantic interests aggressively again.",
-                    "benefit": "help with libido boost"
+                    "text": "Difficulty getting or maintaining erections",
+                    "pitch": "This is helping you with bloodflow to the penis, helping to both get and maintain harder erections. ",
+                    "benefit": "help with getting and maintaining harder erections"
                 },
                 {
                     "id": "symp-1763241349516",
