@@ -1,6 +1,6 @@
 /**
  * ============================================
- * SCRIPT TOOL SETTINGS MODAL LOGIC (V6.5.0)
+ * SCRIPT TOOL SETTINGS MODAL LOGIC (V6.8.0)
  * ============================================
  * This component handles all logic and UI for
  * the main settings modal, including:
@@ -18,13 +18,13 @@
 
 // --- Module-level variables ---
 let autoSaveTimer = null;
-// Note: lucideIconNames and activeIconPicker moved to script-references.js
+// Drag and Drop State for Quick Edit
+let qeDraggedItem = null;
+let qeDragSourceGroup = null;
 
 /**
  * Creates the HTML element for a single supplement
  * in the settings modal editor.
- * @param {object} supp - The supplement configuration object.
- * @returns {HTMLElement} - The fully constructed div element.
  */
 AppUI.createSupplementEditorElement = function(supp) {
     const suppEl = document.createElement('div');
@@ -89,18 +89,71 @@ AppUI.createSupplementEditorElement = function(supp) {
     return suppEl;
 }
 
-// REMOVED: AppUI.createReferenceEditorElement (moved to script-references.js)
+/**
+ * Creates a nested question row for the new editor.
+ */
+AppUI.createNestedQuestionRow = function(q) {
+    const row = document.createElement('div');
+    row.className = 'qe-question-row';
+    row.draggable = true;
+    row.dataset.qid = q.id || `q-${Date.now()}-${Math.random()}`;
+    
+    const safeText = q.text ? q.text.replace(/"/g, '&quot;') : "";
 
-// REMOVED: AppUI.renderIconPickerResults (moved to script-references.js)
+    row.innerHTML = `
+        <div class="qe-question-drag-handle">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" /></svg>
+        </div>
+        <input type="text" value="${safeText}" class="question-text-input w-full bg-transparent text-white text-sm focus:outline-none" placeholder="Question text...">
+        <button class="qe-remove-btn remove-question-btn" title="Remove Question">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>
+    `;
+    return row;
+}
 
 /**
- * Renders the entire settings modal, populating
- * all fields from the current appState.
+ * Creates a Group Card for the new editor.
  */
+AppUI.createNestedGroupCard = function(group, questions = []) {
+    const card = document.createElement('div');
+    card.className = 'qe-group-card';
+    card.dataset.gid = group.id;
+
+    const safeName = group.name.replace(/"/g, '&quot;');
+
+    card.innerHTML = `
+        <div class="qe-group-header">
+            <div class="qe-group-drag-handle" title="Drag to reorder groups">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
+            </div>
+            <input type="text" value="${safeName}" class="group-name-input flex-1 bg-transparent text-white font-bold text-sm focus:outline-none focus:border-b focus:border-blue-500" placeholder="Group Name">
+            <select class="group-gender-select bg-gray-700 text-white text-xs rounded p-1 border border-gray-600">
+                <option value="any" ${group.gender === 'any' ? 'selected' : ''}>Any</option>
+                <option value="male" ${group.gender === 'male' ? 'selected' : ''}>Male</option>
+                <option value="female" ${group.gender === 'female' ? 'selected' : ''}>Female</option>
+            </select>
+            <button class="qe-remove-btn remove-group-btn ml-2" title="Delete Group">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+            </button>
+        </div>
+        <div class="qe-questions-container min-h-[50px]">
+            <!-- Questions go here -->
+        </div>
+        <button class="qe-add-question-btn">+ Add Question</button>
+    `;
+
+    const container = card.querySelector('.qe-questions-container');
+    questions.forEach(q => {
+        container.appendChild(AppUI.createNestedQuestionRow(q));
+    });
+
+    return card;
+}
+
+// --- Main Settings Render (Legacy/Global) ---
 AppUI.renderSettingsModal = function() {
     if (appState.isSettingsOpen) {
-        // REMOVED: lucide icon loading block (moved to script-references.js)
-        
         DOM.settingsModal.classList.remove('hidden');
         DOM.agentNameSettingInput.value = appState.settings.agentName;
         DOM.currentDbNameDisplay.textContent = appState.currentDbName;
@@ -133,40 +186,8 @@ AppUI.renderSettingsModal = function() {
             DOM.segmentSettingsList.appendChild(segmentEl);
         });
 
-        // Populate Discovery Questions
-        DOM.questionsEditorList.innerHTML = '';
-        if (appState.supplementDatabase.questions) {
-            appState.supplementDatabase.questions.forEach((question, index) => {
-                const questionEl = document.createElement('div');
-                questionEl.className = 'flex items-center gap-2';
-                questionEl.dataset.index = index;
-                
-                // Disable Up/Down buttons based on position
-                const isFirst = index === 0;
-                const isLast = index === appState.supplementDatabase.questions.length - 1;
-
-                questionEl.innerHTML = `
-                    <div class="flex flex-col gap-1 mr-1">
-                         <button class="move-question-up-btn p-1 bg-gray-600 hover:bg-gray-500 text-white rounded ${isFirst ? 'opacity-30 cursor-not-allowed' : ''}" ${isFirst ? 'disabled' : ''}>
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7" />
-                            </svg>
-                        </button>
-                        <button class="move-question-down-btn p-1 bg-gray-600 hover:bg-gray-500 text-white rounded ${isLast ? 'opacity-30 cursor-not-allowed' : ''}" ${isLast ? 'disabled' : ''}>
-                             <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-                            </svg>
-                        </button>
-                    </div>
-                    <input type="text" value="${question.replace(/"/g, '&quot;')}" class="question-input w-full bg-gray-600 text-white rounded p-2 text-sm">
-                    <button class="remove-question-btn bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                    </button>
-                `;
-                DOM.questionsEditorList.appendChild(questionEl);
-            });
-        }
-
+        // Clear legacy editor placeholder
+        DOM.questionsEditorList.innerHTML = '<div class="text-gray-500 italic text-sm">Please use the Quick Edit (Cog icon) on the main page to edit questions and groups.</div>';
 
         // Populate Supplement Wording (for *current* DB)
         DOM.baseProductNameSetting.value = appState.supplementDatabase.baseProduct.name;
@@ -175,7 +196,6 @@ AppUI.renderSettingsModal = function() {
         
         DOM.supplementSettingsList.innerHTML = '';
         if (appState.supplementDatabase.recommendations) {
-            // Use the helper function to render
             appState.supplementDatabase.recommendations.forEach(supp => {
                 const suppEl = AppUI.createSupplementEditorElement(supp);
                 DOM.supplementSettingsList.appendChild(suppEl);
@@ -186,23 +206,15 @@ AppUI.renderSettingsModal = function() {
         DOM.referenceSettingsList.innerHTML = '';
         if (appState.supplementDatabase.references) {
              appState.supplementDatabase.references.forEach(ref => {
-                // MODIFIED: Call the function from the new component
                 const refEl = AppUI.createReferenceEditorElement(ref);
                 DOM.referenceSettingsList.appendChild(refEl);
             });
         }
-
-
     } else {
         DOM.settingsModal.classList.add('hidden');
     }
 }
 
-/**
- * Reads all values from the settings modal,
- * updates appState, saves to localStorage, and
- * re-renders the main UI.
- */
 AppUI.readAndSaveAllSettings = function() {
     // 1. Save App Settings
     appState.settings.agentName = DOM.agentNameSettingInput.value || "[Agent Name]";
@@ -221,36 +233,18 @@ AppUI.readAndSaveAllSettings = function() {
     });
     appState.settings.segments = newSegments;
 
-    // 2. Save *Current* Supplement DB Settings
-    
-    // Save Discovery Questions
-    const newQuestions = [];
-    const questionElements = DOM.questionsEditorList.querySelectorAll('.question-input');
-    questionElements.forEach(input => {
-        if (input.value) {
-            newQuestions.push(input.value);
-        }
-    });
-    appState.supplementDatabase.questions = newQuestions;
-
-    // Save Base Product
+    // 2. Save Base Product
     appState.supplementDatabase.baseProduct.name = DOM.baseProductNameSetting.value;
     appState.supplementDatabase.baseProduct.pitch = DOM.baseProductPitchSetting.value;
     appState.supplementDatabase.guaranteeDays = parseInt(DOM.baseProductGuaranteeSetting.value, 10) || 60;
     
-    // Save Recommendations
-    // This logic respects the drag-and-drop order from the main page
-    // by only updating/deleting items, not re-ordering them.
+    // 3. Save Recommendations (Settings Modal)
     const newRecommendations = [];
     const suppElements = DOM.supplementSettingsList.querySelectorAll('[data-supp-id]');
     const domSuppIds = Array.from(suppElements).map(el => el.dataset.suppId);
 
-    // Filter appState to only include items that still exist in the DOM
-    appState.supplementDatabase.recommendations = appState.supplementDatabase.recommendations.filter(rec => 
-        domSuppIds.includes(rec.id)
-    );
+    appState.supplementDatabase.recommendations = appState.supplementDatabase.recommendations.filter(rec => domSuppIds.includes(rec.id));
 
-    // Update the content of the remaining items
     suppElements.forEach(el => {
         const suppId = el.dataset.suppId;
         const existingRec = appState.supplementDatabase.recommendations.find(r => r.id === suppId);
@@ -277,12 +271,10 @@ AppUI.readAndSaveAllSettings = function() {
         });
         
         if (existingRec) {
-            // Update existing record
             existingRec.name = nameInput.value;
             existingRec.gender = genderSelect.value;
             existingRec.symptoms = newSymptoms;
         } else {
-            // Add new record (was just created)
             appState.supplementDatabase.recommendations.push({
                 id: suppId,
                 name: nameInput.value,
@@ -292,7 +284,7 @@ AppUI.readAndSaveAllSettings = function() {
         }
     });
     
-    // NEW: Save References
+    // 4. Save References
     const newReferences = [];
     const refElements = DOM.referenceSettingsList.querySelectorAll('[data-ref-id]');
     refElements.forEach(el => {
@@ -302,32 +294,26 @@ AppUI.readAndSaveAllSettings = function() {
         const type = el.querySelector('.ref-type-select').value;
         const shortcut = el.querySelector('.ref-shortcut-input').value;
         const url = el.querySelector('.ref-url-input').value;
-        
-        if (title && url) { // Only save if title and URL are present
+        if (title && url) {
              newReferences.push({
                 id: id,
                 title: title,
-                icon: icon || 'book', // Default to 'book' if empty
+                icon: icon || 'book',
                 type: type,
-                shortcut: shortcut.trim().slice(0, 1), // Only first char
+                shortcut: shortcut.trim().slice(0, 1),
                 url: url
             });
         }
     });
     appState.supplementDatabase.references = newReferences;
     
-    // 3. Persist all settings to localStorage
-    saveSettingsToStorage(); // This function lives in script.js
-    
-    // 4. Re-render the main UI to reflect changes
-    initAppUI(); // This function lives in script.js
-    
-    console.log("Auto-saved settings.");
+    saveSettingsToStorage();
+    initAppUI();
+    console.log("Auto-saved main settings.");
 }
 
 /**
  * Debouncer function to trigger auto-save.
- * @param {number} [delay=500] - The delay in milliseconds.
  */
 AppUI.triggerAutoSave = function(delay = 500) {
     clearTimeout(autoSaveTimer);
@@ -335,24 +321,24 @@ AppUI.triggerAutoSave = function(delay = 500) {
         if (appState.isSettingsOpen) {
             AppUI.readAndSaveAllSettings();
         } else if (DOM.quickEditModal && !DOM.quickEditModal.classList.contains('hidden')) {
-            // NEW: Handle Quick Edit Auto-save
-            AppUI.saveQuickEdit();
+            // Check what we are editing
+            if (DOM.quickEditContent.querySelector('.settings-supplement-editor-card')) {
+                AppUI.saveQuickEdit(); 
+            } else if (DOM.quickEditContent.querySelector('.qe-group-card')) {
+                AppUI.saveQuestionEditor(); 
+            }
         }
     }, delay);
 }
 
-/**
- * NEW: Opens the Quick Edit modal for a specific supplement.
- * @param {string} suppId - The ID of the supplement to edit.
- */
+// --- Quick Edit: Supplements ---
 AppUI.openQuickEdit = function(suppId) {
     const supp = appState.supplementDatabase.recommendations.find(s => s.id === suppId);
     if (!supp) return;
 
+    DOM.quickEditTitle.textContent = `Edit ${supp.name}`;
     DOM.quickEditContent.innerHTML = '';
     const editorEl = AppUI.createSupplementEditorElement(supp);
-    
-    // Hide the "Remove Supplement" button in Quick Edit mode
     const removeBtn = editorEl.querySelector('.remove-supplement-btn');
     if (removeBtn) removeBtn.classList.add('hidden');
 
@@ -360,9 +346,6 @@ AppUI.openQuickEdit = function(suppId) {
     DOM.quickEditModal.classList.remove('hidden');
 }
 
-/**
- * NEW: Saves the changes from the Quick Edit modal specifically.
- */
 AppUI.saveQuickEdit = function() {
     const editorEl = DOM.quickEditContent.querySelector('.settings-supplement-editor-card');
     if (!editorEl) return;
@@ -392,84 +375,201 @@ AppUI.saveQuickEdit = function() {
         }
     });
     
-    // Update just this record
     existingRec.name = nameInput.value;
     existingRec.gender = genderSelect.value;
     existingRec.symptoms = newSymptoms;
     
-    // Save and update UI
     saveSettingsToStorage();
     initAppUI();
+}
+
+// --- Quick Edit: Questions (V6.8.0) ---
+AppUI.openQuestionEditor = function() {
+    DOM.quickEditTitle.textContent = "Edit Questions";
+    DOM.quickEditContent.innerHTML = '';
     
-    console.log(`Quick-saved supplement: ${suppId}`);
+    // 1. Prepare Data
+    const groups = appState.supplementDatabase.questionGroups || [];
+    const questions = appState.supplementDatabase.questions || [];
+    
+    // Group questions for rendering
+    const groupedQs = {};
+    groups.forEach(g => groupedQs[g.name] = []);
+    // Also catch questions in groups that might not exist in config
+    questions.forEach(q => {
+        const gName = q.group || "General";
+        if (!groupedQs[gName]) groupedQs[gName] = []; // Auto-create bucket if missing
+        groupedQs[gName].push(q);
+    });
+
+    // 2. Render Groups (Nested)
+    // First, render the configured groups in order
+    groups.forEach(g => {
+        const card = AppUI.createNestedGroupCard(g, groupedQs[g.name]);
+        DOM.quickEditContent.appendChild(card);
+        delete groupedQs[g.name]; // Mark as rendered
+    });
+
+    // Render any remaining buckets (unconfigured groups)
+    Object.keys(groupedQs).forEach(gName => {
+        // Create a temporary group object
+        const tempGroup = { id: `g-${Date.now()}`, name: gName, gender: 'any' };
+        const card = AppUI.createNestedGroupCard(tempGroup, groupedQs[gName]);
+        DOM.quickEditContent.appendChild(card);
+    });
+
+    // 3. Add "New Group" Button
+    const addGroupBtn = document.createElement('button');
+    addGroupBtn.className = "w-full py-3 mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg border-2 border-blue-500 border-dashed opacity-80 hover:opacity-100 transition-all";
+    addGroupBtn.textContent = "+ Add New Group";
+    addGroupBtn.onclick = function() {
+        const newGroup = { id: `g-${Date.now()}`, name: "New Group", gender: "any" };
+        const card = AppUI.createNestedGroupCard(newGroup, []);
+        DOM.quickEditContent.insertBefore(card, addGroupBtn);
+        AppUI.triggerAutoSave(50);
+    };
+    DOM.quickEditContent.appendChild(addGroupBtn);
+
+    DOM.quickEditModal.classList.remove('hidden');
+    
+    // Initialize Drag and Drop
+    AppUI.initQuickEditDND();
+}
+
+AppUI.saveQuestionEditor = function() {
+    const groupCards = DOM.quickEditContent.querySelectorAll('.qe-group-card');
+    const newQuestions = [];
+    const newGroups = [];
+
+    groupCards.forEach(card => {
+        const groupNameInput = card.querySelector('.group-name-input');
+        const groupGenderSelect = card.querySelector('.group-gender-select');
+        
+        const groupName = groupNameInput.value || "Untitled Group";
+        const groupGender = groupGenderSelect.value;
+        const groupId = card.dataset.gid;
+
+        // Save Group Config
+        newGroups.push({
+            id: groupId,
+            name: groupName,
+            gender: groupGender
+        });
+
+        // Save Questions inside this group
+        const qRows = card.querySelectorAll('.qe-question-row');
+        qRows.forEach(row => {
+            const qText = row.querySelector('.question-text-input').value;
+            const qId = row.dataset.qid;
+            if (qText) {
+                newQuestions.push({
+                    id: qId,
+                    text: qText,
+                    group: groupName // Assign the current group name
+                });
+            }
+        });
+    });
+
+    appState.supplementDatabase.questionGroups = newGroups;
+    appState.supplementDatabase.questions = newQuestions;
+    saveSettingsToStorage();
+    initAppUI();
+    console.log("Quick-saved nested questions.");
+}
+
+/**
+ * Drag and Drop Logic for the Quick Edit Modal
+ */
+AppUI.initQuickEditDND = function() {
+    const container = DOM.quickEditContent;
+
+    // Cleanup old listeners if any (not strictly necessary as we rely on bubbling)
+    
+    container.ondragstart = function(e) {
+        if (e.target.classList.contains('qe-question-row')) {
+            qeDraggedItem = e.target;
+            e.target.classList.add('opacity-50');
+            e.dataTransfer.effectAllowed = 'move';
+            // Prevent dragging the group if we are clicking the question handle
+            e.stopPropagation(); 
+        }
+        // TODO: Implement Group reordering DND here if needed, 
+        // but for now focusing on Questions inside/between groups.
+    };
+
+    container.ondragend = function(e) {
+        if (qeDraggedItem) {
+            qeDraggedItem.classList.remove('opacity-50');
+            qeDraggedItem = null;
+            AppUI.triggerAutoSave(50);
+        }
+    };
+
+    container.ondragover = function(e) {
+        e.preventDefault(); // Allow drop
+        if (!qeDraggedItem) return;
+
+        // 1. Handle dropping into a group container
+        const groupContainer = e.target.closest('.qe-questions-container');
+        if (groupContainer) {
+            const afterElement = getDragAfterElement(groupContainer, e.clientY);
+            if (afterElement == null) {
+                groupContainer.appendChild(qeDraggedItem);
+            } else {
+                groupContainer.insertBefore(qeDraggedItem, afterElement);
+            }
+        }
+    };
+    
+    // Helper to determine insertion position
+    function getDragAfterElement(container, y) {
+        const draggableElements = [...container.querySelectorAll('.qe-question-row:not(.opacity-50)')];
+
+        return draggableElements.reduce((closest, child) => {
+            const box = child.getBoundingClientRect();
+            const offset = y - box.top - box.height / 2;
+            if (offset < 0 && offset > closest.offset) {
+                return { offset: offset, element: child };
+            } else {
+                return closest;
+            }
+        }, { offset: Number.NEGATIVE_INFINITY }).element;
+    }
 }
 
 
-/**
- * Clears all data from localStorage and reloads
- * the application from its default state.
- */
-AppUI.resetSettingsToDefaults = function() {
-    localStorage.removeItem(APP_SETTINGS_KEY);
-    localStorage.removeItem(EDITED_DATABASES_KEY);
-    localStorage.removeItem(LAST_DB_NAME_KEY);
-    
-    loadState(); // This function lives in script.js
-    initAppUI(); // This function lives in script.js
-    
-    appState.isSettingsOpen = false;
-    AppUI.renderSettingsModal();
-    DOM.resetDefaultsConfirmModal.classList.add('hidden');
-}
-
-/**
- * Attaches event listeners for the Settings Modal component.
- */
+// --- Event Listeners ---
 AppUI.initSettingsEventListeners = function() {
-    // REMOVED: DOM cache for reference elements (moved to script-references.js)
-    
     DOM.settingsCogBtn.addEventListener('click', () => { 
         appState.isSettingsOpen = true; 
         AppUI.renderSettingsModal(); 
     });
-    
     DOM.settingsCloseBtn.addEventListener('click', () => { 
         appState.isSettingsOpen = false; 
         AppUI.renderSettingsModal(); 
     });
 
-    // --- Auto-save triggers for Main Settings ---
-    DOM.settingsModal.addEventListener('input', (e) => {
-        // Standard auto-save for most inputs
-        AppUI.triggerAutoSave(500); // 500ms delay for typing
-    });
-    
+    // Global Inputs
+    DOM.settingsModal.addEventListener('input', () => AppUI.triggerAutoSave(500));
     DOM.settingsModal.addEventListener('click', (e) => {
-        const actionButton = e.target.closest(
-            '.remove-segment-btn, .add-segment-btn, .remove-question-btn, .add-question-btn, .remove-symptom-btn, .add-symptom-btn, .remove-supplement-btn, .add-supplement-btn, .remove-reference-btn, .add-reference-btn'
-        );
-        if (actionButton) {
-            AppUI.triggerAutoSave(50); // 50ms delay, just to let DOM update first
-        }
+        if (e.target.closest('button')) AppUI.triggerAutoSave(50);
     });
 
-    // NEW: Listeners for Quick Edit Modal
     if (DOM.quickEditModal) {
-        DOM.quickEditModal.addEventListener('input', () => {
-            AppUI.triggerAutoSave(500);
-        });
+        DOM.quickEditModal.addEventListener('input', () => AppUI.triggerAutoSave(500));
         
         DOM.quickEditModal.addEventListener('click', (e) => {
-            const removeSymptomBtn = e.target.closest('.remove-symptom-btn');
-            if (removeSymptomBtn) {
-                removeSymptomBtn.closest('.symptom-input-group').remove();
+            // Remove Supplement Symptom
+            if (e.target.closest('.remove-symptom-btn')) {
+                e.target.closest('.symptom-input-group').remove();
                 AppUI.triggerAutoSave(50);
                 return;
             }
-
-            const addSymptomBtn = e.target.closest('.add-symptom-btn');
-            if (addSymptomBtn) {
-                const symptomsListDiv = addSymptomBtn.closest('.settings-supplement-editor-card').querySelector('.supp-symptoms-list');
+            // Add Supplement Symptom
+            if (e.target.closest('.add-symptom-btn')) {
+                // ... (Existing logic logic reused from previous step) ...
+                const symptomsListDiv = e.target.closest('.settings-supplement-editor-card').querySelector('.supp-symptoms-list');
                 const newSymptomGroup = document.createElement('div');
                 newSymptomGroup.className = 'symptom-input-group';
                 newSymptomGroup.dataset.sympId = `symp-${Date.now()}`;
@@ -480,181 +580,70 @@ AppUI.initSettingsEventListeners = function() {
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                         </button>
                     </div>
-                    <div>
-                        <label>Sidebar Pitch</label>
-                        <textarea rows="2" class="supp-symptom-pitch-input w-full bg-gray-500 text-white rounded p-2 text-sm" placeholder="Sidebar pitch for this symptom..."></textarea>
-                    </div>
-                    <div>
-                        <label>Script Benefit</label>
-                        <input type="text" value="" class="supp-symptom-benefit-input w-full bg-gray-500 text-white rounded p-2 text-sm" placeholder="Script benefit for this symptom...">
-                    </div>
-                `;
+                    <div><label>Sidebar Pitch</label><textarea rows="2" class="supp-symptom-pitch-input w-full bg-gray-500 text-white rounded p-2 text-sm"></textarea></div>
+                    <div><label>Script Benefit</label><input type="text" class="supp-symptom-benefit-input w-full bg-gray-500 text-white rounded p-2 text-sm"></div>`;
                 symptomsListDiv.appendChild(newSymptomGroup);
                 AppUI.triggerAutoSave(50);
                 return;
             }
+
+            // NEW V6.8.0: Nested Question Editor Actions
+            
+            // Add Question to Group
+            if (e.target.classList.contains('qe-add-question-btn')) {
+                const card = e.target.closest('.qe-group-card');
+                const container = card.querySelector('.qe-questions-container');
+                container.appendChild(AppUI.createNestedQuestionRow({ text: "" }));
+                AppUI.triggerAutoSave(50);
+                return;
+            }
+            // Remove Question
+            if (e.target.closest('.qe-remove-btn.remove-question-btn')) {
+                e.target.closest('.qe-question-row').remove();
+                AppUI.triggerAutoSave(50);
+                return;
+            }
+            // Remove Group
+            if (e.target.closest('.qe-remove-btn.remove-group-btn')) {
+                if(confirm("Delete this group and all its questions?")) {
+                    e.target.closest('.qe-group-card').remove();
+                    AppUI.triggerAutoSave(50);
+                }
+                return;
+            }
         });
     }
-    // --- End of Quick Edit Listeners ---
 
-
+    // ... (Legacy listeners for Segment/Main Settings kept for safety) ...
     DOM.addSegmentBtn.addEventListener('click', () => {
-        appState.settings.segments.push({
-            id: `seg-${Date.now()}`, title: "New Segment", duration: 60,
-            progress: 0, state: 'pending', overtime: 0, startTime: null
-        });
+        appState.settings.segments.push({ id: `seg-${Date.now()}`, title: "New Segment", duration: 60, state: 'pending', progress: 0, overtime: 0 });
         AppUI.renderSettingsModal(); 
     });
-
     DOM.segmentSettingsList.addEventListener('click', (e) => {
-        const removeBtn = e.target.closest('.remove-segment-btn');
-        if (removeBtn) {
-            const idToRemove = removeBtn.dataset.segmentId;
-            appState.settings.segments = appState.settings.segments.filter(s => s.id !== idToRemove);
+        if (e.target.closest('.remove-segment-btn')) {
+            const id = e.target.closest('.remove-segment-btn').dataset.segmentId;
+            appState.settings.segments = appState.settings.segments.filter(s => s.id !== id);
             AppUI.renderSettingsModal(); 
         }
     });
-
-    // Listeners for Question Editor
-    DOM.addQuestionBtn.addEventListener('click', () => {
-        const questionEl = document.createElement('div');
-        questionEl.className = 'flex items-center gap-2';
-        questionEl.innerHTML = `
-            <div class="flex flex-col gap-1 mr-1">
-                <!-- Placeholder buttons for new items, they will work on save/reload -->
-                <button class="move-question-up-btn p-1 bg-gray-600 hover:bg-gray-500 text-white rounded opacity-30 cursor-not-allowed" disabled>
-                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7" /></svg>
-                </button>
-                <button class="move-question-down-btn p-1 bg-gray-600 hover:bg-gray-500 text-white rounded opacity-30 cursor-not-allowed" disabled>
-                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
-                </button>
-            </div>
-            <input type="text" value="" class="question-input w-full bg-gray-600 text-white rounded p-2 text-sm" placeholder="New question...">
-            <button class="remove-question-btn bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-            </button>
-        `;
-        DOM.questionsEditorList.appendChild(questionEl);
-    });
-
-    DOM.questionsEditorList.addEventListener('click', (e) => {
-        // Remove
-        const removeBtn = e.target.closest('.remove-question-btn');
-        if (removeBtn) {
-            removeBtn.parentElement.remove();
-            return; // Exit early
-        }
-
-        // Move Up
-        const upBtn = e.target.closest('.move-question-up-btn');
-        if (upBtn && !upBtn.disabled) {
-            const row = upBtn.closest('[data-index]');
-            const index = parseInt(row.dataset.index, 10);
-            if (index > 0) {
-                // 1. Get current values from DOM to preserve unsaved text
-                const currentQuestions = [];
-                DOM.questionsEditorList.querySelectorAll('.question-input').forEach(input => currentQuestions.push(input.value));
-                
-                // 2. Swap
-                const temp = currentQuestions[index];
-                currentQuestions[index] = currentQuestions[index - 1];
-                currentQuestions[index - 1] = temp;
-
-                // 3. Update state and re-render
-                appState.supplementDatabase.questions = currentQuestions;
-                AppUI.renderSettingsModal();
-                AppUI.triggerAutoSave(50);
-            }
-            return;
-        }
-
-        // Move Down
-        const downBtn = e.target.closest('.move-question-down-btn');
-        if (downBtn && !downBtn.disabled) {
-            const row = downBtn.closest('[data-index]');
-            const index = parseInt(row.dataset.index, 10);
-            
-            // 1. Get current values from DOM
-            const currentQuestions = [];
-            DOM.questionsEditorList.querySelectorAll('.question-input').forEach(input => currentQuestions.push(input.value));
-            
-            // Check if swap is valid
-            if (index < currentQuestions.length - 1) {
-                 // 2. Swap
-                const temp = currentQuestions[index];
-                currentQuestions[index] = currentQuestions[index + 1];
-                currentQuestions[index + 1] = temp;
-
-                // 3. Update state and re-render
-                appState.supplementDatabase.questions = currentQuestions;
-                AppUI.renderSettingsModal();
-                AppUI.triggerAutoSave(50);
-            }
-            return;
-        }
-    });
-
-
-    // Listeners for Supplement/Symptom Editor (MAIN SETTINGS)
-    DOM.supplementSettingsList.addEventListener('click', (e) => {
-        const removeSymptomBtn = e.target.closest('.remove-symptom-btn');
-        if (removeSymptomBtn) {
-            removeSymptomBtn.closest('.symptom-input-group').remove();
-            return;
-        }
-
-        const addSymptomBtn = e.target.closest('.add-symptom-btn');
-        if (addSymptomBtn) {
-            const symptomsListDiv = addSymptomBtn.closest('[data-supp-id]').querySelector('.supp-symptoms-list');
-            const newSymptomGroup = document.createElement('div');
-            newSymptomGroup.className = 'symptom-input-group';
-            newSymptomGroup.dataset.sympId = `symp-${Date.now()}`;
-            newSymptomGroup.innerHTML = `
-                <div class="symptom-input-row">
-                    <input type="text" class="supp-symptom-text-input w-full bg-gray-500 text-white rounded p-2 text-sm" placeholder="Symptom Text">
-                    <button class="remove-symptom-btn bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                    </button>
-                </div>
-                <div>
-                    <label>Sidebar Pitch</label>
-                    <textarea rows="2" class="supp-symptom-pitch-input w-full bg-gray-500 text-white rounded p-2 text-sm" placeholder="Sidebar pitch for this symptom..."></textarea>
-                </div>
-                <div>
-                    <label>Script Benefit</label>
-                    <input type="text" value="" class="supp-symptom-benefit-input w-full bg-gray-500 text-white rounded p-2 text-sm" placeholder="Script benefit for this symptom...">
-                </div>
-            `;
-            symptomsListDiv.appendChild(newSymptomGroup);
-            return;
-        }
-
-        const removeSuppBtn = e.target.closest('.remove-supplement-btn');
-        if (removeSuppBtn) {
-            removeSuppBtn.closest('[data-supp-id]').remove();
-            return;
-        }
-    });
-
-    DOM.addSupplementBtn.addEventListener('click', () => {
-        const newSympId = `symp-${Date.now()}`;
-        const newSupp = {
-            id: `supp-${Date.now()}`, name: "New Supplement", gender: "any",
-            symptoms: [
-                { id: newSympId, text: "New Symptom", pitch: "", benefit: "" }
-            ]
-        };
-        const newSuppElement = AppUI.createSupplementEditorElement(newSupp);
-        DOM.supplementSettingsList.appendChild(newSuppElement);
-    });
     
-    // REMOVED: Reference editor listeners (moved to script-references.js)
+    // Main Supplement Editor Listeners
+    DOM.addSupplementBtn.addEventListener('click', () => {
+        const newSupp = { id: `supp-${Date.now()}`, name: "New Supplement", gender: "any", symptoms: [{ id: `symp-${Date.now()}`, text: "New Symptom" }] };
+        DOM.supplementSettingsList.appendChild(AppUI.createSupplementEditorElement(newSupp));
+    });
+    DOM.supplementSettingsList.addEventListener('click', (e) => {
+        if (e.target.closest('.remove-supplement-btn')) { e.target.closest('.settings-supplement-editor-card').remove(); }
+        if (e.target.closest('.remove-symptom-btn')) { e.target.closest('.symptom-input-group').remove(); }
+        if (e.target.closest('.add-symptom-btn')) {
+             // ... (Same add symptom logic as above, purely fallback for main modal) ...
+             const list = e.target.closest('.settings-supplement-editor-card').querySelector('.supp-symptoms-list');
+             const group = document.createElement('div'); group.className = 'symptom-input-group';
+             group.innerHTML = `<div class="symptom-input-row"><input type="text" class="supp-symptom-text-input w-full bg-gray-500 text-white rounded p-2 text-sm"><button class="remove-symptom-btn bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg">X</button></div><div><label>Sidebar</label><textarea rows="2" class="supp-symptom-pitch-input w-full bg-gray-500 text-white rounded p-2 text-sm"></textarea></div><div><label>Benefit</label><input type="text" class="supp-symptom-benefit-input w-full bg-gray-500 text-white rounded p-2 text-sm"></div>`;
+             list.appendChild(group);
+        }
+    });
 
-    // Reset to Defaults Modal
-    DOM.resetToDefaultsBtn.addEventListener('click', () => DOM.resetDefaultsConfirmModal.classList.remove('hidden'));
-    DOM.resetDefaultsCancelBtn.addEventListener('click', () => DOM.resetDefaultsConfirmModal.classList.add('hidden'));
-    DOM.resetDefaultsConfirmBtn.addEventListener('click', AppUI.resetSettingsToDefaults);
-
-    // NEW: Initialize the refactored reference settings listeners
+    // Initialize Ref Listeners
     AppUI.initReferenceSettingsEventListeners();
 }

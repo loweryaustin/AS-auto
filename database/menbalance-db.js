@@ -11,15 +11,56 @@ DATABASE_CONFIGS["MEN Balance Pro"] = {
     "guaranteeDays": 60,
     "references": [],
     "questions": [
-        "Have you been dealing with any prostate or urinary issues?",
-        "How many times a night are you typically waking up to urinate?",
-        "Are you dealing with any other underlying health conditions such as high blood pressure, cholesterol, or diabetes?",
-        "Okay, do you take medications for those?",
-        "Do you have a problem with getting or maintaining the erections?",
-        "Are you able to get fully erect or just part way?",
-        "Are you able to maintain the erections all the way to climax or is that diminishing before then?",
-        "Are you still getting morning erections?",
-        "Most of my clients that are dealing with prostate issues are also dealing with erectile dysfunction. Is that the same for you?"
+        {
+            "id": "q-1763756826506-18zuitdao",
+            "text": "Have you been dealing with any prostate or urinary issues?",
+            "group": "Prostate"
+        },
+        {
+            "id": "q-1763756826506-ce0am0c8h",
+            "text": "How many times a night are you typically waking up to urinate?",
+            "group": "Prostate"
+        },
+        {
+            "id": "q-1763756826506-mw39saztz",
+            "text": "Are you dealing with any other underlying health conditions such as high blood pressure, cholesterol, or diabetes?",
+            "group": "General"
+        },
+        {
+            "id": "q-1763756826506-bcvadzh1y",
+            "text": "Okay, do you take medications for those?",
+            "group": "General"
+        },
+        {
+            "id": "q-1763756826506-i0dwm8ppx",
+            "text": "Most of my clients that are dealing with prostate issues are also dealing with erectile dysfunction. Is that the same for you?",
+            "group": "Erectile Dysfunction"
+        },
+        {
+            "id": "q-1763756826506-kkazeek7f",
+            "text": "Do you have a problem with getting or maintaining the erections?",
+            "group": "Erectile Dysfunction"
+        },
+        {
+            "id": "q-1763756826506-wnm0np4xg",
+            "text": "Are you able to get fully erect or just part way?",
+            "group": "Erectile Dysfunction"
+        },
+        {
+            "id": "q-1763756826506-y9rqjm8hr",
+            "text": "Are you able to maintain the erections all the way to climax or is that diminishing before then?",
+            "group": "Erectile Dysfunction"
+        },
+        {
+            "id": "q-1763756826506-7u77xnwoe",
+            "text": "Are you still getting morning erections?",
+            "group": "Erectile Dysfunction"
+        },
+        {
+            "id": "q-1763756997796",
+            "text": "Are you experiencing issues with tingling or numbness in your extremities?",
+            "group": "Diabetes"
+        }
     ],
     "recommendations": [
         {

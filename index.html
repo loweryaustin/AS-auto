@@ -18,10 +18,7 @@
     
     <!-- Settings Cog -->
     <button id="settings-cog-btn" class="fixed top-6 left-6 z-50 text-gray-400 hover:text-white transition-colors">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826 3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-        </svg>
+        <i data-lucide="settings" class="w-8 h-8"></i>
     </button>
 
     <!-- Settings Modal -->
@@ -102,12 +99,15 @@
                         <div class="p-4 bg-gray-900 rounded-lg mb-4">
                             <div class="flex justify-between items-center mb-3">
                                 <h4 class="text-md font-semibold text-blue-300">Discovery Questions</h4>
-                                <button id="add-question-btn" class="bg-green-600 hover:bg-green-700 text-white text-xs font-bold py-1 px-3 rounded-lg transition-colors">
-                                    Add Question
-                                </button>
+                                <!-- We remove the direct "Add Question" button here as it will be handled in the Quick Edit logic primarily, 
+                                     but keeping a placeholder container if we want to expand inline editing later. 
+                                     For now, users can use the new Quick Edit button on the main page. 
+                                     But to keep legacy settings working, we leave the container. -->
+                                <span class="text-xs text-gray-400 italic">Use the "Quick Edit" cog on the main page to edit questions with groups.</span>
                             </div>
                             <div id="questions-editor-list" class="space-y-2">
-                                <!-- Question inputs will be dynamically inserted here -->
+                                <!-- Legacy flat editor placeholder or read-only view could go here, 
+                                     but we will let script-settings.js handle the complex grouped editor injection. -->
                             </div>
                         </div>
 
@@ -354,9 +354,14 @@
                         </div>
 
                         <!-- Questions -->
-                        <p class="font-semibold text-lg mt-4">Questions:</p>
+                        <div class="flex items-center gap-2 mt-4">
+                            <button id="quick-edit-questions-btn" class="text-gray-500 hover:text-white transition-colors p-1 rounded" title="Edit Questions">
+                                <i data-lucide="settings" class="w-5 h-5"></i>
+                            </button>
+                            <p class="font-semibold text-lg">Questions:</p>
+                        </div>
                         
-                        <div id="discovery-questions-list" class="list-decimal pl-5 space-y-2">
+                        <div id="discovery-questions-list" class="space-y-4 pl-2">
                             <!-- Questions will be dynamically inserted here by script-ui.js -->
                         </div>
 

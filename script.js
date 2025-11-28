@@ -1,6 +1,6 @@
 /**
  * ============================================
- * SCRIPT TOOL APPLICATION LOGIC (V6.5.0)
+ * SCRIPT TOOL APPLICATION LOGIC (V6.7.0)
  * ============================================
  * This is the main "controller" file.
  * It handles state, core logic, and event listeners.
@@ -101,6 +101,7 @@ function cacheDOMElements() {
     DOM.quickEditTitle = document.getElementById('quick-edit-title');
     DOM.quickEditContent = document.getElementById('quick-edit-content');
     DOM.quickEditCloseBtn = document.getElementById('quick-edit-close-btn');
+    DOM.quickEditQuestionsBtn = document.getElementById('quick-edit-questions-btn');
 
     // Reset Modals
     DOM.resetAppBtn = document.getElementById('reset-app-btn');
@@ -213,6 +214,27 @@ function loadSupplementDb(dbName, resetCall = true) {
     // Guardrail for old data that might be missing the questions key
     if (!appState.supplementDatabase.questions) {
         appState.supplementDatabase.questions = []; // Add it if it's missing
+    }
+    // NEW: Migration for Questions (String -> Object)
+    else if (appState.supplementDatabase.questions.length > 0 && typeof appState.supplementDatabase.questions[0] === 'string') {
+        console.log("Migrating questions to V6.6.0 format...");
+        appState.supplementDatabase.questions = appState.supplementDatabase.questions.map(q => ({
+            id: `q-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            text: q,
+            group: "General"
+        }));
+    }
+
+    // NEW V6.7.0: Generate Question Groups Config if missing
+    if (!appState.supplementDatabase.questionGroups) {
+        console.log("Generating default question groups...");
+        // Extract unique groups from questions
+        const uniqueGroups = [...new Set(appState.supplementDatabase.questions.map(q => q.group || "General"))];
+        appState.supplementDatabase.questionGroups = uniqueGroups.map(g => ({
+            id: `group-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+            name: g,
+            gender: "any" // Default to show for everyone
+        }));
     }
     
     // Guardrail for old data that might be missing guaranteeDays
@@ -337,19 +359,89 @@ function updateTimerControlsVisibility() {
 
 /**
  * Renders the list of discovery questions in Part 2.
+ * MODIFIED V6.7.0: Supports Group Ordering & Gender Filtering.
  */
 function renderDiscoveryQuestions() {
     DOM.discoveryQuestionsList.innerHTML = ''; // Clear existing
-    if (!appState.supplementDatabase.questions || appState.supplementDatabase.questions.length === 0) {
-        DOM.discoveryQuestionsList.innerHTML = '<li class="text-gray-400 italic">No discovery questions configured.</li>';
+    
+    const questions = appState.supplementDatabase.questions || [];
+    if (questions.length === 0) {
+        DOM.discoveryQuestionsList.innerHTML = '<div class="text-gray-400 italic pl-4">No discovery questions configured.</div>';
         return;
     }
 
-    appState.supplementDatabase.questions.forEach(question => {
-        const li = document.createElement('li');
-        li.textContent = question;
-        DOM.discoveryQuestionsList.appendChild(li);
+    // Get groups config, or default if something is wrong
+    const groupsConfig = appState.supplementDatabase.questionGroups || [];
+    const selectedGender = DOM.genderSelect.value; // 'any', 'male', 'female'
+
+    // 1. Group the actual questions
+    const groupedQuestionsMap = {};
+    questions.forEach(q => {
+        const groupName = (typeof q === 'object' && q.group) ? q.group : "General";
+        if (!groupedQuestionsMap[groupName]) groupedQuestionsMap[groupName] = [];
+        groupedQuestionsMap[groupName].push(q);
     });
+
+    // 2. Iterate through the CONFIG groups to determine order
+    // If a question belongs to a group NOT in config, we append it at the end (robustness)
+    const renderedGroups = new Set();
+
+    groupsConfig.forEach(groupConf => {
+        const groupName = groupConf.name;
+        const groupGender = groupConf.gender || 'any';
+
+        // Filter Logic:
+        // Show if group is 'any' OR group matches selected gender
+        // Note: If selectedGender is 'any' (Unspecified), we usually show 'any' groups only, 
+        // unless we want to show everything. Let's be strict:
+        // - If Client=Any: Show 'any' groups.
+        // - If Client=Male: Show 'any' + 'male' groups.
+        // - If Client=Female: Show 'any' + 'female' groups.
+        
+        const shouldShow = (groupGender === 'any') || (groupGender === selectedGender);
+
+        if (shouldShow && groupedQuestionsMap[groupName]) {
+            renderGroup(groupName, groupedQuestionsMap[groupName]);
+            renderedGroups.add(groupName);
+        }
+    });
+
+    // 3. Catch-all for questions with groups not in the config (e.g. newly added via text input but not saved to config yet)
+    for (const [groupName, qs] of Object.entries(groupedQuestionsMap)) {
+        if (!renderedGroups.has(groupName)) {
+            // Default behavior for unknown groups: Show them
+            renderGroup(groupName, qs);
+        }
+    }
+
+    // Helper function to append to DOM
+    function renderGroup(name, qs) {
+        const groupContainer = document.createElement('div');
+        groupContainer.className = "mb-4";
+
+        // Always show header if it's not "General" or if we have multiple groups
+        // Simplified logic: Show header if name is not "General" OR if we have previously rendered groups
+        const showHeader = name !== "General" || DOM.discoveryQuestionsList.children.length > 0;
+
+        if (showHeader) {
+            const header = document.createElement('h5');
+            header.className = "text-sm font-bold text-blue-300 mb-1 uppercase tracking-wide";
+            header.textContent = name;
+            groupContainer.appendChild(header);
+        }
+
+        const ul = document.createElement('ul');
+        ul.className = "list-disc pl-5 space-y-1 text-gray-300";
+
+        qs.forEach(q => {
+            const li = document.createElement('li');
+            li.textContent = typeof q === 'object' ? q.text : q;
+            ul.appendChild(li);
+        });
+
+        groupContainer.appendChild(ul);
+        DOM.discoveryQuestionsList.appendChild(groupContainer);
+    }
 }
 
 /**
@@ -381,17 +473,13 @@ function renderSymptomChecklist() {
         groupEl.className = 'symptom-group-container';
         groupEl.dataset.suppId = supp.id; // Add data-id for drag-and-drop
 
-        // MODIFIED: Wrapped the SVG in a larger, draggable div
-        // MODIFIED V6.5.0: Added Quick Edit Cog button
+        // MODIFIED V6.6.1: Used Lucide icon instead of raw SVG
         groupEl.innerHTML = `
             <h4 class="symptom-group-header flex justify-between items-center">
                 <span>${supp.name}</span>
                 <div class="flex items-center gap-2">
                     <button class="quick-edit-btn text-gray-500 hover:text-white transition-colors p-1 rounded" data-supp-id="${supp.id}" title="Quick Edit">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826 3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
+                        <i data-lucide="settings" class="w-5 h-5"></i>
                     </button>
                     <div draggable="true" class="drag-handle-main h-8 w-8 flex items-center justify-center rounded-md text-gray-500 cursor-grab hover:text-white transition-colors">
                         <svg class="h-6 w-6 pointer-events-none" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -424,6 +512,11 @@ function renderSymptomChecklist() {
         groupEl.appendChild(symptomsList);
         DOM.symptomChecklistContainer.appendChild(groupEl);
     });
+
+    // MODIFIED V6.6.1: Create Lucide icons for the newly rendered content
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
 }
 
 // --- Main Script Rendering Function ---
@@ -839,6 +932,8 @@ function setupEventListeners() {
     DOM.genderSelect.addEventListener('change', () => { 
         renderSymptomChecklist(); 
         renderAllScript(); 
+        // NEW V6.7.0: Re-render questions on gender change
+        renderDiscoveryQuestions();
     });
 
     DOM.clientNameInput.addEventListener('input', () => {
@@ -876,6 +971,17 @@ function setupEventListeners() {
     if(DOM.quickEditCloseBtn) {
         DOM.quickEditCloseBtn.addEventListener('click', () => {
             DOM.quickEditModal.classList.add('hidden');
+        });
+    }
+
+    // NEW: Quick Edit Questions Listener
+    if (DOM.quickEditQuestionsBtn) {
+        DOM.quickEditQuestionsBtn.addEventListener('click', () => {
+            if (AppUI.openQuestionEditor) {
+                AppUI.openQuestionEditor();
+            } else {
+                console.error("Question editor function missing.");
+            }
         });
     }
 
