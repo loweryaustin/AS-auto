@@ -4,8 +4,10 @@
  * This file "self-registers" into the global DATABASE_CONFIGS object.
  */
 DATABASE_CONFIGS["GL Pro"] = {
+    "productLine": "Blackshark",
     "baseProduct": {
         "name": "GL Pro",
+        "gender": "any",
         "pitch": "This helps to heal the pancreas."
     },
     "guaranteeDays": 60,
@@ -261,4 +263,3 @@ DATABASE_CONFIGS["GL Pro"] = {
         }
     ]
 };
-

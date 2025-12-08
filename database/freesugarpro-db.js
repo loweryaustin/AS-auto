@@ -4,9 +4,11 @@
  * This file "self-registers" into the global DATABASE_CONFIGS object.
  */
 DATABASE_CONFIGS["Free Sugar Pro"] = {
+    "productLine": "Blackshark",
     "baseProduct": {
         "name": "Free Sugar Pro",
-        "pitch": "This helps with managing blood sugar."
+        "pitch": "This helps with managing blood sugar.",
+        "gender": "any"
     },
     "guaranteeDays": 60,
     "references": [],
@@ -197,4 +199,3 @@ DATABASE_CONFIGS["Free Sugar Pro"] = {
         }
     ]
 };
-

@@ -22,8 +22,8 @@
     </button>
 
     <!-- Settings Modal -->
-    <div id="settings-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-80 flex items-center justify-center z-50 p-4">
-        <div class="bg-gray-800 rounded-2xl shadow-2xl p-6 md:p-8 w-full max-w-3xl max-h-[90vh] flex flex-col">
+    <div id="settings-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-80 z-50 p-4 overflow-y-auto">
+        <div class="bg-gray-800 rounded-2xl shadow-2xl p-6 md:p-8 w-full max-w-3xl mx-auto my-8 flex flex-col relative">
             <div class="flex justify-between items-center mb-4 flex-shrink-0">
                 <h2 class="text-2xl font-bold text-white">Settings</h2>
                 <!-- This span is the injection target for the build script -->
@@ -52,8 +52,8 @@
                 </div>
             </div>
 
-            <!-- Settings Content (now scrollable) -->
-            <div id="settings-modal-content" class="space-y-6 overflow-y-auto pr-2">
+            <!-- Settings Content -->
+            <div id="settings-modal-content" class="space-y-6">
                 
                 <!-- Section 1: Application Settings -->
                 <section class="settings-section">
@@ -95,19 +95,24 @@
                     <div class="settings-subsection">
                         <h4 class="text-lg font-semibold text-yellow-400 mb-3">Edit Current Supplement: <span id="current-db-name-display" class="font-bold">...</span></h4>
                         
+                        <!-- NEW (V7.3.7): Product Line Editor -->
+                        <div class="p-4 bg-gray-900 rounded-lg mb-4">
+                            <label class="block text-sm font-semibold text-blue-300 mb-1">Product Line</label>
+                            <div class="relative">
+                                <input type="text" id="product-line-setting" class="w-full bg-gray-700 border-gray-600 text-white rounded-lg p-3 focus:ring-2 focus:ring-blue-500" placeholder="e.g., General Health" autocomplete="off">
+                                <div id="product-line-setting-results" class="hidden absolute top-full left-0 w-full bg-gray-700 border border-gray-600 rounded-b-lg shadow-xl z-20 max-h-40 overflow-y-auto"></div>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1 italic">Type to search existing lines or create a new one.</p>
+                        </div>
+
                         <!-- Discovery Questions Editor -->
                         <div class="p-4 bg-gray-900 rounded-lg mb-4">
                             <div class="flex justify-between items-center mb-3">
                                 <h4 class="text-md font-semibold text-blue-300">Discovery Questions</h4>
-                                <!-- We remove the direct "Add Question" button here as it will be handled in the Quick Edit logic primarily, 
-                                     but keeping a placeholder container if we want to expand inline editing later. 
-                                     For now, users can use the new Quick Edit button on the main page. 
-                                     But to keep legacy settings working, we leave the container. -->
                                 <span class="text-xs text-gray-400 italic">Use the "Quick Edit" cog on the main page to edit questions with groups.</span>
                             </div>
                             <div id="questions-editor-list" class="space-y-2">
-                                <!-- Legacy flat editor placeholder or read-only view could go here, 
-                                     but we will let script-settings.js handle the complex grouped editor injection. -->
+                                <!-- Legacy flat editor placeholder -->
                             </div>
                         </div>
 
@@ -133,40 +138,65 @@
                         <!-- Recommendations -->
                         <div class="flex justify-between items-center mb-2">
                             <h4 class="text-md font-semibold text-green-300">Recommendations</h4>
-                            <button id="add-supplement-btn" class="bg-green-600 hover:bg-green-700 text-white text-xs font-bold py-1 px-3 rounded-lg transition-colors">
-                                Add Supplement
-                            </button>
+                            <div class="flex gap-2">
+                                <button id="import-from-library-btn" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-1 px-3 rounded-lg transition-colors flex items-center gap-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                                    Import from Library
+                                </button>
+                                <button id="add-supplement-btn" class="bg-green-600 hover:bg-green-700 text-white text-xs font-bold py-1 px-3 rounded-lg transition-colors">
+                                    + Add New
+                                </button>
+                            </div>
                         </div>
                         <div id="supplement-settings-list" class="space-y-3">
                             <!-- Supplement recommendations will be dynamically inserted here -->
+                        </div>
+
+                        <!-- References (Moved inside Database Settings) -->
+                        <div class="border-t border-gray-700 pt-4 mt-6">
+                            <div class="flex justify-between items-center mb-3">
+                                <h4 class="text-md font-semibold text-gray-300">Reference Links & Shortcuts</h4>
+                                <button id="add-reference-btn" class="bg-green-600 hover:bg-green-700 text-white text-xs font-bold py-1 px-3 rounded-lg transition-colors">
+                                    Add Reference
+                                </button>
+                            </div>
+                            <div id="reference-settings-list" class="space-y-3">
+                                <!-- References will be dynamically inserted here -->
+                            </div>
                         </div>
                     </div>
 
                     <!-- Database I/O Controls -->
                     <div class="settings-io-controls">
-                        <h4 class="text-sm font-semibold text-gray-400 mb-2">Manage Current Database</h4>
+                        <div class="flex justify-between items-center mb-2">
+                            <h4 class="text-sm font-semibold text-gray-400">Current Database</h4>
+                            <span class="text-xs text-gray-500 italic">Actions for <span id="io-current-db-name">...</span></span>
+                        </div>
                          <div class="flex flex-wrap gap-3">
-                            <button id="export-db-btn" class="settings-io-btn bg-blue-600 hover:bg-blue-500">Download Database File</button>
-                            <button id="import-db-btn" class="settings-io-btn bg-blue-600 hover:bg-blue-500">Import/Overwrite DB</button>
+                            <button id="export-db-btn" class="settings-io-btn bg-blue-600 hover:bg-blue-500">Download .JSON</button>
+                            <button id="overwrite-db-btn" class="settings-io-btn bg-red-800 hover:bg-red-700 border border-red-600">Overwrite from File</button>
+                            <input type="file" id="file-input-overwrite" class="hidden" accept=".json">
+                        </div>
+                    </div>
+
+                    <!-- New Database I/O -->
+                    <div class="settings-io-controls mt-4">
+                        <h4 class="text-sm font-semibold text-gray-400 mb-2">Create New Database</h4>
+                         <div class="flex flex-wrap gap-3">
+                            <!-- Create Blank Button -->
+                            <button id="create-blank-db-btn" class="settings-io-btn bg-yellow-600 hover:bg-yellow-700 border border-yellow-600">
+                                + Create Blank Database
+                            </button>
+                            <!-- Upload New Button -->
+                            <button id="upload-new-db-btn" class="settings-io-btn bg-green-600 hover:bg-green-700">
+                                Upload New Database
+                            </button>
+                            <input type="file" id="file-input-new" class="hidden" accept=".json">
                         </div>
                     </div>
                 </section>
 
-                <!-- NEW: Section 3: References -->
-                <section class="settings-section">
-                    <h3 class="settings-section-title">3. References</h3>
-                    <div class="settings-subsection">
-                        <div class="flex justify-between items-center mb-3">
-                            <h4 class="text-lg font-semibold text-gray-300">Reference Links & Shortcuts</h4>
-                            <button id="add-reference-btn" class="bg-green-600 hover:bg-green-700 text-white text-sm font-bold py-2 px-4 rounded-lg transition-colors">
-                                Add Reference
-                            </button>
-                        </div>
-                        <div id="reference-settings-list" class="space-y-3">
-                            <!-- References will be dynamically inserted here by script-settings.js -->
-                        </div>
-                    </div>
-                </section>
+                <!-- Section 3 Removed (Content moved to Section 2) -->
 
             </div>
 
@@ -184,7 +214,49 @@
         </div>
     </div>
     
-    <!-- NEW: Quick Edit Modal -->
+    <!-- Library Import Modal (Wide & Vertically Fluid) -->
+    <div id="library-import-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-90 z-[60] p-4 overflow-y-auto">
+        <div class="bg-gray-800 rounded-2xl shadow-2xl p-6 md:p-8 w-full max-w-4xl border border-gray-700 flex flex-col mx-auto my-8 relative">
+            <div class="flex justify-between items-center mb-6 flex-shrink-0">
+                <h2 class="text-2xl font-bold text-white">Import from Library</h2>
+                <button id="library-import-close-btn" class="text-gray-400 hover:text-white transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="space-y-6 flex-1 min-h-[300px]">
+                <!-- Step 1: Product Line -->
+                <div class="relative">
+                    <label class="block text-sm font-medium text-gray-300 mb-1">1. Product Line</label>
+                    <input type="text" id="lib-product-line-input" class="w-full bg-gray-700 border-gray-600 text-white rounded-lg p-3 focus:ring-2 focus:ring-blue-500" placeholder="Type to search lines..." autocomplete="off">
+                    <div id="lib-product-line-results" class="hidden absolute top-full left-0 w-full bg-gray-700 border border-gray-600 rounded-b-lg shadow-xl z-30 max-h-60 overflow-y-auto"></div>
+                </div>
+
+                <!-- Step 2: Database -->
+                <div class="relative">
+                    <label class="block text-sm font-medium text-gray-300 mb-1">2. Source Database</label>
+                    <input type="text" id="lib-database-input" class="w-full bg-gray-700 border-gray-600 text-white rounded-lg p-3 focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed" placeholder="Select a line first..." disabled autocomplete="off">
+                    <div id="lib-database-results" class="hidden absolute top-full left-0 w-full bg-gray-700 border border-gray-600 rounded-b-lg shadow-xl z-20 max-h-60 overflow-y-auto"></div>
+                </div>
+
+                <!-- Step 3: Supplement -->
+                <div class="relative">
+                    <label class="block text-sm font-medium text-gray-300 mb-1">3. Supplement</label>
+                    <input type="text" id="lib-supplement-input" class="w-full bg-gray-700 border-gray-600 text-white rounded-lg p-3 focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed" placeholder="Select a database first..." disabled autocomplete="off">
+                    <div id="lib-supplement-results" class="hidden absolute top-full left-0 w-full bg-gray-700 border border-gray-600 rounded-b-lg shadow-xl z-10 max-h-60 overflow-y-auto"></div>
+                </div>
+            </div>
+
+            <div class="mt-8 flex justify-end gap-3 flex-shrink-0">
+                <button id="library-import-cancel-btn" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg transition-colors">Cancel</button>
+                <button id="library-import-confirm-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>Import Supplement</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Edit Modal -->
     <div id="quick-edit-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-80 flex items-center justify-center z-50 p-4">
         <div class="bg-gray-800 rounded-2xl shadow-2xl p-6 md:p-8 w-full max-w-3xl max-h-[90vh] flex flex-col">
             <div class="flex justify-between items-center mb-4 flex-shrink-0">
@@ -289,6 +361,16 @@
                 <div class="flex justify-between items-start mb-6">
                     <div id="title-search-container" class="relative flex-1">
                         
+                        <!-- Product Line Switcher -->
+                        <div id="product-line-switcher" class="text-sm font-semibold text-blue-400 mb-1 cursor-pointer hover:text-blue-300 transition-colors uppercase tracking-wider flex items-center gap-2">
+                            <span id="current-product-line-display">...</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                        </div>
+                        <!-- Hidden Dropdown for Product Lines -->
+                        <div id="product-line-dropdown" class="hidden absolute top-8 left-0 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-20 w-56 overflow-hidden">
+                            <!-- Injected via JS -->
+                        </div>
+
                         <div id="title-click-wrapper" class="cursor-pointer group flex items-baseline">
                             <h1 id="script-title-display" class="text-3xl font-bold text-white mb-0 group-hover:text-gray-300 transition-colors">[Script Title]</h1>
                             

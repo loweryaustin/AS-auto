@@ -1,6 +1,6 @@
 /**
  * ============================================
- * SCRIPT TOOL APPLICATION LOGIC (V6.7.0)
+ * SCRIPT TOOL APPLICATION LOGIC (V7.3.11)
  * ============================================
  * This is the main "controller" file.
  * It handles state, core logic, and event listeners.
@@ -31,6 +31,7 @@ let appState = {
     editedDatabases: {},     // Holds user-edited DBs from localStorage
     supplementDatabase: {},  // The *currently active* supplement DB
     currentDbName: null,     // The key of the currently active DB
+    currentProductLine: null,// NEW (V7.0.0): The currently active Product Line
     onlineOrder: [],         // Holds {name, quantity} objects
     currentSegmentIndex: -1,
     globalTimerInterval: null,
@@ -133,6 +134,8 @@ function cacheDOMElements() {
     DOM.titleSearchNote = document.getElementById('title-search-note');
     DOM.scriptSearchInput = document.getElementById('script-search-input');
     DOM.scriptSearchResults = document.getElementById('script-search-results');
+    
+    // NEW (Phase 2): Product Line Switcher elements will be cached in script-search.js or added here later
 
     // Online Order Editor
     DOM.onlineOrderEditor = document.getElementById('online-order-editor');
@@ -148,6 +151,26 @@ function cacheDOMElements() {
 
 
 // --- State Management Functions ---
+
+/**
+ * NEW (V7.0.0): Helper to discover all unique product lines
+ * from both default and edited databases.
+ */
+function getAvailableProductLines() {
+    const lines = new Set();
+    
+    // 1. Scan Defaults
+    Object.values(appState.allDatabaseDefaults).forEach(db => {
+        lines.add(db.productLine || "General");
+    });
+
+    // 2. Scan Edited (User created/modified)
+    Object.values(appState.editedDatabases).forEach(db => {
+        lines.add(db.productLine || "General");
+    });
+    
+    return Array.from(lines).sort();
+}
 
 /**
  * Loads the application state from defaults and localStorage.
@@ -206,16 +229,23 @@ function loadSupplementDb(dbName, resetCall = true) {
     }
     
     // Merge edited version over the default
-    // If defaultConfig is null (user-created), it just uses the editedConfig
-    appState.supplementDatabase = AppUI.simpleDeepMerge(AppUI.deepCopy(defaultConfig) || {}, editedConfig || {});
+    // V7.3.11 FIX: Safe check for defaultConfig before deepCopy (applied again for safety)
+    const baseConfig = defaultConfig ? AppUI.deepCopy(defaultConfig) : {};
+    appState.supplementDatabase = AppUI.simpleDeepMerge(baseConfig, editedConfig || {});
+    
     appState.currentDbName = dbName;
+    
+    // NEW (V7.0.0): Set the current Product Line based on the DB
+    // V7.3.8 FIX: Default to "General" if missing to ensure state is never null
+    appState.currentProductLine = appState.supplementDatabase.productLine || "General";
+    
     localStorage.setItem(LAST_DB_NAME_KEY, dbName);
 
     // Guardrail for old data that might be missing the questions key
     if (!appState.supplementDatabase.questions) {
         appState.supplementDatabase.questions = []; // Add it if it's missing
     }
-    // NEW: Migration for Questions (String -> Object)
+    // Migration for Questions (String -> Object)
     else if (appState.supplementDatabase.questions.length > 0 && typeof appState.supplementDatabase.questions[0] === 'string') {
         console.log("Migrating questions to V6.6.0 format...");
         appState.supplementDatabase.questions = appState.supplementDatabase.questions.map(q => ({
@@ -225,15 +255,14 @@ function loadSupplementDb(dbName, resetCall = true) {
         }));
     }
 
-    // NEW V6.7.0: Generate Question Groups Config if missing
+    // Generate Question Groups Config if missing
     if (!appState.supplementDatabase.questionGroups) {
-        console.log("Generating default question groups...");
         // Extract unique groups from questions
         const uniqueGroups = [...new Set(appState.supplementDatabase.questions.map(q => q.group || "General"))];
         appState.supplementDatabase.questionGroups = uniqueGroups.map(g => ({
             id: `group-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
             name: g,
-            gender: "any" // Default to show for everyone
+            gender: "any"
         }));
     }
     
@@ -242,11 +271,11 @@ function loadSupplementDb(dbName, resetCall = true) {
         appState.supplementDatabase.guaranteeDays = 60; // Add it if it's missing
     }
     
-    // NEW: Guardrail for old data that might be missing references
+    // Guardrail for old data that might be missing references
     if (!appState.supplementDatabase.references) {
         appState.supplementDatabase.references = []; // Add it if it's missing
     } else {
-        // NEW: Guardrail for references missing new properties
+        // Guardrail for references missing new properties
         appState.supplementDatabase.references.forEach(ref => {
             if (!ref.icon) ref.icon = 'book';
             if (!ref.type) ref.type = 'website';
@@ -261,27 +290,94 @@ function loadSupplementDb(dbName, resetCall = true) {
     ];
 
     // Manually calling render functions in order
-    
-    // 1. Render the title and sidebar
-    updateSupplementWordingUI();
-    
-    // 1b. NEW: Render reference buttons (from script-references.js)
-    AppUI.renderReferenceSidebar();
+    // V7.3.11 FIX: Wrap rendering in try-catch to ensure icons load even if data is wonky
+    try {
+        // 1. Render the title and sidebar
+        updateSupplementWordingUI();
+        
+        // 1b. Render reference buttons (from script-references.js)
+        AppUI.renderReferenceSidebar();
 
-    // 2. Render the new discovery questions
-    renderDiscoveryQuestions();
+        // 2. Render the new discovery questions
+        renderDiscoveryQuestions();
+        
+        // 3. Render the new symptom checklist
+        renderSymptomChecklist();
+        
+        // 4. Render the Online Order Editor
+        AppUI.renderOnlineOrderEditor();
+        
+        // 5. Render the script (costs, wording, etc.)
+        renderAllScript();
+        
+        // 6. NEW (V7.0.0): Update Product Line Switcher (if UI exists, Phase 2)
+        if (AppUI.renderProductLineSwitcher) {
+            AppUI.renderProductLineSwitcher();
+        }
+    } catch (e) {
+        console.error("Critical Render Error in loadSupplementDb:", e);
+        // Continue execution so icons can hopefully still load
+    }
     
-    // 3. Render the new symptom checklist
-    renderSymptomChecklist();
-    
-    // 4. Render the Online Order Editor
-    AppUI.renderOnlineOrderEditor();
-    
-    // 5. Render the script (costs, wording, etc.)
-    renderAllScript();
+    // 7. NEW (V7.3.3): STRICT GENDER LOGIC
+    // If base gender is Male or Female:
+    // - Force all supplements to be treated as that gender (visual override)
+    // - Lock the UI dropdown to that gender
+    if (appState.supplementDatabase.baseProduct && appState.supplementDatabase.baseProduct.gender) {
+        const requiredGender = appState.supplementDatabase.baseProduct.gender;
+        
+        if (requiredGender === 'male' || requiredGender === 'female') {
+            // Lock UI
+            if (DOM.genderSelect) {
+                DOM.genderSelect.value = requiredGender;
+                DOM.genderSelect.disabled = true; // LOCK IT
+            }
+            
+            // 7b. Overwrite Individual Supplements
+            let modified = false;
+            if (appState.supplementDatabase.recommendations) {
+                appState.supplementDatabase.recommendations.forEach(rec => {
+                    if (rec.gender !== requiredGender) {
+                        rec.gender = requiredGender;
+                        modified = true;
+                    }
+                });
+            }
+
+            // 7c. Save Changes if modified
+            if (modified) {
+                saveSettingsToStorage();
+                console.log(`Auto-corrected supplement genders to ${requiredGender}`);
+            }
+        } else {
+            // Unlock UI if "any"
+            if (DOM.genderSelect) {
+                DOM.genderSelect.disabled = false;
+            }
+        }
+        
+        // Trigger re-render to apply filtering rules
+        // V7.3.11: Protected render calls
+        try {
+            renderSymptomChecklist();
+            renderAllScript();
+            renderDiscoveryQuestions();
+        } catch (e) { console.error("Error in strict gender re-render:", e); }
+    } else {
+        // Fallback unlock
+        if (DOM.genderSelect) {
+            DOM.genderSelect.disabled = false;
+        }
+    }
 
     if (resetCall) {
         resetForNextCall();
+    }
+    
+    // V7.3.11 FIX: Force icon creation at the end of the load cycle
+    // This ensures cogs appear even if a render step errored out
+    if (typeof lucide !== 'undefined') {
+        setTimeout(() => lucide.createIcons(), 50);
     }
 }
 
@@ -359,7 +455,7 @@ function updateTimerControlsVisibility() {
 
 /**
  * Renders the list of discovery questions in Part 2.
- * MODIFIED V6.7.0: Supports Group Ordering & Gender Filtering.
+ * Supports Group Ordering & Gender Filtering.
  */
 function renderDiscoveryQuestions() {
     DOM.discoveryQuestionsList.innerHTML = ''; // Clear existing
@@ -390,14 +486,6 @@ function renderDiscoveryQuestions() {
         const groupName = groupConf.name;
         const groupGender = groupConf.gender || 'any';
 
-        // Filter Logic:
-        // Show if group is 'any' OR group matches selected gender
-        // Note: If selectedGender is 'any' (Unspecified), we usually show 'any' groups only, 
-        // unless we want to show everything. Let's be strict:
-        // - If Client=Any: Show 'any' groups.
-        // - If Client=Male: Show 'any' + 'male' groups.
-        // - If Client=Female: Show 'any' + 'female' groups.
-        
         const shouldShow = (groupGender === 'any') || (groupGender === selectedGender);
 
         if (shouldShow && groupedQuestionsMap[groupName]) {
@@ -457,7 +545,15 @@ function renderSymptomChecklist() {
         return;
     }
 
+    // NEW (V7.3.6): STRICT INHERITANCE LOGIC
+    // If the base product has a strict gender (male/female), we assume ALL supplements
+    // in this database are compatible, regardless of their individual tags.
+    // Otherwise, we respect the filter.
+    const baseGender = appState.supplementDatabase.baseProduct?.gender || 'any';
+    const isStrictBaseGender = baseGender === 'male' || baseGender === 'female';
+
     const filteredSupplements = appState.supplementDatabase.recommendations.filter(supp => {
+        if (isStrictBaseGender) return true; // Show everything if strict mode
         return supp.gender === 'any' || supp.gender === selectedGender;
     });
 
@@ -473,7 +569,7 @@ function renderSymptomChecklist() {
         groupEl.className = 'symptom-group-container';
         groupEl.dataset.suppId = supp.id; // Add data-id for drag-and-drop
 
-        // MODIFIED V6.6.1: Used Lucide icon instead of raw SVG
+        // Used Lucide icon instead of raw SVG
         groupEl.innerHTML = `
             <h4 class="symptom-group-header flex justify-between items-center">
                 <span>${supp.name}</span>
@@ -513,7 +609,7 @@ function renderSymptomChecklist() {
         DOM.symptomChecklistContainer.appendChild(groupEl);
     });
 
-    // MODIFIED V6.6.1: Create Lucide icons for the newly rendered content
+    // Create Lucide icons for the newly rendered content
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
     }
@@ -542,7 +638,7 @@ function renderAllScript() {
     const activeSupplementIds = new Set();
     const checkedBoxes = DOM.symptomChecklistContainer.querySelectorAll('.script-checkbox:checked');
     
-    // REFACTOR V4.2.0: Group symptoms by supplement
+    // Group symptoms by supplement
     const groupedActiveSymptoms = {};
 
     checkedBoxes.forEach(cb => {
@@ -589,7 +685,6 @@ function renderAllScript() {
     // Calculate how many *more* base bottles are needed
     const bottlesOfMainToOrder = Math.max(0, months - onlineBottlesOrdered);
 
-    // --- LOGIC FIX V4.1.0 ---
     // Calculate *individual* addon bottles needed
     let addonsToOrder = []; // e.g., [{name: "A", quantity: 12}, {name: "B", quantity: 6}]
     let totalAddonBottlesToOrder = 0;
@@ -607,7 +702,6 @@ function renderAllScript() {
         }
         totalAddonBottlesToOrder += bottlesNeeded;
     }
-    // --- END LOGIC FIX ---
     
     const totalCost = (bottlesOfMainToOrder * pricePerBottle) + (totalAddonBottlesToOrder * pricePerBottle);
     
@@ -638,7 +732,7 @@ function renderAllScript() {
         DOM.dynamicPitchContent.innerHTML = pitch;
     }
     
-    // REFACTOR V4.2.0: Get benefits from new grouped object
+    // Get benefits from new grouped object
     let benefits = [];
     Object.values(groupedActiveSymptoms).forEach(group => {
         group.symptoms.forEach(s => benefits.push(s.sympBenefit));
@@ -647,7 +741,7 @@ function renderAllScript() {
 
     DOM.dynamicRecommendations.innerHTML = '';
     
-    // REFACTOR V4.2.0: Render sidebar from new grouped object
+    // Render sidebar from new grouped object
     const supplementGroups = Object.values(groupedActiveSymptoms);
     if (supplementGroups.length === 0) {
         DOM.sidebarPlaceholder.style.display = 'block';
@@ -719,7 +813,6 @@ function renderAllScript() {
         ? `for the first <strong class="text-yellow-400">${months} months</strong> of your regimen` 
         : "to complete your regimen";
 
-    // --- LOGIC FIX V4.1.0 ---
     // Use new helper function for addon list
     const addonQuantityListString = AppUI.formatAddonListWithQuantities(addonsToOrder);
 
@@ -732,7 +825,6 @@ function renderAllScript() {
     } else {
         authoScriptWording = `<p>It looks like your order is already complete with everything you need for the full <strong class="text-yellow-400">${months}-month</strong> regimen.</p>`;
     }
-    // --- END LOGIC FIX ---
     
     // 3. Populate the "Order Breakdown" section
     let onlineOrderText = "Online, you ordered: ";
@@ -743,7 +835,6 @@ function renderAllScript() {
     }
     DOM.orderBreakdownOnlinePart.innerHTML = onlineOrderText + " for [ONLINE ORDER COST]. This was already processed before.";
 
-    // --- LOGIC FIX V4.1.0 ---
     let orderBreakdownWording = "";
     if (needsMain && needsAddons) {
         orderBreakdownWording = `<p>Now with your new order, you'll be getting <strong class="text-yellow-400">${bottlesOfMainToOrder}</strong> additional <strong class="text-yellow-400">${mainSuppName}</strong> and ${addonQuantityListString} for the additional <strong class="text-yellow-400">$<span id="order-cost">${totalCost.toFixed(2)}</span></strong>.</p>`;
@@ -754,12 +845,11 @@ function renderAllScript() {
     } else {
         orderBreakdownWording = `<p>Now with your new order, it looks like your order is already complete.</p>`;
     }
-    // --- END LOGIC FIX ---
     
     document.getElementById('autho-length-1').textContent = months;
     document.getElementById('autho-script-dynamic-wording').innerHTML = authoScriptWording;
     
-    // NEW: Inject the new online price and the existing totalCost
+    // Inject the new online price and the existing totalCost
     const onlineCostEl = document.getElementById('autho-online-cost');
     if (onlineCostEl) onlineCostEl.textContent = onlinePrice.toFixed(2);
     
@@ -806,7 +896,16 @@ function resetForNextCall() {
     AppUI.renderOnlineOrderEditor();
 
     renderAllScript();
-    AppUI.updateTimerBarUI(); // MODIFIED: Call non-destructive update
+    
+    // V7.3.9 Fix: Check if timer bar exists before update
+    if (DOM.timerSegments && DOM.timerSegments.length > 0) {
+        AppUI.updateTimerBarUI(); 
+    } else {
+        // If not, create it first
+        AppUI.createTimerBar();
+        AppUI.updateTimerBarUI();
+    }
+
     updateTimerControlsVisibility();
     DOM.resetConfirmModal.classList.add('hidden');
     
@@ -904,13 +1003,6 @@ function initDragAndDropEventListeners() {
 }
 
 
-// --- Reference Modal Logic ---
-
-// REMOVED: openReferenceModal (moved to script-references.js)
-// REMOVED: closeReferenceModal (moved to script-references.js)
-// REMOVED: handleGlobalKeydown (moved to script-references.js)
-
-
 /**
  * Attaches all event listeners for the main application
  * and initializes all component event listeners.
@@ -932,7 +1024,7 @@ function setupEventListeners() {
     DOM.genderSelect.addEventListener('change', () => { 
         renderSymptomChecklist(); 
         renderAllScript(); 
-        // NEW V6.7.0: Re-render questions on gender change
+        // Re-render questions on gender change
         renderDiscoveryQuestions();
     });
 
@@ -954,7 +1046,7 @@ function setupEventListeners() {
         }
     });
 
-    // NEW: Quick Edit Listener
+    // Quick Edit Listener
     DOM.symptomChecklistContainer.addEventListener('click', (e) => {
         const editBtn = e.target.closest('.quick-edit-btn');
         if (editBtn) {
@@ -967,14 +1059,14 @@ function setupEventListeners() {
         }
     });
     
-    // NEW: Quick Edit Modal Close
+    // Quick Edit Modal Close
     if(DOM.quickEditCloseBtn) {
         DOM.quickEditCloseBtn.addEventListener('click', () => {
             DOM.quickEditModal.classList.add('hidden');
         });
     }
 
-    // NEW: Quick Edit Questions Listener
+    // Quick Edit Questions Listener
     if (DOM.quickEditQuestionsBtn) {
         DOM.quickEditQuestionsBtn.addEventListener('click', () => {
             if (AppUI.openQuestionEditor) {
@@ -989,12 +1081,6 @@ function setupEventListeners() {
     DOM.resetAppBtn.addEventListener('click', () => DOM.resetConfirmModal.classList.remove('hidden'));
     DOM.resetCancelBtn.addEventListener('click', () => DOM.resetConfirmModal.classList.add('hidden'));
     DOM.resetConfirmBtn.addEventListener('click', resetForNextCall);
-    
-    // --- Reference Modal Listeners ---
-    // REMOVED: (moved to script-references.js)
-    
-    // --- Global Shortcut Listener ---
-    // REMOVED: (moved to script-references.js)
 
     // --- Initialize Component Event Listeners ---
     AppUI.initUtilityEventListeners(); // Notes

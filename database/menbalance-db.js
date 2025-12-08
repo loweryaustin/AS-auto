@@ -4,9 +4,11 @@
  * This file "self-registers" into the global DATABASE_CONFIGS object.
  */
 DATABASE_CONFIGS["MEN Balance Pro"] = {
+    "productLine": "Blackshark",
     "baseProduct": {
         "name": "MEN Balance Pro",
-        "pitch": "This helps with prostate health."
+        "pitch": "This helps with prostate health.",
+        "gender": "male"
     },
     "guaranteeDays": 60,
     "references": [],
@@ -270,6 +272,28 @@ DATABASE_CONFIGS["MEN Balance Pro"] = {
                     "benefit": "helping to combat frequent colds or infections"
                 }
             ]
+        }
+    ],
+    "questionGroups": [
+        {
+            "id": "group-1764357571331-lnfau",
+            "name": "Prostate",
+            "gender": "any"
+        },
+        {
+            "id": "group-1764357571331-m07yg",
+            "name": "General",
+            "gender": "any"
+        },
+        {
+            "id": "group-1764357571331-a8cqw",
+            "name": "Erectile Dysfunction",
+            "gender": "any"
+        },
+        {
+            "id": "group-1764357571331-t5muw",
+            "name": "Diabetes",
+            "gender": "any"
         }
     ]
 };

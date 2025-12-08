@@ -1,11 +1,12 @@
 /**
  * ============================================
- * SCRIPT TOOL SETTINGS MODAL LOGIC (V6.8.0)
+ * SCRIPT TOOL SETTINGS MODAL LOGIC (V7.3.9)
  * ============================================
  * This component handles all logic and UI for
  * the main settings modal, including:
  * - App Settings (Agent, Segments)
  * - Database Editor (Base Product, Questions, Recommendations)
+ * - Library Import with Type-Ahead Search (State Persistence Fixed)
  * - Reset functions
  * - Auto-saving
  *
@@ -14,6 +15,7 @@
  * - `saveSettingsToStorage()`, `loadState()`, `initAppUI()` (from script.js)
  * - `lucide` (from CDN)
  * - `AppUI.initReferenceSettingsEventListeners()` (from script-references.js)
+ * - `AppLibrary` (from script-library.js)
  */
 
 // --- Module-level variables ---
@@ -21,6 +23,16 @@ let autoSaveTimer = null;
 // Drag and Drop State for Quick Edit
 let qeDraggedItem = null;
 let qeDragSourceGroup = null;
+
+// Library Import State (Persisted during session)
+let libSelectedLine = null;
+let libSelectedDb = null;
+let libSelectedSupp = null;
+
+// Cache for search
+let libAvailableLines = [];
+let libAvailableDbs = [];
+let libAvailableSupps = [];
 
 /**
  * Creates the HTML element for a single supplement
@@ -189,10 +201,36 @@ AppUI.renderSettingsModal = function() {
         // Clear legacy editor placeholder
         DOM.questionsEditorList.innerHTML = '<div class="text-gray-500 italic text-sm">Please use the Quick Edit (Cog icon) on the main page to edit questions and groups.</div>';
 
+        // NEW: Populate Product Line Input
+        const productLineInput = document.getElementById('product-line-setting');
+        if (productLineInput) {
+            productLineInput.value = appState.supplementDatabase.productLine || "General";
+        }
+
         // Populate Supplement Wording (for *current* DB)
         DOM.baseProductNameSetting.value = appState.supplementDatabase.baseProduct.name;
         DOM.baseProductPitchSetting.value = appState.supplementDatabase.baseProduct.pitch;
         DOM.baseProductGuaranteeSetting.value = appState.supplementDatabase.guaranteeDays || 60;
+        
+        // Populate Base Product Gender
+        const currentGender = appState.supplementDatabase.baseProduct.gender || 'any';
+        const genderSelect = document.getElementById('base-product-gender-setting');
+        if (!genderSelect) {
+            const container = DOM.baseProductNameSetting.closest('.space-y-3');
+            const div = document.createElement('div');
+            div.innerHTML = `
+                <label class="text-xs text-gray-400">Default Gender</label>
+                <select id="base-product-gender-setting" class="w-full bg-gray-700 text-white rounded p-2 text-sm">
+                    <option value="any">Any (Unspecified)</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                </select>
+            `;
+            container.appendChild(div);
+        }
+        if (document.getElementById('base-product-gender-setting')) {
+            document.getElementById('base-product-gender-setting').value = currentGender;
+        }
         
         DOM.supplementSettingsList.innerHTML = '';
         if (appState.supplementDatabase.recommendations) {
@@ -237,6 +275,25 @@ AppUI.readAndSaveAllSettings = function() {
     appState.supplementDatabase.baseProduct.name = DOM.baseProductNameSetting.value;
     appState.supplementDatabase.baseProduct.pitch = DOM.baseProductPitchSetting.value;
     appState.supplementDatabase.guaranteeDays = parseInt(DOM.baseProductGuaranteeSetting.value, 10) || 60;
+    
+    // Save Base Product Gender
+    const genderSelect = document.getElementById('base-product-gender-setting');
+    if (genderSelect) {
+        appState.supplementDatabase.baseProduct.gender = genderSelect.value;
+    }
+
+    // NEW: Save Product Line
+    const productLineInput = document.getElementById('product-line-setting');
+    if (productLineInput) {
+        const newLine = productLineInput.value.trim() || "General";
+        // Check if changed
+        if (appState.supplementDatabase.productLine !== newLine) {
+            appState.supplementDatabase.productLine = newLine;
+            appState.currentProductLine = newLine; // Update global state
+            // Refresh switcher UI
+            if (AppUI.renderProductLineSwitcher) AppUI.renderProductLineSwitcher();
+        }
+    }
     
     // 3. Save Recommendations (Settings Modal)
     const newRecommendations = [];
@@ -484,18 +541,13 @@ AppUI.saveQuestionEditor = function() {
 AppUI.initQuickEditDND = function() {
     const container = DOM.quickEditContent;
 
-    // Cleanup old listeners if any (not strictly necessary as we rely on bubbling)
-    
     container.ondragstart = function(e) {
         if (e.target.classList.contains('qe-question-row')) {
             qeDraggedItem = e.target;
             e.target.classList.add('opacity-50');
             e.dataTransfer.effectAllowed = 'move';
-            // Prevent dragging the group if we are clicking the question handle
             e.stopPropagation(); 
         }
-        // TODO: Implement Group reordering DND here if needed, 
-        // but for now focusing on Questions inside/between groups.
     };
 
     container.ondragend = function(e) {
@@ -538,6 +590,235 @@ AppUI.initQuickEditDND = function() {
     }
 }
 
+// --- NEW (V7.2.2): Library Import Logic with SEARCH ---
+
+AppUI.openLibraryImportModal = function() {
+    const modal = document.getElementById('library-import-modal');
+    if (!modal) return;
+
+    // Reset State
+    libSelectedLine = null;
+    libSelectedDb = null;
+    libSelectedSupp = null;
+
+    // Cache Elements
+    const lineInput = document.getElementById('lib-product-line-input');
+    const dbInput = document.getElementById('lib-database-input');
+    const suppInput = document.getElementById('lib-supplement-input');
+    const confirmBtn = document.getElementById('library-import-confirm-btn');
+    const lineResults = document.getElementById('lib-product-line-results');
+    const dbResults = document.getElementById('lib-database-results');
+    const suppResults = document.getElementById('lib-supplement-results');
+
+    // Reset UI
+    lineInput.value = '';
+    dbInput.value = '';
+    dbInput.disabled = true;
+    dbInput.placeholder = "Select a line first...";
+    suppInput.value = '';
+    suppInput.disabled = true;
+    suppInput.placeholder = "Select a database first...";
+    confirmBtn.disabled = true;
+    
+    lineResults.classList.add('hidden');
+    dbResults.classList.add('hidden');
+    suppResults.classList.add('hidden');
+
+    // Pre-fetch Data
+    libAvailableLines = getAvailableProductLines(); // From script.js
+    // Others will be fetched on demand
+
+    modal.classList.remove('hidden');
+    lineInput.focus();
+}
+
+/**
+ * Helper to render search results into a container
+ */
+function renderDropdownResults(items, container, onSelect) {
+    if (!items || items.length === 0) {
+        container.innerHTML = '<div class="p-3 text-sm text-gray-400 italic">No matches found.</div>';
+    } else {
+        container.innerHTML = items.map((item, index) => `
+            <div class="search-result-item px-4 py-2 hover:bg-gray-700 cursor-pointer text-sm text-white border-b border-gray-700 last:border-0" data-index="${index}">
+                ${item}
+            </div>
+        `).join('');
+    }
+    
+    container.classList.remove('hidden');
+
+    // Attach Click Listeners
+    container.querySelectorAll('.search-result-item').forEach(el => {
+        el.addEventListener('click', () => {
+            const index = el.dataset.index;
+            onSelect(items[index]); // Pass the raw item back
+            container.classList.add('hidden'); // Hide after select
+        });
+    });
+}
+
+AppUI.initLibraryEventListeners = function() {
+    const modal = document.getElementById('library-import-modal');
+    if (!modal) return;
+
+    const closeBtn = document.getElementById('library-import-close-btn');
+    const cancelBtn = document.getElementById('library-import-cancel-btn');
+    const confirmBtn = document.getElementById('library-import-confirm-btn');
+    
+    const lineInput = document.getElementById('lib-product-line-input');
+    const lineResults = document.getElementById('lib-product-line-results');
+    
+    const dbInput = document.getElementById('lib-database-input');
+    const dbResults = document.getElementById('lib-database-results');
+    
+    const suppInput = document.getElementById('lib-supplement-input');
+    const suppResults = document.getElementById('lib-supplement-results');
+
+    // Close Actions
+    const closeModal = () => modal.classList.add('hidden');
+    closeBtn.addEventListener('click', closeModal);
+    cancelBtn.addEventListener('click', closeModal);
+
+    // --- STEP 1: Product Line ---
+    const handleLineSearch = () => {
+        const query = lineInput.value.toLowerCase().trim();
+        // Pass EMPTY string to filter to show ALL if query is empty
+        const filtered = query === '' ? libAvailableLines : libAvailableLines.filter(l => l.toLowerCase().includes(query));
+        renderDropdownResults(filtered, lineResults, (selectedLine) => {
+            // On Select
+            lineInput.value = selectedLine;
+            libSelectedLine = selectedLine;
+            
+            // Enable Step 2
+            dbInput.disabled = false;
+            dbInput.placeholder = "Type to search databases...";
+            dbInput.value = '';
+            dbInput.focus();
+            
+            // Fetch DBs
+            if (AppLibrary && AppLibrary.getDatabasesInLine) {
+                libAvailableDbs = AppLibrary.getDatabasesInLine(selectedLine);
+            } else {
+                console.error("AppLibrary is missing or not loaded correctly.");
+                libAvailableDbs = [];
+            }
+            
+            // Reset Step 3
+            suppInput.disabled = true;
+            suppInput.placeholder = "Select a database first...";
+            suppInput.value = '';
+            confirmBtn.disabled = true;
+        });
+    };
+    lineInput.addEventListener('input', handleLineSearch);
+    lineInput.addEventListener('click', handleLineSearch); // Trigger on click
+
+    // --- STEP 2: Database ---
+    const handleDbSearch = () => {
+        const query = dbInput.value.toLowerCase().trim();
+        const filtered = query === '' ? libAvailableDbs : libAvailableDbs.filter(d => d.toLowerCase().includes(query));
+        renderDropdownResults(filtered, dbResults, (selectedDb) => {
+            // On Select
+            dbInput.value = selectedDb;
+            libSelectedDb = selectedDb;
+            
+            // Enable Step 3
+            suppInput.disabled = false;
+            suppInput.placeholder = "Type to search supplements...";
+            suppInput.value = '';
+            suppInput.focus();
+            
+            // Fetch Supps
+            if (AppLibrary && AppLibrary.getSupplementsFromDb) {
+                const supps = AppLibrary.getSupplementsFromDb(selectedDb);
+                libAvailableSupps = supps; // Store objects
+            } else {
+                console.error("AppLibrary is missing.");
+                libAvailableSupps = [];
+            }
+            
+            confirmBtn.disabled = true;
+        });
+    };
+    dbInput.addEventListener('input', handleDbSearch);
+    dbInput.addEventListener('click', handleDbSearch); // Trigger on click
+
+    // Custom render for Supplements (since they are objects, not strings)
+    function renderSuppResults(items, container) {
+        if (!items || items.length === 0) {
+            container.innerHTML = '<div class="p-3 text-sm text-gray-400 italic">No matches found.</div>';
+        } else {
+            container.innerHTML = items.map((item, index) => `
+                <div class="search-result-item px-4 py-2 hover:bg-gray-700 cursor-pointer text-sm text-white border-b border-gray-700 last:border-0" data-index="${index}">
+                    ${item.name}
+                </div>
+            `).join('');
+        }
+        container.classList.remove('hidden');
+        
+        container.querySelectorAll('.search-result-item').forEach(el => {
+            el.addEventListener('click', () => {
+                const index = el.dataset.index;
+                const selectedSupp = items[index];
+                
+                suppInput.value = selectedSupp.name;
+                libSelectedSupp = selectedSupp;
+                
+                // Enable Confirm
+                confirmBtn.disabled = false;
+                container.classList.add('hidden');
+            });
+        });
+    }
+
+    // --- STEP 3: Supplement ---
+    const handleSuppSearch = () => {
+        const query = suppInput.value.toLowerCase().trim();
+        const filtered = query === '' ? libAvailableSupps : libAvailableSupps.filter(s => s.name.toLowerCase().includes(query));
+        renderSuppResults(filtered, suppResults);
+    };
+    suppInput.addEventListener('input', handleSuppSearch);
+    suppInput.addEventListener('click', handleSuppSearch); // Trigger on click
+
+    // Close dropdowns on click outside (General)
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('#lib-product-line-input') && !e.target.closest('#lib-product-line-results')) {
+            lineResults.classList.add('hidden');
+        }
+        if (!e.target.closest('#lib-database-input') && !e.target.closest('#lib-database-results')) {
+            dbResults.classList.add('hidden');
+        }
+        if (!e.target.closest('#lib-supplement-input') && !e.target.closest('#lib-supplement-results')) {
+            suppResults.classList.add('hidden');
+        }
+    });
+
+    // Confirm Action
+    confirmBtn.addEventListener('click', () => {
+        if (!libSelectedSupp) return;
+        
+        if (AppLibrary && AppLibrary.cloneSupplement) {
+            // 1. Clone
+            const importedSupp = AppLibrary.cloneSupplement(libSelectedSupp);
+            
+            // 2. Add to current DB
+            appState.supplementDatabase.recommendations.push(importedSupp);
+            
+            // 3. Update Settings UI (Append)
+            const newEl = AppUI.createSupplementEditorElement(importedSupp);
+            DOM.supplementSettingsList.appendChild(newEl);
+            
+            // 4. Save & Close
+            AppUI.triggerAutoSave(50); // Save immediately
+            closeModal();
+            alert(`Successfully imported "${importedSupp.name}"!`);
+        } else {
+            console.error("AppLibrary.cloneSupplement is missing.");
+        }
+    });
+}
+
 
 // --- Event Listeners ---
 AppUI.initSettingsEventListeners = function() {
@@ -554,6 +835,48 @@ AppUI.initSettingsEventListeners = function() {
     DOM.settingsModal.addEventListener('input', () => AppUI.triggerAutoSave(500));
     DOM.settingsModal.addEventListener('click', (e) => {
         if (e.target.closest('button')) AppUI.triggerAutoSave(50);
+    });
+
+    // NEW (V7.3.7): Product Line Type-Ahead Logic
+    // Using delegation
+    DOM.settingsModal.addEventListener('input', (e) => {
+        if (e.target.id === 'product-line-setting') {
+            const input = e.target;
+            const container = document.getElementById('product-line-setting-results');
+            if (!container) return;
+            
+            const lines = getAvailableProductLines();
+            const query = input.value.toLowerCase().trim();
+            const filtered = query === '' ? lines : lines.filter(l => l.toLowerCase().includes(query));
+            
+            renderDropdownResults(filtered, container, (selected) => {
+                input.value = selected;
+                AppUI.triggerAutoSave(50); 
+            });
+        }
+    });
+    
+    // Focus listener for browse
+    DOM.settingsModal.addEventListener('focusin', (e) => {
+        if (e.target.id === 'product-line-setting') {
+             const input = e.target;
+             const container = document.getElementById('product-line-setting-results');
+             if (!container) return;
+             const lines = getAvailableProductLines();
+             renderDropdownResults(lines, container, (selected) => {
+                input.value = selected;
+                AppUI.triggerAutoSave(50); 
+            });
+        }
+    });
+    
+    // Close on click outside
+    document.addEventListener('click', (e) => {
+        const plContainer = document.getElementById('product-line-setting-results');
+        const plInput = document.getElementById('product-line-setting');
+        if (plContainer && !plContainer.contains(e.target) && e.target !== plInput) {
+            plContainer.classList.add('hidden');
+        }
     });
 
     if (DOM.quickEditModal) {
@@ -643,6 +966,15 @@ AppUI.initSettingsEventListeners = function() {
              list.appendChild(group);
         }
     });
+    
+    // NEW (V7.1.1): Library Import Button Listener
+    const importBtn = document.getElementById('import-from-library-btn');
+    if (importBtn) {
+        importBtn.addEventListener('click', AppUI.openLibraryImportModal);
+    }
+    
+    // Initialize Lib Listeners
+    AppUI.initLibraryEventListeners();
 
     // Initialize Ref Listeners
     AppUI.initReferenceSettingsEventListeners();

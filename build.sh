@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ---
-# CALL SCRIPT BUILD SCRIPT (V5.0.0)
+# CALL SCRIPT BUILD SCRIPT (V7.1.0)
 # This script reads the master version from package.json and compiles
 # all separate .css, .js, and database/ files into a single,
 # versioned HTML file for distribution.
@@ -66,8 +66,11 @@ cat script-io.js >> $TEMP_JS
 echo "" >> $TEMP_JS
 cat script-order-editor.js >> $TEMP_JS
 echo "" >> $TEMP_JS
-# NEW: Add script-references.js before script-settings.js
+# NEW: Add script-references.js
 cat script-references.js >> $TEMP_JS
+echo "" >> $TEMP_JS
+# NEW: Add script-library.js before settings
+cat script-library.js >> $TEMP_JS
 echo "" >> $TEMP_JS
 cat script-settings.js >> $TEMP_JS
 echo "" >> $TEMP_JS
