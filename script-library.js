@@ -1,6 +1,6 @@
 /**
  * ============================================
- * SCRIPT TOOL LIBRARY COMPONENT (V7.3.11)
+ * SCRIPT TOOL LIBRARY COMPONENT (V7.6.0)
  * ============================================
  * This component handles "Cross-Database" operations,
  * specifically the ability to scan other product lines/databases
@@ -58,6 +58,44 @@ AppLibrary.getSupplementsFromDb = function(dbName) {
 }
 
 /**
+ * NEW (V7.6.0): Returns a flat list of ALL supplements in a product line,
+ * tagged with their source database name. Sorted by Supplement Name.
+ * @param {string} lineName - The product line to scan.
+ * @returns {Array<Object>} - Array of supplement objects with an added `sourceDb` property.
+ */
+AppLibrary.getAllSupplementsInLine = function(lineName) {
+    const allSupplements = [];
+    const dbNames = AppLibrary.getDatabasesInLine(lineName);
+
+    dbNames.forEach(dbName => {
+        const supps = AppLibrary.getSupplementsFromDb(dbName);
+        supps.forEach(supp => {
+            // Clone first to avoid mutating the original reference
+            const suppEntry = AppUI.deepCopy(supp);
+            suppEntry.sourceDb = dbName; // Tag it
+            allSupplements.push(suppEntry);
+        });
+    });
+
+    // Sort by Name, then by Source DB (for grouping duplicates)
+    allSupplements.sort((a, b) => {
+        const nameA = a.name.toLowerCase();
+        const nameB = b.name.toLowerCase();
+        if (nameA < nameB) return -1;
+        if (nameA > nameB) return 1;
+        
+        // If names are equal, sort by source DB
+        const sourceA = a.sourceDb.toLowerCase();
+        const sourceB = b.sourceDb.toLowerCase();
+        if (sourceA < sourceB) return -1;
+        if (sourceA > sourceB) return 1;
+        return 0;
+    });
+
+    return allSupplements;
+}
+
+/**
  * Deep copies a supplement object and REGENERATES unique IDs
  * for the supplement itself and all its symptoms.
  * This is crucial to prevent ID collisions when importing.
@@ -81,6 +119,9 @@ AppLibrary.cloneSupplement = function(sourceSupp) {
             symp.id = newSympId;
         });
     }
+
+    // Remove internal properties if they exist
+    delete newSupp.sourceDb;
 
     return newSupp;
 }

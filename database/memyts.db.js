@@ -7,135 +7,112 @@ DATABASE_CONFIGS["Memyts"] = {
     "productLine": "Digital Lions",
     "baseProduct": {
         "name": "Memyts (Base)",
-        "gender": "any",
-        "pitch": "It’s the foundational blend formulated to help support sharp cognitive function and assist your brain in maintaining mental performance and clarity—this is where we start building your mental edge. (Lack of focus/Attention, High mental demand, Memory Recall issues)"
+        "pitch": "Memory and cognitive support.",
+        "gender": "any"
     },
     "guaranteeDays": 60,
-    "references": [
-        {
-            "id": "ref-1763256437923",
-            "title": "Chart",
-            "icon": "scale",
-            "type": "image",
-            "shortcut": "1",
-            "url": "https://www.vertex42.com/ExcelTemplates/Images/body-mass-index-line-chart.png"
-        },
-        {
-            "id": "ref-1763256516598",
-            "title": "Table",
-            "icon": "scale",
-            "type": "image",
-            "shortcut": "2",
-            "url": "https://www.vertex42.com/ExcelTemplates/Images/body-mass-index-chart-portrait.png"
-        },
-        {
-            "id": "ref-1763256602461",
-            "title": "BMI-Calc",
-            "icon": "scale",
-            "type": "website",
-            "shortcut": "3",
-            "url": "https://www.calculator.net/bmi-calculator.html"
-        },
-        {
-            "id": "ref-1763256702258",
-            "title": "A1C",
-            "icon": "area-chart",
-            "type": "image",
-            "shortcut": "4",
-            "url": "https://my.clevelandclinic.org/-/scassets/images/org/health/articles/9731-a1c-glucose-levels"
-        }
-    ],
     "questions": [
         {
-            "id": "q-1764866303582-1wyt50lts",
-            "text": "How long have you been dealing with the diabetes?",
-            "group": "General"
+            "id": "q-mem-1",
+            "text": "How long have you been noticing memory issues?",
+            "group": "Memory"
         },
         {
-            "id": "q-1764866303582-lo81zwgmm",
-            "text": "Are you dealing with any other underlying health conditions such as high blood pressure or cholesterol?",
-            "group": "General"
+            "id": "q-mem-2",
+            "text": "Would you say it’s more short-term memory, long-term memory, or a mix?",
+            "group": "Memory"
         },
         {
-            "id": "q-1764866303582-v2d201rl7",
-            "text": "Okay, do you take medications for those?",
-            "group": "General"
+            "id": "q-mem-3",
+            "text": "Any family history of dementia or Alzheimer’s?",
+            "group": "Memory"
         },
         {
-            "id": "q-1764866303582-wgqahovth",
-            "text": "How does this affect your life?",
-            "group": "General"
+            "id": "q-mem-4",
+            "text": "Have you had any head injuries or concussions in the past?",
+            "group": "Memory"
         },
         {
-            "id": "q-1764866303582-gkh55clwj",
-            "text": "What is your biggest concern when it to comes to your health?",
-            "group": "General"
+            "id": "q-mem-5",
+            "text": "Got it — and are you sleeping well at night, or do you feel like your rest could be better?",
+            "group": "Sleep"
+        },
+        {
+            "id": "q-mem-6",
+            "text": "Do you have any ringing in your ears/ tinnitus?",
+            "group": "Tinnitus"
+        },
+        {
+            "id": "q-mem-7",
+            "text": "Are you currently taking any blood pressure, cholesterol, or diabetic medications?",
+            "group": "Medical History"
         }
     ],
     "recommendations": [
         {
-            "id": "supp-1764866869644",
-            "name": "Resverador",
+            "id": "supp-karylief",
+            "name": "Karylief",
             "gender": "any",
             "symptoms": [
                 {
-                    "id": "symp-1764866869644",
-                    "text": "Age related concerns",
-                    "pitch": "Resverador delivers a powerful antioxidant. This helps to support cellular health and provides defense against oxidative stress, which is crucial to support long-term wellness.\"",
-                    "benefit": "helps support cellular health and helps long term cognitive protection"
-                },
-                {
-                    "id": "undefined",
-                    "text": "High Stress Lifestyle",
-                    "pitch": "Resverador delivers a powerful antioxidant. This helps to support cellular health and provides defense against oxidative stress, which is crucial to support long-term wellness.\"",
-                    "benefit": "helps support against oxidative stress and or free radical damage"
+                    "id": "symp-tinnitus",
+                    "text": "Ringing in ears / Tinnitus",
+                    "pitch": "Specific support for tinnitus symptoms.",
+                    "benefit": "help quiet the ringing in your ears"
                 }
             ]
         },
         {
-            "id": "supp-1764866951680",
+            "id": "supp-arialief",
+            "name": "Arialief",
+            "gender": "any",
+            "symptoms": [
+                {
+                    "id": "symp-brainfog",
+                    "text": "Brain Fog",
+                    "pitch": "Arialief helps support healthy cellular energy and antioxidant protection, which is essential for maintaining memory function and mental acuity.\"",
+                    "benefit": "help clear brain fog"
+                },
+                {
+                    "id": "symp-1765385365223",
+                    "text": "Mental Fatigue/ trouble learning new information (retention)",
+                    "pitch": "Arialief helps support healthy cellular energy and antioxidant protection, which is essential for maintaining memory function and mental acuity.",
+                    "benefit": "help support nerve health/ energy"
+                }
+            ]
+        },
+        {
+            "id": "supp-tenurima",
             "name": "Tenurima",
             "gender": "any",
             "symptoms": [
                 {
-                    "id": "symp-1764866951680",
-                    "text": "Tennitus/ Ringing in ears",
-                    "pitch": "Tenurima helps provide vascular support to promote optimal blood flow and efficient nutrient delivery to the brain, which is crucial for supporting memory function and mental clarity.\"",
-                    "benefit": "promotes optimal blood flow "
-                },
-                {
-                    "id": "undefined",
-                    "text": "General Fatigue",
-                    "pitch": "Tenurima helps provide vascular support to promote optimal blood flow and efficient nutrient delivery to the brain, which is crucial for supporting memory function and mental clarity.\"",
-                    "benefit": "helps general fatigue/ oxygen and nutrient delivery throughout the body"
-                },
-                {
-                    "id": "undefined",
-                    "text": "Cold Extremities",
-                    "pitch": "Tenurima helps provide vascular support to promote optimal blood flow and efficient nutrient delivery to the brain, which is crucial for supporting memory function and mental clarity.\"",
-                    "benefit": "helps support proper blood flow and oxygen delivery"
+                    "id": "symp-bp-mem",
+                    "text": "High Blood Pressure / Poor Circulation",
+                    "pitch": "Supports healthy blood flow to help nutrients reach the brain.",
+                    "benefit": "help improve blood flow to the brain"
                 }
             ]
         },
         {
-            "id": "supp-1764867228711",
+            "id": "supp-felaromi",
             "name": "Felaromi",
             "gender": "any",
             "symptoms": [
                 {
-                    "id": "symp-1764867228711",
+                    "id": "symp-gut-brain",
                     "text": "Digestive Issues",
                     "pitch": "Felaromi provides a powerful foundation of prebiotics and probiotics to support a healthy digestive environment, directly contributing to the mental clarity and focus necessary for optimal memory function.",
                     "benefit": "helps support healthy gut brain axis"
                 },
                 {
-                    "id": "undefined",
+                    "id": "symp-1765385508141",
                     "text": "Irratability/ Mood swings",
                     "pitch": "Felaromi provides a powerful foundation of prebiotics and probiotics to support a healthy digestive environment, directly contributing to the mental clarity and focus necessary for optimal memory function.",
                     "benefit": "helps support unexplained shifts in emotional state often linked to gut-brain axis"
                 },
                 {
-                    "id": "undefined",
+                    "id": "symp-1765385525941",
                     "text": "Weak Immunity",
                     "pitch": "Felaromi provides a powerful foundation of prebiotics and probiotics to support a healthy digestive environment, directly contributing to the mental clarity and focus necessary for optimal memory function.",
                     "benefit": "Supports foundational gut health to help reduce frequent minor illnesses"
@@ -143,31 +120,67 @@ DATABASE_CONFIGS["Memyts"] = {
             ]
         },
         {
-            "id": "supp-1764867452225",
-            "name": "Arialief",
+            "id": "supp-resverador",
+            "name": "Resverador",
             "gender": "any",
             "symptoms": [
                 {
-                    "id": "symp-1764867452225",
-                    "text": "Mental Fatigue/ trouble learning new information (retention)",
-                    "pitch": "Arialief helps support healthy cellular energy and antioxidant protection, which is essential for maintaining memory function and mental acuity.\"",
-                    "benefit": "Helps support nerve health/ energy"
-                },
+                    "id": "symp-anti-aging",
+                    "text": "Brain aging concerns",
+                    "pitch": "Excellent for targeting brain aging and cellular protection.",
+                    "benefit": "help protect brain cells from aging"
+                }
+            ]
+        },
+        {
+            "id": "supp-cetadusse",
+            "name": "Cetadusse",
+            "gender": "any",
+            "symptoms": [
                 {
-                    "id": "undefined",
-                    "text": "Brain Fog",
-                    "pitch": "Arialief helps support healthy cellular energy and antioxidant protection, which is essential for maintaining memory function and mental acuity.\"",
-                    "benefit": "Helps support brain fog"
+                    "id": "symp-diabetes-mem",
+                    "text": "Diabetes / Blood Sugar issues",
+                    "pitch": "Targeting blood sugar is crucial for brain health.",
+                    "benefit": "help manage blood sugar to protect cognitive function"
+                }
+            ]
+        },
+        {
+            "id": "supp-goldenfrib",
+            "name": "GoldenFrib",
+            "gender": "any",
+            "symptoms": [
+                {
+                    "id": "symp-digest-mem",
+                    "text": "Digestive Health",
+                    "pitch": "Digestive Health support, 1 cap daily.",
+                    "benefit": "help support healthy digestion"
                 }
             ]
         }
     ],
     "questionGroups": [
         {
-            "id": "group-1764866303582-6h869",
-            "name": "General",
+            "id": "g-mem",
+            "name": "Memory",
+            "gender": "any"
+        },
+        {
+            "id": "g-slp",
+            "name": "Sleep",
+            "gender": "any"
+        },
+        {
+            "id": "g-tin",
+            "name": "Tinnitus",
+            "gender": "any"
+        },
+        {
+            "id": "g-med",
+            "name": "Medical History",
             "gender": "any"
         }
-    ]
+    ],
+    "references": []
 };
 

@@ -1,6 +1,6 @@
 /**
  * ============================================
- * SCRIPT TOOL SETTINGS MODAL LOGIC (V7.3.9)
+ * SCRIPT TOOL SETTINGS MODAL LOGIC (V7.6.0)
  * ============================================
  * This component handles all logic and UI for
  * the main settings modal, including:
@@ -24,14 +24,7 @@ let autoSaveTimer = null;
 let qeDraggedItem = null;
 let qeDragSourceGroup = null;
 
-// Library Import State (Persisted during session)
-let libSelectedLine = null;
-let libSelectedDb = null;
-let libSelectedSupp = null;
-
-// Cache for search
-let libAvailableLines = [];
-let libAvailableDbs = [];
+// Library Import State
 let libAvailableSupps = [];
 
 /**
@@ -118,7 +111,8 @@ AppUI.createNestedQuestionRow = function(q) {
         </div>
         <input type="text" value="${safeText}" class="question-text-input w-full bg-transparent text-white text-sm focus:outline-none" placeholder="Question text...">
         <button class="qe-remove-btn remove-question-btn" title="Remove Question">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
         </button>
     `;
     return row;
@@ -590,72 +584,37 @@ AppUI.initQuickEditDND = function() {
     }
 }
 
-// --- NEW (V7.2.2): Library Import Logic with SEARCH ---
+// --- NEW (V7.6.0): SIMPLIFIED Library Import Logic ---
 
 AppUI.openLibraryImportModal = function() {
     const modal = document.getElementById('library-import-modal');
     if (!modal) return;
 
-    // Reset State
-    libSelectedLine = null;
-    libSelectedDb = null;
-    libSelectedSupp = null;
-
     // Cache Elements
-    const lineInput = document.getElementById('lib-product-line-input');
-    const dbInput = document.getElementById('lib-database-input');
     const suppInput = document.getElementById('lib-supplement-input');
-    const confirmBtn = document.getElementById('library-import-confirm-btn');
-    const lineResults = document.getElementById('lib-product-line-results');
-    const dbResults = document.getElementById('lib-database-results');
     const suppResults = document.getElementById('lib-supplement-results');
+    const currentLineDisplay = document.getElementById('lib-current-line-display');
 
     // Reset UI
-    lineInput.value = '';
-    dbInput.value = '';
-    dbInput.disabled = true;
-    dbInput.placeholder = "Select a line first...";
     suppInput.value = '';
-    suppInput.disabled = true;
-    suppInput.placeholder = "Select a database first...";
-    confirmBtn.disabled = true;
-    
-    lineResults.classList.add('hidden');
-    dbResults.classList.add('hidden');
     suppResults.classList.add('hidden');
+    suppResults.innerHTML = ''; // Clear old results
 
-    // Pre-fetch Data
-    libAvailableLines = getAvailableProductLines(); // From script.js
-    // Others will be fetched on demand
+    // Set Info Header
+    if (currentLineDisplay) {
+        currentLineDisplay.textContent = appState.currentProductLine || "General";
+    }
+
+    // Pre-fetch Data: Get ALL supplements in current line
+    if (AppLibrary && AppLibrary.getAllSupplementsInLine) {
+        libAvailableSupps = AppLibrary.getAllSupplementsInLine(appState.currentProductLine || "General");
+    } else {
+        console.error("AppLibrary.getAllSupplementsInLine is missing.");
+        libAvailableSupps = [];
+    }
 
     modal.classList.remove('hidden');
-    lineInput.focus();
-}
-
-/**
- * Helper to render search results into a container
- */
-function renderDropdownResults(items, container, onSelect) {
-    if (!items || items.length === 0) {
-        container.innerHTML = '<div class="p-3 text-sm text-gray-400 italic">No matches found.</div>';
-    } else {
-        container.innerHTML = items.map((item, index) => `
-            <div class="search-result-item px-4 py-2 hover:bg-gray-700 cursor-pointer text-sm text-white border-b border-gray-700 last:border-0" data-index="${index}">
-                ${item}
-            </div>
-        `).join('');
-    }
-    
-    container.classList.remove('hidden');
-
-    // Attach Click Listeners
-    container.querySelectorAll('.search-result-item').forEach(el => {
-        el.addEventListener('click', () => {
-            const index = el.dataset.index;
-            onSelect(items[index]); // Pass the raw item back
-            container.classList.add('hidden'); // Hide after select
-        });
-    });
+    suppInput.focus();
 }
 
 AppUI.initLibraryEventListeners = function() {
@@ -664,13 +623,6 @@ AppUI.initLibraryEventListeners = function() {
 
     const closeBtn = document.getElementById('library-import-close-btn');
     const cancelBtn = document.getElementById('library-import-cancel-btn');
-    const confirmBtn = document.getElementById('library-import-confirm-btn');
-    
-    const lineInput = document.getElementById('lib-product-line-input');
-    const lineResults = document.getElementById('lib-product-line-results');
-    
-    const dbInput = document.getElementById('lib-database-input');
-    const dbResults = document.getElementById('lib-database-results');
     
     const suppInput = document.getElementById('lib-supplement-input');
     const suppResults = document.getElementById('lib-supplement-results');
@@ -680,78 +632,17 @@ AppUI.initLibraryEventListeners = function() {
     closeBtn.addEventListener('click', closeModal);
     cancelBtn.addEventListener('click', closeModal);
 
-    // --- STEP 1: Product Line ---
-    const handleLineSearch = () => {
-        const query = lineInput.value.toLowerCase().trim();
-        // Pass EMPTY string to filter to show ALL if query is empty
-        const filtered = query === '' ? libAvailableLines : libAvailableLines.filter(l => l.toLowerCase().includes(query));
-        renderDropdownResults(filtered, lineResults, (selectedLine) => {
-            // On Select
-            lineInput.value = selectedLine;
-            libSelectedLine = selectedLine;
-            
-            // Enable Step 2
-            dbInput.disabled = false;
-            dbInput.placeholder = "Type to search databases...";
-            dbInput.value = '';
-            dbInput.focus();
-            
-            // Fetch DBs
-            if (AppLibrary && AppLibrary.getDatabasesInLine) {
-                libAvailableDbs = AppLibrary.getDatabasesInLine(selectedLine);
-            } else {
-                console.error("AppLibrary is missing or not loaded correctly.");
-                libAvailableDbs = [];
-            }
-            
-            // Reset Step 3
-            suppInput.disabled = true;
-            suppInput.placeholder = "Select a database first...";
-            suppInput.value = '';
-            confirmBtn.disabled = true;
-        });
-    };
-    lineInput.addEventListener('input', handleLineSearch);
-    lineInput.addEventListener('click', handleLineSearch); // Trigger on click
-
-    // --- STEP 2: Database ---
-    const handleDbSearch = () => {
-        const query = dbInput.value.toLowerCase().trim();
-        const filtered = query === '' ? libAvailableDbs : libAvailableDbs.filter(d => d.toLowerCase().includes(query));
-        renderDropdownResults(filtered, dbResults, (selectedDb) => {
-            // On Select
-            dbInput.value = selectedDb;
-            libSelectedDb = selectedDb;
-            
-            // Enable Step 3
-            suppInput.disabled = false;
-            suppInput.placeholder = "Type to search supplements...";
-            suppInput.value = '';
-            suppInput.focus();
-            
-            // Fetch Supps
-            if (AppLibrary && AppLibrary.getSupplementsFromDb) {
-                const supps = AppLibrary.getSupplementsFromDb(selectedDb);
-                libAvailableSupps = supps; // Store objects
-            } else {
-                console.error("AppLibrary is missing.");
-                libAvailableSupps = [];
-            }
-            
-            confirmBtn.disabled = true;
-        });
-    };
-    dbInput.addEventListener('input', handleDbSearch);
-    dbInput.addEventListener('click', handleDbSearch); // Trigger on click
-
-    // Custom render for Supplements (since they are objects, not strings)
+    // Render Function with Source DB
     function renderSuppResults(items, container) {
         if (!items || items.length === 0) {
             container.innerHTML = '<div class="p-3 text-sm text-gray-400 italic">No matches found.</div>';
         } else {
             container.innerHTML = items.map((item, index) => `
-                <div class="search-result-item px-4 py-2 hover:bg-gray-700 cursor-pointer text-sm text-white border-b border-gray-700 last:border-0" data-index="${index}">
-                    ${item.name}
+                <div class="search-result-item px-4 py-3 hover:bg-gray-700 cursor-pointer border-b border-gray-700 last:border-0" data-index="${index}">
+                    <div class="flex justify-between items-center">
+                        <span class="text-white font-semibold">${item.name}</span>
+                        <span class="text-xs text-gray-400 bg-gray-800 px-2 py-1 rounded">From: ${item.sourceDb}</span>
+                    </div>
                 </div>
             `).join('');
         }
@@ -762,59 +653,44 @@ AppUI.initLibraryEventListeners = function() {
                 const index = el.dataset.index;
                 const selectedSupp = items[index];
                 
-                suppInput.value = selectedSupp.name;
-                libSelectedSupp = selectedSupp;
-                
-                // Enable Confirm
-                confirmBtn.disabled = false;
-                container.classList.add('hidden');
+                if (AppLibrary && AppLibrary.cloneSupplement) {
+                    // 1. Clone
+                    const importedSupp = AppLibrary.cloneSupplement(selectedSupp);
+                    
+                    // 2. Add to current DB
+                    appState.supplementDatabase.recommendations.push(importedSupp);
+                    
+                    // 3. Update Settings UI (Append)
+                    const newEl = AppUI.createSupplementEditorElement(importedSupp);
+                    DOM.supplementSettingsList.appendChild(newEl);
+                    
+                    // 4. Save & Close
+                    AppUI.triggerAutoSave(50); // Save immediately
+                    closeModal();
+                    // Optional: Notification or visual feedback could go here
+                } else {
+                    console.error("AppLibrary.cloneSupplement is missing.");
+                }
             });
         });
     }
 
-    // --- STEP 3: Supplement ---
+    // Search Listener
     const handleSuppSearch = () => {
         const query = suppInput.value.toLowerCase().trim();
-        const filtered = query === '' ? libAvailableSupps : libAvailableSupps.filter(s => s.name.toLowerCase().includes(query));
+        const filtered = query === '' 
+            ? libAvailableSupps 
+            : libAvailableSupps.filter(s => s.name.toLowerCase().includes(query));
         renderSuppResults(filtered, suppResults);
     };
+    
     suppInput.addEventListener('input', handleSuppSearch);
-    suppInput.addEventListener('click', handleSuppSearch); // Trigger on click
+    suppInput.addEventListener('click', handleSuppSearch); // Trigger on click to show all
 
-    // Close dropdowns on click outside (General)
+    // Close dropdown on click outside
     document.addEventListener('click', (e) => {
-        if (!e.target.closest('#lib-product-line-input') && !e.target.closest('#lib-product-line-results')) {
-            lineResults.classList.add('hidden');
-        }
-        if (!e.target.closest('#lib-database-input') && !e.target.closest('#lib-database-results')) {
-            dbResults.classList.add('hidden');
-        }
         if (!e.target.closest('#lib-supplement-input') && !e.target.closest('#lib-supplement-results')) {
             suppResults.classList.add('hidden');
-        }
-    });
-
-    // Confirm Action
-    confirmBtn.addEventListener('click', () => {
-        if (!libSelectedSupp) return;
-        
-        if (AppLibrary && AppLibrary.cloneSupplement) {
-            // 1. Clone
-            const importedSupp = AppLibrary.cloneSupplement(libSelectedSupp);
-            
-            // 2. Add to current DB
-            appState.supplementDatabase.recommendations.push(importedSupp);
-            
-            // 3. Update Settings UI (Append)
-            const newEl = AppUI.createSupplementEditorElement(importedSupp);
-            DOM.supplementSettingsList.appendChild(newEl);
-            
-            // 4. Save & Close
-            AppUI.triggerAutoSave(50); // Save immediately
-            closeModal();
-            alert(`Successfully imported "${importedSupp.name}"!`);
-        } else {
-            console.error("AppLibrary.cloneSupplement is missing.");
         }
     });
 }
