@@ -1,10 +1,10 @@
 /**
  * ============================================
- * SCRIPT TOOL REFERENCES COMPONENT (V6.2.0)
+ * SCRIPT TOOL REFERENCES COMPONENT (V7.4.0)
  * ============================================
  * This component handles all logic and UI for the
  * References feature, including:
- * - Sidebar button rendering
+ * - Sidebar button rendering (Including built-in BMI Calc)
  * - Modal (open/close, content injection)
  * - Keyboard shortcuts
  * - Settings modal editor UI (icon picker, add/remove)
@@ -14,6 +14,7 @@
  * - `lucide` (from CDN)
  * - `saveSettingsToStorage()` (from script.js)
  * - `AppUI.triggerAutoSave()` (from script-settings.js)
+ * - `AppUI.openBmiModal()` (from script.js - added in V7.4.0)
  */
 
 // --- Module-level variables ---
@@ -50,31 +51,46 @@ AppUI.cacheReferenceDOMElements = function() {
  * (Moved from script.js)
  */
 AppUI.renderReferenceSidebar = function() {
-    const refs = appState.supplementDatabase.references;
-    if (!refs || refs.length === 0) {
-        DOM.referenceButtonsContainer.innerHTML = ''; // Clear
-        DOM.noReferencesPlaceholder.classList.remove('hidden');
-        return;
-    }
-    
-    DOM.noReferencesPlaceholder.classList.add('hidden');
     DOM.referenceButtonsContainer.innerHTML = ''; // Clear existing
     
-    refs.forEach((ref, index) => {
-        // Guardrail for old data without icons
-        const iconName = ref.icon || 'book';
+    // --- NEW (V7.4.0): Built-in BMI Calculator Button ---
+    const bmiBtn = document.createElement('button');
+    bmiBtn.className = 'reference-btn bg-gray-800 border-blue-900/50 hover:bg-gray-700 hover:border-blue-500';
+    bmiBtn.id = 'built-in-bmi-btn';
+    bmiBtn.title = 'Open BMI Calculator';
+    bmiBtn.innerHTML = `
+        <i data-lucide="calculator" class="w-8 h-8 text-blue-400"></i>
+        <span class="reference-btn-title text-blue-200">BMI Calc</span>
+    `;
+    DOM.referenceButtonsContainer.appendChild(bmiBtn);
+    // ----------------------------------------------------
+
+    const refs = appState.supplementDatabase.references;
+    
+    // If no custom references, show placeholder (but BMI button is already there)
+    if (!refs || refs.length === 0) {
+        DOM.noReferencesPlaceholder.classList.remove('hidden');
+        // We still render the BMI button, so we don't return early, 
+        // but we assume the icons need to be created at the end.
+    } else {
+        DOM.noReferencesPlaceholder.classList.add('hidden');
         
-        const button = document.createElement('button');
-        button.className = 'reference-btn';
-        button.dataset.index = index;
-        button.title = `${ref.title} (Shortcut: ${ref.shortcut || 'None'})`;
-        
-        button.innerHTML = `
-            <i data-lucide="${iconName}" class="w-8 h-8"></i>
-            <span class="reference-btn-title">${ref.title}</span>
-        `;
-        DOM.referenceButtonsContainer.appendChild(button);
-    });
+        refs.forEach((ref, index) => {
+            // Guardrail for old data without icons
+            const iconName = ref.icon || 'book';
+            
+            const button = document.createElement('button');
+            button.className = 'reference-btn';
+            button.dataset.index = index;
+            button.title = `${ref.title} (Shortcut: ${ref.shortcut || 'None'})`;
+            
+            button.innerHTML = `
+                <i data-lucide="${iconName}" class="w-8 h-8"></i>
+                <span class="reference-btn-title">${ref.title}</span>
+            `;
+            DOM.referenceButtonsContainer.appendChild(button);
+        });
+    }
     
     // We must call this AFTER injecting the HTML
     if (typeof lucide !== 'undefined') {
@@ -370,9 +386,24 @@ AppUI.initReferenceSettingsEventListeners = function() {
  */
 AppUI.initReferenceEventListeners = function() {
     // --- Reference Modal Listeners ---
+    
+    // V7.4.0 MODIFIED: Updated delegation to handle built-in BMI button
     DOM.referenceButtonsContainer.addEventListener('click', (e) => {
+        
+        // 1. Check for BMI Button
+        const bmiBtn = e.target.closest('#built-in-bmi-btn');
+        if (bmiBtn) {
+            if (AppUI.openBmiModal) {
+                AppUI.openBmiModal();
+            } else {
+                console.error("AppUI.openBmiModal is not defined yet.");
+            }
+            return;
+        }
+
+        // 2. Check for Standard Reference Buttons
         const button = e.target.closest('.reference-btn');
-        if (button) {
+        if (button && button.dataset.index !== undefined) {
             const index = parseInt(button.dataset.index, 10);
             const ref = appState.supplementDatabase.references[index];
             if (ref) {

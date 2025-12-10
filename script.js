@@ -1,6 +1,6 @@
 /**
  * ============================================
- * SCRIPT TOOL APPLICATION LOGIC (V7.3.11)
+ * SCRIPT TOOL APPLICATION LOGIC (V7.5.0)
  * ============================================
  * This is the main "controller" file.
  * It handles state, core logic, and event listeners.
@@ -37,7 +37,17 @@ let appState = {
     globalTimerInterval: null,
     isSettingsOpen: false,
     isSearching: false,
-    isReferenceModalOpen: false // Still needed for global state
+    isReferenceModalOpen: false,
+    
+    // NEW (V7.4.0): BMI State Persistence
+    bmiData: {
+        unit: 'standard', // 'standard' or 'metric'
+        weightLbs: '',
+        heightFt: '',
+        heightIn: '',
+        weightKg: '',
+        heightCm: ''
+    }
 };
 
 // --- Module-level drag variables ---
@@ -135,8 +145,6 @@ function cacheDOMElements() {
     DOM.scriptSearchInput = document.getElementById('script-search-input');
     DOM.scriptSearchResults = document.getElementById('script-search-results');
     
-    // NEW (Phase 2): Product Line Switcher elements will be cached in script-search.js or added here later
-
     // Online Order Editor
     DOM.onlineOrderEditor = document.getElementById('online-order-editor');
     DOM.onlineOrderList = document.getElementById('online-order-list');
@@ -145,6 +153,25 @@ function cacheDOMElements() {
     DOM.orderBreakdownOnlinePart = document.getElementById('order-breakdown-online-part');
     DOM.authoScriptOnlinePart = document.getElementById('autho-script-online-part');
     
+    // NEW (V7.4.0): BMI Modal Elements
+    DOM.bmiModal = document.getElementById('bmi-modal');
+    DOM.bmiModalCloseBtn = document.getElementById('bmi-modal-close-btn');
+    DOM.bmiUnitStandard = document.getElementById('bmi-unit-standard');
+    DOM.bmiUnitMetric = document.getElementById('bmi-unit-metric');
+    DOM.bmiInputsStandard = document.getElementById('bmi-inputs-standard');
+    DOM.bmiInputsMetric = document.getElementById('bmi-inputs-metric');
+    DOM.bmiWeightLbs = document.getElementById('bmi-weight-lbs');
+    DOM.bmiHeightFt = document.getElementById('bmi-height-ft');
+    DOM.bmiHeightIn = document.getElementById('bmi-height-in');
+    DOM.bmiWeightKg = document.getElementById('bmi-weight-kg');
+    DOM.bmiHeightCm = document.getElementById('bmi-height-cm');
+    DOM.bmiResultValue = document.getElementById('bmi-result-value');
+    DOM.bmiResultCategory = document.getElementById('bmi-result-category');
+    
+    // NEW (V7.5.0): BMI Range/Goal Elements
+    DOM.bmiHealthyRange = document.getElementById('bmi-healthy-range');
+    DOM.bmiWeightGoal = document.getElementById('bmi-weight-goal');
+
     // NEW: Cache elements for the Reference component
     AppUI.cacheReferenceDOMElements();
 }
@@ -320,9 +347,6 @@ function loadSupplementDb(dbName, resetCall = true) {
     }
     
     // 7. NEW (V7.3.3): STRICT GENDER LOGIC
-    // If base gender is Male or Female:
-    // - Force all supplements to be treated as that gender (visual override)
-    // - Lock the UI dropdown to that gender
     if (appState.supplementDatabase.baseProduct && appState.supplementDatabase.baseProduct.gender) {
         const requiredGender = appState.supplementDatabase.baseProduct.gender;
         
@@ -347,7 +371,6 @@ function loadSupplementDb(dbName, resetCall = true) {
             // 7c. Save Changes if modified
             if (modified) {
                 saveSettingsToStorage();
-                console.log(`Auto-corrected supplement genders to ${requiredGender}`);
             }
         } else {
             // Unlock UI if "any"
@@ -356,15 +379,12 @@ function loadSupplementDb(dbName, resetCall = true) {
             }
         }
         
-        // Trigger re-render to apply filtering rules
-        // V7.3.11: Protected render calls
         try {
             renderSymptomChecklist();
             renderAllScript();
             renderDiscoveryQuestions();
         } catch (e) { console.error("Error in strict gender re-render:", e); }
     } else {
-        // Fallback unlock
         if (DOM.genderSelect) {
             DOM.genderSelect.disabled = false;
         }
@@ -375,7 +395,6 @@ function loadSupplementDb(dbName, resetCall = true) {
     }
     
     // V7.3.11 FIX: Force icon creation at the end of the load cycle
-    // This ensures cogs appear even if a render step errored out
     if (typeof lucide !== 'undefined') {
         setTimeout(() => lucide.createIcons(), 50);
     }
@@ -479,7 +498,6 @@ function renderDiscoveryQuestions() {
     });
 
     // 2. Iterate through the CONFIG groups to determine order
-    // If a question belongs to a group NOT in config, we append it at the end (robustness)
     const renderedGroups = new Set();
 
     groupsConfig.forEach(groupConf => {
@@ -494,10 +512,9 @@ function renderDiscoveryQuestions() {
         }
     });
 
-    // 3. Catch-all for questions with groups not in the config (e.g. newly added via text input but not saved to config yet)
+    // 3. Catch-all for questions with groups not in the config
     for (const [groupName, qs] of Object.entries(groupedQuestionsMap)) {
         if (!renderedGroups.has(groupName)) {
-            // Default behavior for unknown groups: Show them
             renderGroup(groupName, qs);
         }
     }
@@ -507,8 +524,6 @@ function renderDiscoveryQuestions() {
         const groupContainer = document.createElement('div');
         groupContainer.className = "mb-4";
 
-        // Always show header if it's not "General" or if we have multiple groups
-        // Simplified logic: Show header if name is not "General" OR if we have previously rendered groups
         const showHeader = name !== "General" || DOM.discoveryQuestionsList.children.length > 0;
 
         if (showHeader) {
@@ -546,9 +561,6 @@ function renderSymptomChecklist() {
     }
 
     // NEW (V7.3.6): STRICT INHERITANCE LOGIC
-    // If the base product has a strict gender (male/female), we assume ALL supplements
-    // in this database are compatible, regardless of their individual tags.
-    // Otherwise, we respect the filter.
     const baseGender = appState.supplementDatabase.baseProduct?.gender || 'any';
     const isStrictBaseGender = baseGender === 'male' || baseGender === 'female';
 
@@ -671,21 +683,15 @@ function renderAllScript() {
     const activeRecommendations = appState.supplementDatabase.recommendations.filter(supp => 
         activeSupplementIds.has(supp.id)
     );
-    // NEW: We no longer sort this, we respect the array's order
-    // activeRecommendations.sort((a, b) => a.name.localeCompare(b.name));
     
     // Get ALL addon names selected in checklist (for pitch)
     let addonNames = activeRecommendations.map(rec => rec.name.replace(/\(.*\)/, '').trim());
     let addonListString = AppUI.formatAddonList(addonNames);
 
     // --- NEW PRICING LOGIC ---
-    // Find how many base supplement bottles were in the online order
     const onlineBottlesOrdered = appState.onlineOrder.find(item => item.name === mainSuppName)?.quantity || 0;
-
-    // Calculate how many *more* base bottles are needed
     const bottlesOfMainToOrder = Math.max(0, months - onlineBottlesOrdered);
 
-    // Calculate *individual* addon bottles needed
     let addonsToOrder = []; // e.g., [{name: "A", quantity: 12}, {name: "B", quantity: 6}]
     let totalAddonBottlesToOrder = 0;
 
@@ -704,10 +710,7 @@ function renderAllScript() {
     }
     
     const totalCost = (bottlesOfMainToOrder * pricePerBottle) + (totalAddonBottlesToOrder * pricePerBottle);
-    
-    // NEW: Calculate the "Online Price" for the new script
     const onlinePrice = (bottlesOfMainToOrder + totalAddonBottlesToOrder) * 69;
-    
     // --- END NEW PRICING LOGIC ---
     
     const pitchedSupps = [mainSuppName, ...addonNames];
@@ -894,6 +897,17 @@ function resetForNextCall() {
         { name: appState.supplementDatabase.baseProduct.name.replace(' (Base)', ''), quantity: 6 }
     ];
     AppUI.renderOnlineOrderEditor();
+    
+    // NEW (V7.4.0): Reset BMI Data
+    appState.bmiData = { unit: 'standard', weightLbs: '', heightFt: '', heightIn: '', weightKg: '', heightCm: '' };
+    // Clear DOM inputs if modal exists
+    if(DOM.bmiModal) {
+        const inputs = DOM.bmiModal.querySelectorAll('input');
+        inputs.forEach(i => i.value = '');
+        AppUI.updateBmiUI(0); // Reset result display
+        // Reset to standard unit by default
+        AppUI.handleBmiUnitToggle('standard');
+    }
 
     renderAllScript();
     
@@ -1091,6 +1105,9 @@ function setupEventListeners() {
     AppUI.initOrderEditorEventListeners();
     AppUI.initReferenceEventListeners(); // NEW
     initDragAndDropEventListeners(); // Add main page DND listeners
+    
+    // NEW (V7.4.0): Initialize BMI Listeners
+    initBmiEventListeners();
 }
 
 // --- INITIALIZATION ---
@@ -1146,3 +1163,206 @@ function init() {
 
 // Wait for the DOM to be fully loaded before running the app
 document.addEventListener('DOMContentLoaded', init);
+
+
+/* =========================================================================
+   V7.4.0: BMI CALCULATOR LOGIC
+   (Added directly to script.js as a built-in feature)
+   ========================================================================= */
+
+AppUI.openBmiModal = function() {
+    // Restore state to UI
+    DOM.bmiWeightLbs.value = appState.bmiData.weightLbs;
+    DOM.bmiHeightFt.value = appState.bmiData.heightFt;
+    DOM.bmiHeightIn.value = appState.bmiData.heightIn;
+    DOM.bmiWeightKg.value = appState.bmiData.weightKg;
+    DOM.bmiHeightCm.value = appState.bmiData.heightCm;
+    
+    // Set Unit Toggle
+    AppUI.handleBmiUnitToggle(appState.bmiData.unit || 'standard');
+    
+    // Calculate if data exists
+    AppUI.calculateBMI();
+    
+    DOM.bmiModal.classList.remove('hidden');
+}
+
+AppUI.closeBmiModal = function() {
+    DOM.bmiModal.classList.add('hidden');
+}
+
+AppUI.handleBmiUnitToggle = function(unit) {
+    appState.bmiData.unit = unit;
+    
+    if (unit === 'standard') {
+        DOM.bmiUnitStandard.classList.add('active');
+        DOM.bmiUnitMetric.classList.remove('active');
+        DOM.bmiInputsStandard.classList.remove('hidden');
+        DOM.bmiInputsMetric.classList.add('hidden');
+    } else {
+        DOM.bmiUnitStandard.classList.remove('active');
+        DOM.bmiUnitMetric.classList.add('active');
+        DOM.bmiInputsStandard.classList.add('hidden');
+        DOM.bmiInputsMetric.classList.remove('hidden');
+    }
+    
+    // Recalculate immediately on toggle
+    AppUI.calculateBMI();
+}
+
+/**
+ * V7.5.0: Enhanced BMI Calculation with Goals
+ */
+AppUI.calculateBMI = function() {
+    let bmi = 0;
+    let minWeight = 0;
+    let maxWeight = 0;
+    let currentWeight = 0;
+    
+    // Healthy BMI Range Constants
+    const HEALTHY_BMI_MIN = 18.5;
+    const HEALTHY_BMI_MAX = 24.9;
+    
+    if (appState.bmiData.unit === 'standard') {
+        // Standard: 703 * (lbs / in^2)
+        const lbs = parseFloat(DOM.bmiWeightLbs.value);
+        const ft = parseFloat(DOM.bmiHeightFt.value);
+        const inch = parseFloat(DOM.bmiHeightIn.value) || 0;
+        
+        // Save to state
+        appState.bmiData.weightLbs = DOM.bmiWeightLbs.value;
+        appState.bmiData.heightFt = DOM.bmiHeightFt.value;
+        appState.bmiData.heightIn = DOM.bmiHeightIn.value;
+        
+        if (lbs > 0 && ft > 0) {
+            const totalInches = (ft * 12) + inch;
+            bmi = 703 * (lbs / (totalInches * totalInches));
+            currentWeight = lbs;
+            
+            // Reverse Calc for Weight Goal (Lbs)
+            // Weight = (BMI * Height^2) / 703
+            minWeight = (HEALTHY_BMI_MIN * totalInches * totalInches) / 703;
+            maxWeight = (HEALTHY_BMI_MAX * totalInches * totalInches) / 703;
+        }
+    } else {
+        // Metric: kg / m^2
+        const kg = parseFloat(DOM.bmiWeightKg.value);
+        const cm = parseFloat(DOM.bmiHeightCm.value);
+        
+        // Save to state
+        appState.bmiData.weightKg = DOM.bmiWeightKg.value;
+        appState.bmiData.heightCm = DOM.bmiHeightCm.value;
+
+        if (kg > 0 && cm > 0) {
+            const m = cm / 100;
+            bmi = kg / (m * m);
+            currentWeight = kg;
+            
+            // Reverse Calc for Weight Goal (Kg)
+            // Weight = BMI * Height^2
+            minWeight = HEALTHY_BMI_MIN * m * m;
+            maxWeight = HEALTHY_BMI_MAX * m * m;
+        }
+    }
+    
+    AppUI.updateBmiUI(bmi, minWeight, maxWeight, currentWeight);
+}
+
+/**
+ * V7.5.0: Updates the UI including Range and Goal
+ */
+AppUI.updateBmiUI = function(bmi, minWeight, maxWeight, currentWeight) {
+    // 1. Reset/Clear State if invalid
+    if (!bmi || isNaN(bmi) || bmi === Infinity) {
+        DOM.bmiResultValue.textContent = "--.-";
+        DOM.bmiResultCategory.textContent = "Enter Details";
+        DOM.bmiResultCategory.className = "bmi-category-badge bg-gray-800 text-gray-500";
+        DOM.bmiResultValue.parentElement.style.borderColor = "#374151"; 
+        DOM.bmiResultValue.parentElement.style.backgroundColor = "#111827";
+        
+        // Clear V7.5.0 Fields
+        if (DOM.bmiHealthyRange) DOM.bmiHealthyRange.textContent = "-- - --";
+        if (DOM.bmiWeightGoal) {
+            DOM.bmiWeightGoal.textContent = "--";
+            DOM.bmiWeightGoal.className = "bmi-detail-value";
+        }
+        return;
+    }
+    
+    // 2. Main BMI Value
+    const bmiFixed = bmi.toFixed(1);
+    DOM.bmiResultValue.textContent = bmiFixed;
+    
+    let category = "";
+    let colorClass = "";
+    
+    if (bmi < 18.5) {
+        category = "Underweight";
+        colorClass = "bmi-underweight";
+    } else if (bmi >= 18.5 && bmi <= 24.9) {
+        category = "Normal Weight";
+        colorClass = "bmi-normal";
+    } else if (bmi >= 25 && bmi <= 29.9) {
+        category = "Overweight";
+        colorClass = "bmi-overweight";
+    } else {
+        category = "Obese";
+        colorClass = "bmi-obese";
+    }
+    
+    DOM.bmiResultCategory.textContent = category;
+    DOM.bmiResultCategory.className = `bmi-category-badge ${colorClass}`;
+    
+    const colorMap = { "bmi-underweight": "#60a5fa", "bmi-normal": "#4ade80", "bmi-overweight": "#facc15", "bmi-obese": "#f87171" };
+    const bgMap = { "bmi-underweight": "rgba(96, 165, 250, 0.05)", "bmi-normal": "rgba(74, 222, 128, 0.05)", "bmi-overweight": "rgba(250, 204, 21, 0.05)", "bmi-obese": "rgba(248, 113, 113, 0.05)" };
+
+    DOM.bmiResultValue.parentElement.style.borderColor = colorMap[colorClass];
+    DOM.bmiResultValue.parentElement.style.backgroundColor = bgMap[colorClass];
+
+    // 3. NEW V7.5.0: Healthy Range & Goal Logic
+    const unitLabel = appState.bmiData.unit === 'standard' ? 'lbs' : 'kg';
+    
+    // Update Range Text
+    DOM.bmiHealthyRange.textContent = `${Math.round(minWeight)} - ${Math.round(maxWeight)} ${unitLabel}`;
+    
+    // Calculate Goal
+    let goalText = "";
+    let goalClass = "bmi-detail-value"; // Default
+    
+    if (bmi < 18.5) {
+        // Needs to gain
+        const gainNeeded = minWeight - currentWeight;
+        goalText = `Gain ${Math.round(gainNeeded)} ${unitLabel}`;
+        goalClass += " text-goal-gain"; 
+    } else if (bmi > 24.9) {
+        // Needs to lose
+        const lossNeeded = currentWeight - maxWeight;
+        goalText = `Lose ${Math.round(lossNeeded)} ${unitLabel}`;
+        goalClass += " text-goal-loss";
+    } else {
+        // Maintain
+        goalText = "Maintain";
+        goalClass += " text-goal-maintain";
+    }
+    
+    DOM.bmiWeightGoal.textContent = goalText;
+    DOM.bmiWeightGoal.className = goalClass;
+}
+
+function initBmiEventListeners() {
+    if (!DOM.bmiModal) return;
+
+    // Open/Close logic is handled in script-references.js via delegation,
+    // but close button is here.
+    DOM.bmiModalCloseBtn.addEventListener('click', AppUI.closeBmiModal);
+    
+    // Unit Toggles
+    DOM.bmiUnitStandard.addEventListener('click', () => AppUI.handleBmiUnitToggle('standard'));
+    DOM.bmiUnitMetric.addEventListener('click', () => AppUI.handleBmiUnitToggle('metric'));
+    
+    // Input Listeners (Auto-calc)
+    const allInputs = DOM.bmiModal.querySelectorAll('input');
+    allInputs.forEach(input => {
+        input.addEventListener('input', AppUI.calculateBMI);
+    });
+}

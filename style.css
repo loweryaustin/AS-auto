@@ -666,3 +666,96 @@ body { font-family: 'Inter', sans-serif; }
 .product-line-option:not(:last-child) {
     border-bottom: 1px solid #374151; /* gray-700 */
 }
+
+/* =============================================
+   V7.4.0: BMI CALCULATOR STYLES
+   ============================================= */
+.bmi-result-display {
+    background-color: #111827; /* gray-900 */
+    border: 2px solid #374151; /* gray-700 */
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.bmi-value-large {
+    font-size: 3.5rem;
+    font-weight: 800;
+    line-height: 1;
+    color: #f3f4f6;
+    margin-bottom: 0.25rem;
+}
+
+.bmi-category-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-top: 0.5rem;
+}
+
+/* Dynamic color classes */
+.bmi-normal { color: #4ade80; border-color: #4ade80; background-color: rgba(74, 222, 128, 0.1); }
+.bmi-overweight { color: #facc15; border-color: #facc15; background-color: rgba(250, 204, 21, 0.1); }
+.bmi-obese { color: #f87171; border-color: #f87171; background-color: rgba(248, 113, 113, 0.1); }
+.bmi-underweight { color: #60a5fa; border-color: #60a5fa; background-color: rgba(96, 165, 250, 0.1); }
+
+.unit-toggle-btn {
+    flex: 1;
+    text-align: center;
+    padding: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #9ca3af;
+    background-color: #374151;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.unit-toggle-btn:first-child { border-radius: 0.5rem 0 0 0.5rem; }
+.unit-toggle-btn:last-child { border-radius: 0 0.5rem 0.5rem 0; }
+
+.unit-toggle-btn.active {
+    background-color: #2563eb;
+    color: #ffffff;
+}
+
+/* =============================================
+   V7.5.0: BMI DETAILS (RANGE & GOAL)
+   ============================================= */
+.bmi-details-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+.bmi-detail-item {
+    background-color: #1f2937; /* gray-800 */
+    border: 1px solid #374151; /* gray-700 */
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    text-align: center;
+}
+
+.bmi-detail-label {
+    font-size: 0.75rem;
+    color: #9ca3af; /* gray-400 */
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.25rem;
+}
+
+.bmi-detail-value {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #e5e7eb; /* gray-200 */
+}
+
+/* Text utility for highlighting the goal */
+.text-goal-loss { color: #f87171; } /* red-400 */
+.text-goal-gain { color: #60a5fa; } /* blue-400 */
+.text-goal-maintain { color: #4ade80; } /* green-400 */

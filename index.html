@@ -331,7 +331,7 @@
         </div>
     </div>
 
-    <!-- NEW: Reference Modal -->
+    <!-- Reference Modal -->
     <div id="reference-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-80 flex items-center justify-center z-50 p-4">
         <div class="bg-gray-800 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
             <!-- Modal Header -->
@@ -346,6 +346,82 @@
             <!-- Modal Content (Scrollable) -->
             <div id="reference-modal-content" class="p-4 md:p-6 overflow-y-auto flex-1">
                 <!-- Content (Image or iFrame) will be injected here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- NEW (V7.4.0): BMI Calculator Modal -->
+    <div id="bmi-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-80 flex items-center justify-center z-50 p-4">
+        <div class="bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md border border-blue-900/50">
+            <!-- Header -->
+            <div class="flex justify-between items-center p-6 border-b border-gray-700">
+                <h2 class="text-2xl font-bold text-white flex items-center gap-2">
+                    <i data-lucide="calculator" class="w-6 h-6 text-blue-400"></i>
+                    BMI Calculator
+                </h2>
+                <button id="bmi-modal-close-btn" class="text-gray-400 hover:text-white transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="p-6 space-y-6">
+                <!-- Unit Toggle -->
+                <div class="flex bg-gray-700 rounded-lg p-1">
+                    <div id="bmi-unit-standard" class="unit-toggle-btn active" data-unit="standard">Standard (lb/ft)</div>
+                    <div id="bmi-unit-metric" class="unit-toggle-btn" data-unit="metric">Metric (kg/cm)</div>
+                </div>
+
+                <!-- Inputs -->
+                <div class="space-y-4">
+                    <!-- Standard Inputs -->
+                    <div id="bmi-inputs-standard" class="grid grid-cols-2 gap-4">
+                        <div class="col-span-2">
+                            <label class="block text-xs font-semibold text-gray-400 mb-1 uppercase">Weight (lbs)</label>
+                            <input type="number" id="bmi-weight-lbs" class="w-full bg-gray-700 border-gray-600 text-white rounded-lg p-3 text-lg font-semibold focus:ring-2 focus:ring-blue-500" placeholder="e.g. 180">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-400 mb-1 uppercase">Height (ft)</label>
+                            <input type="number" id="bmi-height-ft" class="w-full bg-gray-700 border-gray-600 text-white rounded-lg p-3 text-lg font-semibold focus:ring-2 focus:ring-blue-500" placeholder="5">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-400 mb-1 uppercase">Height (in)</label>
+                            <input type="number" id="bmi-height-in" class="w-full bg-gray-700 border-gray-600 text-white rounded-lg p-3 text-lg font-semibold focus:ring-2 focus:ring-blue-500" placeholder="10">
+                        </div>
+                    </div>
+
+                    <!-- Metric Inputs (Hidden by default) -->
+                    <div id="bmi-inputs-metric" class="grid grid-cols-2 gap-4 hidden">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-400 mb-1 uppercase">Weight (kg)</label>
+                            <input type="number" id="bmi-weight-kg" class="w-full bg-gray-700 border-gray-600 text-white rounded-lg p-3 text-lg font-semibold focus:ring-2 focus:ring-blue-500" placeholder="e.g. 80">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-400 mb-1 uppercase">Height (cm)</label>
+                            <input type="number" id="bmi-height-cm" class="w-full bg-gray-700 border-gray-600 text-white rounded-lg p-3 text-lg font-semibold focus:ring-2 focus:ring-blue-500" placeholder="e.g. 175">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Result Display -->
+                <div class="bmi-result-display">
+                    <div class="text-sm text-gray-400 uppercase tracking-wide font-semibold">Calculated BMI</div>
+                    <div id="bmi-result-value" class="bmi-value-large">--.-</div>
+                    <div id="bmi-result-category" class="bmi-category-badge bg-gray-800 text-gray-500">Enter Details</div>
+                </div>
+
+                <!-- NEW V7.5.0: Healthy Range & Goal Grid -->
+                <div class="bmi-details-container">
+                    <div class="bmi-detail-item">
+                        <div class="bmi-detail-label">Healthy Range</div>
+                        <div id="bmi-healthy-range" class="bmi-detail-value">-- - -- lbs</div>
+                    </div>
+                    <div class="bmi-detail-item">
+                        <div class="bmi-detail-label">To Reach Goal</div>
+                        <div id="bmi-weight-goal" class="bmi-detail-value">--</div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
