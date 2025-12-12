@@ -427,6 +427,196 @@
         </div>
     </div>
 
+    <!-- NEW (V7.8.0): A1C Chart Modal (UPDATED V7.8.1 with eAG Table) -->
+    <div id="a1c-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-80 flex items-center justify-center z-50 p-4">
+        <div class="bg-gray-800 rounded-2xl shadow-2xl w-full max-w-lg border border-purple-900/50 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center p-6 border-b border-gray-700">
+                <h2 class="text-2xl font-bold text-white flex items-center gap-2">
+                    <i data-lucide="droplet" class="w-6 h-6 text-purple-400"></i>
+                    A1C & Glucose
+                </h2>
+                <button id="a1c-modal-close-btn" class="text-gray-400 hover:text-white transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+            <div class="p-6 space-y-6">
+                <!-- A1C Levels -->
+                <div class="space-y-4">
+                    <!-- Normal -->
+                    <div class="bg-gray-700/50 rounded-lg p-4 border-l-4 border-green-500">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-bold text-green-400 text-lg">Normal</span>
+                            <span class="font-mono text-xl font-bold">Below 5.7%</span>
+                        </div>
+                        <p class="text-sm text-gray-400">Healthy blood sugar levels.</p>
+                    </div>
+                    <!-- Prediabetes -->
+                    <div class="bg-gray-700/50 rounded-lg p-4 border-l-4 border-yellow-500">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-bold text-yellow-400 text-lg">Prediabetes</span>
+                            <span class="font-mono text-xl font-bold">5.7% – 6.4%</span>
+                        </div>
+                        <p class="text-sm text-gray-400">Elevated risk. Action needed.</p>
+                    </div>
+                    <!-- Diabetes -->
+                    <div class="bg-gray-700/50 rounded-lg p-4 border-l-4 border-red-500">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-bold text-red-400 text-lg">Diabetes</span>
+                            <span class="font-mono text-xl font-bold">6.5% or Higher</span>
+                        </div>
+                        <p class="text-sm text-gray-400">Requires medical management.</p>
+                    </div>
+                </div>
+
+                <!-- Estimated Average Glucose Table -->
+                <div class="border-t border-gray-700 pt-6">
+                    <h3 class="text-lg font-semibold text-gray-300 mb-3 flex items-center gap-2">
+                        <i data-lucide="activity" class="w-4 h-4 text-purple-400"></i>
+                        Estimated Avg Glucose (eAG)
+                    </h3>
+                    <div class="overflow-hidden rounded-lg border border-gray-700">
+                        <table class="min-w-full text-center text-sm">
+                            <thead class="bg-gray-900 text-gray-400 font-semibold uppercase tracking-wider">
+                                <tr>
+                                    <th class="px-4 py-3 border-r border-gray-700">A1C %</th>
+                                    <th class="px-4 py-3">Avg Glucose (mg/dL)</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-700 bg-gray-800 text-gray-300">
+                                <tr class="hover:bg-gray-700/50"><td class="px-4 py-2 border-r border-gray-700 font-bold text-white">6%</td><td class="font-mono text-green-300">126</td></tr>
+                                <tr class="hover:bg-gray-700/50"><td class="px-4 py-2 border-r border-gray-700 font-bold text-white">7%</td><td class="font-mono text-yellow-300">154</td></tr>
+                                <tr class="hover:bg-gray-700/50"><td class="px-4 py-2 border-r border-gray-700 font-bold text-white">8%</td><td class="font-mono text-orange-300">183</td></tr>
+                                <tr class="hover:bg-gray-700/50"><td class="px-4 py-2 border-r border-gray-700 font-bold text-white">9%</td><td class="font-mono text-orange-400">212</td></tr>
+                                <tr class="hover:bg-gray-700/50"><td class="px-4 py-2 border-r border-gray-700 font-bold text-white">10%</td><td class="font-mono text-red-300">240</td></tr>
+                                <tr class="hover:bg-gray-700/50"><td class="px-4 py-2 border-r border-gray-700 font-bold text-white">11%</td><td class="font-mono text-red-400">269</td></tr>
+                                <tr class="hover:bg-gray-700/50"><td class="px-4 py-2 border-r border-gray-700 font-bold text-white">12%</td><td class="font-mono text-red-500">298</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-2 italic">* eAG is an estimate of your average blood sugar levels over the past 2-3 months based on your A1C.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- NEW (V7.8.0): Blood Pressure Chart Modal -->
+    <div id="bp-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-80 flex items-center justify-center z-50 p-4">
+        <div class="bg-gray-800 rounded-2xl shadow-2xl w-full max-w-xl border border-red-900/50">
+            <div class="flex justify-between items-center p-6 border-b border-gray-700">
+                <h2 class="text-2xl font-bold text-white flex items-center gap-2">
+                    <i data-lucide="heart-pulse" class="w-6 h-6 text-red-400"></i>
+                    Blood Pressure
+                </h2>
+                <button id="bp-modal-close-btn" class="text-gray-400 hover:text-white transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+            <div class="p-6">
+                <div class="overflow-hidden rounded-lg border border-gray-700">
+                    <table class="min-w-full text-left text-sm">
+                        <thead class="bg-gray-900 text-gray-400 uppercase font-semibold">
+                            <tr>
+                                <th class="px-4 py-3">Category</th>
+                                <th class="px-4 py-3">Systolic (Upper)</th>
+                                <th class="px-4 py-3">Diastolic (Lower)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-700 bg-gray-800">
+                            <!-- Normal -->
+                            <tr class="bg-green-900/20">
+                                <td class="px-4 py-3 font-bold text-green-400">Normal</td>
+                                <td class="px-4 py-3 text-green-200">&lt; 120</td>
+                                <td class="px-4 py-3 text-green-200">&lt; 80</td>
+                            </tr>
+                            <!-- Elevated -->
+                            <tr class="bg-yellow-900/10">
+                                <td class="px-4 py-3 font-bold text-yellow-400">Elevated</td>
+                                <td class="px-4 py-3 text-yellow-200">120 – 129</td>
+                                <td class="px-4 py-3 text-yellow-200">&lt; 80</td>
+                            </tr>
+                            <!-- Stage 1 -->
+                            <tr class="bg-orange-900/20">
+                                <td class="px-4 py-3 font-bold text-orange-400">High BP (Stage 1)</td>
+                                <td class="px-4 py-3 text-orange-200">130 – 139</td>
+                                <td class="px-4 py-3 text-orange-200">80 – 89</td>
+                            </tr>
+                            <!-- Stage 2 -->
+                            <tr class="bg-red-900/20">
+                                <td class="px-4 py-3 font-bold text-red-400">High BP (Stage 2)</td>
+                                <td class="px-4 py-3 text-red-200">140 or higher</td>
+                                <td class="px-4 py-3 text-red-200">90 or higher</td>
+                            </tr>
+                            <!-- Crisis -->
+                            <tr class="bg-red-900/40 animate-pulse">
+                                <td class="px-4 py-3 font-extrabold text-red-500">Hypertensive Crisis</td>
+                                <td class="px-4 py-3 font-bold text-red-300">&gt; 180</td>
+                                <td class="px-4 py-3 font-bold text-red-300">&gt; 120</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- NEW (V7.8.0): Testosterone Chart Modal -->
+    <div id="testo-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-80 flex items-center justify-center z-50 p-4">
+        <div class="bg-gray-800 rounded-2xl shadow-2xl w-full max-w-lg border border-yellow-900/50">
+            <div class="flex justify-between items-center p-6 border-b border-gray-700">
+                <h2 class="text-2xl font-bold text-white flex items-center gap-2">
+                    <i data-lucide="activity" class="w-6 h-6 text-yellow-400"></i>
+                    Testosterone (Total)
+                </h2>
+                <button id="testo-modal-close-btn" class="text-gray-400 hover:text-white transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+            <div class="p-6">
+                <div class="overflow-hidden rounded-lg border border-gray-700">
+                    <table class="min-w-full text-left text-sm">
+                        <thead class="bg-gray-900 text-gray-400 uppercase font-semibold">
+                            <tr>
+                                <th class="px-4 py-3">Age Group</th>
+                                <th class="px-4 py-3 text-right">Avg Range (ng/dL)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-700 bg-gray-800">
+                            <tr class="hover:bg-gray-700/50">
+                                <td class="px-4 py-3 font-medium text-gray-300">Children</td>
+                                <td class="px-4 py-3 text-right text-blue-300">&lt; 7 - 130</td>
+                            </tr>
+                            <tr class="hover:bg-gray-700/50">
+                                <td class="px-4 py-3 font-medium text-gray-300">Early Teens</td>
+                                <td class="px-4 py-3 text-right text-blue-300">7 - 1200</td>
+                            </tr>
+                            <tr class="hover:bg-gray-700/50">
+                                <td class="px-4 py-3 font-medium text-white">Adults (19+)</td>
+                                <td class="px-4 py-3 text-right font-bold text-green-400">240 - 950</td>
+                            </tr>
+                            <tr class="hover:bg-gray-700/50">
+                                <td class="px-4 py-3 font-medium text-gray-300">30s</td>
+                                <td class="px-4 py-3 text-right text-yellow-200">~ 219 - 1009</td>
+                            </tr>
+                            <tr class="hover:bg-gray-700/50">
+                                <td class="px-4 py-3 font-medium text-gray-300">40s</td>
+                                <td class="px-4 py-3 text-right text-yellow-200">~ 201 - 993</td>
+                            </tr>
+                            <tr class="hover:bg-gray-700/50">
+                                <td class="px-4 py-3 font-medium text-gray-300">50s</td>
+                                <td class="px-4 py-3 text-right text-yellow-200">~ 181 - 850</td>
+                            </tr>
+                            <tr class="hover:bg-gray-700/50">
+                                <td class="px-4 py-3 font-medium text-gray-300">60s+</td>
+                                <td class="px-4 py-3 text-right text-yellow-200">~ 150 - 720</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-xs text-gray-500 mt-3 italic">* Levels fluctuate daily. "Normal" varies by lab.</p>
+            </div>
+        </div>
+    </div>
+
 
     <div class="flex flex-col lg:flex-row min-h-screen">
         

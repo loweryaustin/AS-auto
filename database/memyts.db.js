@@ -1,7 +1,8 @@
 /**
- * Memyts
+ * Memyts (Memory)
  * Database file for the "Memyts" supplement.
- * This file "self-registers" into the global DATABASE_CONFIGS object.
+ * Product Line: Digital Lions
+ * Protocol: Memory & Cognitive Health
  */
 DATABASE_CONFIGS["Memyts"] = {
     "productLine": "Digital Lions",
@@ -14,108 +15,81 @@ DATABASE_CONFIGS["Memyts"] = {
     "questions": [
         {
             "id": "q-mem-1",
-            "text": "How long have you been noticing memory issues?",
-            "group": "Memory"
+            "text": "Are you giving this to a loved one or is this for you? (Protocol Setup)",
+            "group": "Protocol Setup"
         },
         {
             "id": "q-mem-2",
-            "text": "Would you say it’s more short-term memory, long-term memory, or a mix?",
-            "group": "Memory"
+            "text": "What is your age? (Protocol Setup)",
+            "group": "Protocol Setup"
         },
         {
             "id": "q-mem-3",
-            "text": "Any family history of dementia or Alzheimer’s?",
-            "group": "Memory"
+            "text": "Are we experiencing short term or long term memory issues? (Diagnostic)",
+            "group": "Diagnostic"
         },
         {
             "id": "q-mem-4",
-            "text": "Have you had any head injuries or concussions in the past?",
-            "group": "Memory"
+            "text": "Are you having issues remembering names or words? (GoldenFrib)",
+            "group": "Diagnostic"
         },
         {
             "id": "q-mem-5",
-            "text": "Got it — and are you sleeping well at night, or do you feel like your rest could be better?",
-            "group": "Sleep"
+            "text": "Do you have any blood pressure issues? (Tenurina)",
+            "group": "Medical History"
         },
         {
             "id": "q-mem-6",
-            "text": "Do you have any ringing in your ears/ tinnitus?",
-            "group": "Tinnitus"
+            "text": "Do you have any tingling or numbness in your feet or hands? (Arialief)",
+            "group": "Neuropathy Check"
         },
         {
             "id": "q-mem-7",
-            "text": "Are you currently taking any blood pressure, cholesterol, or diabetic medications?",
+            "text": "Do you have any arthritis or inflammation in the joints? (Feilaira or Resverador)",
             "group": "Medical History"
+        },
+        {
+            "id": "q-mem-8",
+            "text": "Do you ever walk into a room and forget why you're there? (Validation)",
+            "group": "Validation"
+        },
+        {
+            "id": "q-mem-9",
+            "text": "History of Dementia/Alzheimer's in the family? (Duration Logic)",
+            "group": "Duration Logic"
+        },
+        {
+            "id": "q-univ-1",
+            "text": "What is your Height and Weight? (18mo vs 24mo)",
+            "group": "Closing"
+        },
+        {
+            "id": "q-univ-2",
+            "text": "Do you have any Thyroid issues? (Dosing Instruction)",
+            "group": "Closing"
+        },
+        {
+            "id": "q-univ-3",
+            "text": "Do you have anyone military in the family? (Discount Applied)",
+            "group": "Closing"
+        },
+        {
+            "id": "q-univ-4",
+            "text": "Are you good at remembering to take things? (Commitment)",
+            "group": "Closing"
         }
     ],
     "recommendations": [
         {
-            "id": "supp-karylief",
-            "name": "Karylief",
+            "id": "supp-goldenfrib",
+            "name": "GoldenFrib",
             "gender": "any",
             "symptoms": [
                 {
-                    "id": "symp-tinnitus",
-                    "text": "Ringing in ears / Tinnitus",
-                    "pitch": "Specific support for tinnitus symptoms.",
-                    "benefit": "help quiet the ringing in your ears"
-                }
-            ]
-        },
-        {
-            "id": "supp-arialief",
-            "name": "Arialief",
-            "gender": "any",
-            "symptoms": [
-                {
-                    "id": "symp-brainfog",
-                    "text": "Brain Fog",
-                    "pitch": "Arialief helps support healthy cellular energy and antioxidant protection, which is essential for maintaining memory function and mental acuity.\"",
-                    "benefit": "help clear brain fog"
-                },
-                {
-                    "id": "symp-1765385365223",
-                    "text": "Mental Fatigue/ trouble learning new information (retention)",
-                    "pitch": "Arialief helps support healthy cellular energy and antioxidant protection, which is essential for maintaining memory function and mental acuity.",
-                    "benefit": "help support nerve health/ energy"
-                }
-            ]
-        },
-        {
-            "id": "supp-tenurima",
-            "name": "Tenurima",
-            "gender": "any",
-            "symptoms": [
-                {
-                    "id": "symp-bp-mem",
-                    "text": "High Blood Pressure / Poor Circulation",
-                    "pitch": "Supports healthy blood flow to help nutrients reach the brain.",
-                    "benefit": "help improve blood flow to the brain"
-                }
-            ]
-        },
-        {
-            "id": "supp-felaromi",
-            "name": "Felaromi",
-            "gender": "any",
-            "symptoms": [
-                {
-                    "id": "symp-gut-brain",
-                    "text": "Digestive Issues",
-                    "pitch": "Felaromi provides a powerful foundation of prebiotics and probiotics to support a healthy digestive environment, directly contributing to the mental clarity and focus necessary for optimal memory function.",
-                    "benefit": "helps support healthy gut brain axis"
-                },
-                {
-                    "id": "symp-1765385508141",
-                    "text": "Irratability/ Mood swings",
-                    "pitch": "Felaromi provides a powerful foundation of prebiotics and probiotics to support a healthy digestive environment, directly contributing to the mental clarity and focus necessary for optimal memory function.",
-                    "benefit": "helps support unexplained shifts in emotional state often linked to gut-brain axis"
-                },
-                {
-                    "id": "symp-1765385525941",
-                    "text": "Weak Immunity",
-                    "pitch": "Felaromi provides a powerful foundation of prebiotics and probiotics to support a healthy digestive environment, directly contributing to the mental clarity and focus necessary for optimal memory function.",
-                    "benefit": "Supports foundational gut health to help reduce frequent minor illnesses"
+                    "id": "symp-recall",
+                    "text": "Forgetting Names / Words (Recall issues)",
+                    "pitch": "The gut produces serotonin and dopamine, which are required for word and name recall. We must strengthen the gut to restore this function.",
+                    "benefit": "help restore neurotransmitters for recall"
                 }
             ]
         },
@@ -125,62 +99,61 @@ DATABASE_CONFIGS["Memyts"] = {
             "gender": "any",
             "symptoms": [
                 {
-                    "id": "symp-anti-aging",
-                    "text": "Brain aging concerns",
-                    "pitch": "Excellent for targeting brain aging and cellular protection.",
-                    "benefit": "help protect brain cells from aging"
+                    "id": "symp-fog",
+                    "text": "Brain Fog / \"Chaos\" / Trouble focusing",
+                    "pitch": "Reduces inflammation in the brain. Inflammation causes 'noise' or chaos that disrupts clear thinking.",
+                    "benefit": "help reduce brain inflammation and clear brain fog"
                 }
             ]
         },
         {
-            "id": "supp-cetadusse",
-            "name": "Cetadusse",
+            "id": "supp-feilaira",
+            "name": "Feilaira",
             "gender": "any",
             "symptoms": [
                 {
-                    "id": "symp-diabetes-mem",
-                    "text": "Diabetes / Blood Sugar issues",
-                    "pitch": "Targeting blood sugar is crucial for brain health.",
-                    "benefit": "help manage blood sugar to protect cognitive function"
+                    "id": "symp-trauma",
+                    "text": "Physical Trauma (Falls, Surgeries, Broken Bones)",
+                    "pitch": "When the body has physical trauma (like arthritis or a fall), it sends all nutrients to fix the body so you can 'move and get food', starving the brain. This supplement handles the physical inflammation so nutrients can go back to the brain.",
+                    "benefit": "help redirect nutrients back to the brain"
                 }
             ]
         },
         {
-            "id": "supp-goldenfrib",
-            "name": "GoldenFrib",
+            "id": "supp-tenurina",
+            "name": "Tenurina",
             "gender": "any",
             "symptoms": [
                 {
-                    "id": "symp-digest-mem",
-                    "text": "Digestive Health",
-                    "pitch": "Digestive Health support, 1 cap daily.",
-                    "benefit": "help support healthy digestion"
+                    "id": "symp-flow",
+                    "text": "Low Blood Flow (Low BP, getting dizzy)",
+                    "pitch": "Ensures oxygenated blood is pumping to the brain to flush out toxins (like microplastics) and deliver nutrients.",
+                    "benefit": "help flush toxins and deliver nutrients to the brain"
+                }
+            ]
+        },
+        {
+            "id": "supp-arialief",
+            "name": "Arialief",
+            "gender": "any",
+            "symptoms": [
+                {
+                    "id": "symp-numbness",
+                    "text": "Tingling / Numbness",
+                    "pitch": "If you have nerve degeneration in the hands or feet, it implies a systemic issue that may be affecting the brain. This helps restore nerve health.",
+                    "benefit": "help support systemic nerve health"
                 }
             ]
         }
     ],
     "questionGroups": [
-        {
-            "id": "g-mem",
-            "name": "Memory",
-            "gender": "any"
-        },
-        {
-            "id": "g-slp",
-            "name": "Sleep",
-            "gender": "any"
-        },
-        {
-            "id": "g-tin",
-            "name": "Tinnitus",
-            "gender": "any"
-        },
-        {
-            "id": "g-med",
-            "name": "Medical History",
-            "gender": "any"
-        }
+        { "id": "g-proto", "name": "Protocol Setup", "gender": "any" },
+        { "id": "g-diag", "name": "Diagnostic", "gender": "any" },
+        { "id": "g-med", "name": "Medical History", "gender": "any" },
+        { "id": "g-neuro", "name": "Neuropathy Check", "gender": "any" },
+        { "id": "g-valid", "name": "Validation", "gender": "any" },
+        { "id": "g-dur", "name": "Duration Logic", "gender": "any" },
+        { "id": "g-close", "name": "Closing", "gender": "any" }
     ],
     "references": []
 };
-

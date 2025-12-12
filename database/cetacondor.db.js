@@ -2,6 +2,7 @@
  * Cetacondor (Neuropathy)
  * Database file for the "Cetacondor" supplement.
  * Product Line: Digital Lions
+ * Protocol: Neuropathy & Nerve Health
  */
 DATABASE_CONFIGS["Cetacondor"] = {
     "productLine": "Digital Lions",
@@ -40,28 +41,54 @@ DATABASE_CONFIGS["Cetacondor"] = {
     ],
     "recommendations": [
         {
-            "id": "supp-tenurima",
-            "name": "Tenurima",
+            "id": "supp-xelovita",
+            "name": "Xelovita",
             "gender": "any",
             "symptoms": [
                 {
-                    "id": "symp-circ-nerve",
-                    "text": "Cold hands/feet / Circulation issues",
-                    "pitch": "Supports healthy blood flow to help nutrients reach the extremities.",
-                    "benefit": "help improve blood flow to damaged nerves"
+                    "id": "symp-sleep",
+                    "text": "Sleep Disturbance (Pain/tingling keeps awake)",
+                    "pitch": "Taken at night to relax the nerves specifically so you can sleep. Sleep is the only time the body repairs nerve tissue, so this is vital for recovery.",
+                    "benefit": "help relax nerves for sleep and repair"
                 }
             ]
         },
         {
-            "id": "supp-cetadusse",
-            "name": "Cetadusse",
+            "id": "supp-kymezol",
+            "name": "Kymezol",
             "gender": "any",
             "symptoms": [
                 {
-                    "id": "symp-diab-nerve",
-                    "text": "Diabetes / High Blood Sugar",
-                    "pitch": "Insulin sensitivity support for blood sugar concerns linked to neuropathy.",
-                    "benefit": "help manage blood sugar to protect nerves"
+                    "id": "symp-pain",
+                    "text": "Immediate Pain Relief (Burning, Sharp Pains)",
+                    "pitch": "Applied topically for immediate relief. Helps calm the nerves from the outside-in while the oral supplements work from the inside-out.",
+                    "benefit": "provide immediate topical relief"
+                }
+            ]
+        },
+        {
+            "id": "supp-goldenfrib",
+            "name": "GoldenFrib",
+            "gender": "any",
+            "symptoms": [
+                {
+                    "id": "symp-alcohol",
+                    "text": "Alcohol-Induced Neuropathy",
+                    "pitch": "Alcohol damages the nerve connection between the gut and the brain. We need to repair the gut to fix this specific nerve damage.",
+                    "benefit": "help repair the gut-nerve connection"
+                }
+            ]
+        },
+        {
+            "id": "supp-zalovira",
+            "name": "Zalovira",
+            "gender": "any",
+            "symptoms": [
+                {
+                    "id": "symp-chemo",
+                    "text": "Chemotherapy History",
+                    "pitch": "Specifically used for immune system support and to help repair damage caused by harsh chemical treatments like chemotherapy.",
+                    "benefit": "help repair damage from chemical treatments"
                 }
             ]
         },
@@ -71,23 +98,23 @@ DATABASE_CONFIGS["Cetacondor"] = {
             "gender": "any",
             "symptoms": [
                 {
-                    "id": "symp-inflam-nerve",
-                    "text": "Inflammation / Aging",
-                    "pitch": "Antioxidant support to help reduced oxidative stress on the nervous system.",
-                    "benefit": "help reduce inflammation around the nerves"
+                    "id": "symp-arthritis",
+                    "text": "Arthritis / Joint Pain / Stiffness",
+                    "pitch": "If the body is inflamed (arthritis), it prioritizes fighting that inflammation over repairing nerves. We must reduce the inflammation so the body can focus on nerve repair.",
+                    "benefit": "help reduce inflammation to prioritize nerve repair"
                 }
             ]
         },
         {
-            "id": "supp-xelovita",
-            "name": "Xelovita",
+            "id": "supp-tenurina",
+            "name": "Tenurina",
             "gender": "any",
             "symptoms": [
                 {
-                    "id": "symp-sleep-pain",
-                    "text": "Pain affecting sleep",
-                    "pitch": "Sleep Support to help you rest despite discomfort.",
-                    "benefit": "help improve sleep quality"
+                    "id": "symp-circ",
+                    "text": "Poor Circulation (Cold extremities)",
+                    "pitch": "Nerves need oxygen to repair. If circulation is poor, the nutrients won't reach the nerves to fix them.",
+                    "benefit": "help deliver oxygen to nerves for repair"
                 }
             ]
         }

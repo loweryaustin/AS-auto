@@ -1,7 +1,8 @@
 /**
- * Keskara (ED)
+ * Keskara (ED / Men's Health)
  * Database file for the "Keskara" supplement.
  * Product Line: Digital Lions
+ * Protocol: Men's Health (ED & Prostate)
  */
 DATABASE_CONFIGS["Keskara"] = {
     "productLine": "Digital Lions",
@@ -56,7 +57,7 @@ DATABASE_CONFIGS["Keskara"] = {
     "recommendations": [
         {
             "id": "supp-garaherb",
-            "name": "Garaherb",
+            "name": "GaraHerb",
             "gender": "male",
             "symptoms": [
                 {
@@ -68,41 +69,28 @@ DATABASE_CONFIGS["Keskara"] = {
             ]
         },
         {
-            "id": "supp-felaromi",
-            "name": "Felaromi",
-            "gender": "any",
+            "id": "supp-erectozyn",
+            "name": "Erectozyn",
+            "gender": "male",
             "symptoms": [
                 {
-                    "id": "symp-gen-health",
-                    "text": "General health / Energy",
-                    "pitch": "Greens and gut support for overall vitality.",
-                    "benefit": "help improve overall vitality and energy"
+                    "id": "symp-testo",
+                    "text": "Low Testosterone / Low Libido",
+                    "pitch": "Included for Testosterone boosting, energy, or libido issues.",
+                    "benefit": "help boost testosterone and libido"
                 }
             ]
         },
         {
-            "id": "supp-arialief",
-            "name": "Arialief",
-            "gender": "any",
+            "id": "supp-jertaris",
+            "name": "Jertaris",
+            "gender": "male",
             "symptoms": [
                 {
-                    "id": "symp-nerve-ed",
-                    "text": "Sensitivity issues / Nerve health",
-                    "pitch": "Nerve Health Support helps with nerve inflammation or dysfunction.",
-                    "benefit": "help support nerve sensitivity"
-                }
-            ]
-        },
-        {
-            "id": "supp-tenurima",
-            "name": "Tenurima",
-            "gender": "any",
-            "symptoms": [
-                {
-                    "id": "symp-flow",
-                    "text": "Blood flow / Circulation / BP Meds",
-                    "pitch": "Supports healthy blood flow to help nutrients reach every part of the body.",
-                    "benefit": "help maximize blood flow for performance"
+                    "id": "symp-prostate",
+                    "text": "Prostate Issues (Frequent urination, swelling)",
+                    "pitch": "This helps alleviate prostate blockages permanently. We use this instead of circulation supplements because clearing the blockage often restores flow on its own.",
+                    "benefit": "help alleviate prostate blockages"
                 }
             ]
         },
@@ -112,10 +100,49 @@ DATABASE_CONFIGS["Keskara"] = {
             "gender": "any",
             "symptoms": [
                 {
-                    "id": "symp-diab-ed",
-                    "text": "Diabetes / Blood Sugar",
-                    "pitch": "Insulin sensitivity support for targeting blood sugar concerns.",
-                    "benefit": "help manage blood sugar to support healthy function"
+                    "id": "symp-diabetes",
+                    "text": "Diabetes / Pre-Diabetes (High Sugar)",
+                    "pitch": "High blood sugar causes permanent damage to blood vessels and veins over time. We need to repair this sugar damage to ensure the blood can actually reach the area.",
+                    "benefit": "help repair blood vessel damage caused by sugar"
+                }
+            ]
+        },
+        {
+            "id": "supp-arialief",
+            "name": "Arialief",
+            "gender": "any",
+            "symptoms": [
+                {
+                    "id": "symp-numbness",
+                    "text": "Low Sensation / Numbness / Neuropathy",
+                    "pitch": "This strengthens the penile nerve. If you have neuropathy or numbness elsewhere, it means the penile nerve is also weak. This restores sensation and pleasure.",
+                    "benefit": "help restore sensation and strengthen nerves"
+                }
+            ]
+        },
+        {
+            "id": "supp-tenurina",
+            "name": "Tenurina",
+            "gender": "any",
+            "symptoms": [
+                {
+                    "id": "symp-circ",
+                    "text": "Circulation Issues (High BP, Cold hands/feet)",
+                    "pitch": "We need to ensure oxygenated blood flow is consistently reaching the area to maintain the erection.",
+                    "benefit": "help ensure oxygenated blood flow reaches the area"
+                }
+            ]
+        },
+        {
+            "id": "supp-resverador",
+            "name": "Resverador",
+            "gender": "any",
+            "symptoms": [
+                {
+                    "id": "symp-inflam",
+                    "text": "Inflammation / General Pain",
+                    "pitch": "Reduces inflammation that might be blocking blood flow pathways.",
+                    "benefit": "help reduce inflammation blocking blood flow"
                 }
             ]
         }

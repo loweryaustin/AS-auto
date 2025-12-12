@@ -1,6 +1,6 @@
 /**
  * ============================================
- * SCRIPT TOOL APPLICATION LOGIC (V7.5.0)
+ * SCRIPT TOOL APPLICATION LOGIC (V7.8.0)
  * ============================================
  * This is the main "controller" file.
  * It handles state, core logic, and event listeners.

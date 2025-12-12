@@ -1,7 +1,8 @@
 /**
- * Laellium
+ * Laellium (Weight Loss)
  * Database file for the "Laellium" supplement.
  * Product Line: Digital Lions
+ * Protocol: Universal Weight Loss
  */
 DATABASE_CONFIGS["Laellium"] = {
     "productLine": "Digital Lions",
@@ -14,7 +15,7 @@ DATABASE_CONFIGS["Laellium"] = {
     "questions": [
         {
             "id": "q-wl-1",
-            "text": "What’s your age, height, and current weight?",
+            "text": "What’s your age, height, and current weight? (Duration Logic)",
             "group": "Weight Loss"
         },
         {
@@ -23,89 +24,57 @@ DATABASE_CONFIGS["Laellium"] = {
             "group": "Weight Loss"
         },
         {
+            "id": "q-wl-time",
+            "text": "How long has it been since you were last at your goal weight? (Felaromi Trigger)",
+            "group": "Weight Loss"
+        },
+        {
+            "id": "q-wl-stress",
+            "text": "Do you have any joint pain (arthritis) or nerve tingling (neuropathy)? (Stress/Safety Trigger)",
+            "group": "Body Stress"
+        },
+        {
             "id": "q-wl-3",
             "text": "Have you tried anything before for weight loss? If so, what?",
-            "group": "Weight Loss"
+            "group": "History"
         },
         {
             "id": "q-wl-4",
             "text": "Are you able to exercise consistently, even just light activity?",
-            "group": "Weight Loss"
+            "group": "History"
         },
         {
             "id": "q-wl-5",
-            "text": "Got it — and are you sleeping well at night, or do you feel like your rest could be better?",
+            "text": "Are you sleeping well at night?",
             "group": "Sleep"
         },
         {
-            "id": "q-wl-6",
-            "text": "Any blood pressure, cholesterol, or diabetes meds right now?",
-            "group": "Medical History"
+            "id": "q-univ-2",
+            "text": "Do you have any Thyroid issues? (Dosing Instruction)",
+            "group": "Closing"
+        },
+        {
+            "id": "q-univ-3",
+            "text": "Do you have anyone military in the family? (Discount Applied)",
+            "group": "Closing"
+        },
+        {
+            "id": "q-univ-4",
+            "text": "Are you good at remembering to take things? (Commitment)",
+            "group": "Closing"
         }
     ],
     "recommendations": [
-        {
-            "id": "supp-tenurima",
-            "name": "Tenurima",
-            "gender": "any",
-            "symptoms": [
-                {
-                    "id": "symp-bp-meds",
-                    "text": "Taking blood pressure medication / High Blood Pressure",
-                    "pitch": "Improved circulation benefits every other system. This supports healthy blood flow to help nutrients reach every part of the body.",
-                    "benefit": "help support healthy blood pressure and circulation"
-                }
-            ]
-        },
-        {
-            "id": "supp-arialief",
-            "name": "Arialief",
-            "gender": "any",
-            "symptoms": [
-                {
-                    "id": "symp-nerve",
-                    "text": "Nerve issues / Tingling / Numbness",
-                    "pitch": "Nerve Health Support helps with conditions linked to nerve inflammation or dysfunction.",
-                    "benefit": "help support nerve health and reduce inflammation"
-                }
-            ]
-        },
         {
             "id": "supp-goldenfrib",
             "name": "GoldenFrib",
             "gender": "any",
             "symptoms": [
                 {
-                    "id": "symp-digestive",
-                    "text": "Digestive issues / Gut health",
-                    "pitch": "A healthy gut supports everything from immunity to mental clarity.",
-                    "benefit": "help optimize digestion and nutrient absorption"
-                }
-            ]
-        },
-        {
-            "id": "supp-cetadusse",
-            "name": "Cetadusse",
-            "gender": "any",
-            "symptoms": [
-                {
-                    "id": "symp-glucose",
-                    "text": "Diabetes meds / Blood Sugar concerns",
-                    "pitch": "This is excellent for targeting blood sugar concerns.",
-                    "benefit": "help support healthy glucose levels and insulin sensitivity"
-                }
-            ]
-        },
-        {
-            "id": "supp-resverador",
-            "name": "Resverador",
-            "gender": "any",
-            "symptoms": [
-                {
-                    "id": "symp-aging",
-                    "text": "Concerns about aging / Inflammation",
-                    "pitch": "Antioxidant support helps target cellular aging and inflammation.",
-                    "benefit": "help provide antioxidant support against cellular aging"
+                    "id": "symp-meta",
+                    "text": "Universal Weight Loss Inclusion",
+                    "pitch": "This helps speed up your metabolic rate permanently so you shouldn't see weight gain once you're off the regimen.",
+                    "benefit": "help permanently reset metabolic rate"
                 }
             ]
         },
@@ -115,30 +84,71 @@ DATABASE_CONFIGS["Laellium"] = {
             "gender": "any",
             "symptoms": [
                 {
-                    "id": "symp-greens",
-                    "text": "Low energy / Needs nutrient boost",
-                    "pitch": "Greens Nutrition with prebiotics and probiotics to support gut health.",
-                    "benefit": "help boost daily nutrient intake and gut flora"
+                    "id": "symp-old-fat",
+                    "text": "Long time since goal weight",
+                    "pitch": "This helps break the fat cells up since it's been years since you've been at your goal weight.",
+                    "benefit": "help break down stubborn fat cells"
                 }
             ]
         },
         {
-            "id": "supp-zalovira",
-            "name": "Zalovira",
+            "id": "supp-resverador",
+            "name": "Resverador",
             "gender": "any",
             "symptoms": [
                 {
-                    "id": "symp-immune",
-                    "text": "Weak immune system / Frequently sick",
-                    "pitch": "Comprehensive immune support.",
-                    "benefit": "help strengthen your immune system"
+                    "id": "symp-skin",
+                    "text": "Loose Skin Prevention",
+                    "pitch": "This helps tighten skin as you're in the process, so you shouldn't end up with a bunch of loose skin.",
+                    "benefit": "help tighten skin during weight loss"
+                }
+            ]
+        },
+        {
+            "id": "supp-arialief",
+            "name": "Arialief",
+            "gender": "any",
+            "symptoms": [
+                {
+                    "id": "symp-nerve-stress",
+                    "text": "Nerve Stress / Tingling (4th Supp)",
+                    "pitch": "We need to have this on board to help get that nerve stress off your body. That helps your body feel safer to let go of that fat reserve.",
+                    "benefit": "help lower body stress to unlock fat reserves"
+                }
+            ]
+        },
+        {
+            "id": "supp-feilaira",
+            "name": "Feilaira",
+            "gender": "any",
+            "symptoms": [
+                {
+                    "id": "symp-joint-stress",
+                    "text": "Joint Pain / Arthritis (4th Supp)",
+                    "pitch": "We need to have this on board to help get that inflammation stress off your body. That helps your body feel safer to let go of that fat reserve.",
+                    "benefit": "help lower physical stress to unlock fat reserves"
+                }
+            ]
+        },
+        {
+            "id": "supp-tenurima",
+            "name": "Tenurima",
+            "gender": "any",
+            "symptoms": [
+                {
+                    "id": "symp-bp-meds",
+                    "text": "High Blood Pressure / Circulation",
+                    "pitch": "Improved circulation helps flush out the toxins released by burning fat.",
+                    "benefit": "help flush toxins from fat loss"
                 }
             ]
         }
     ],
     "questionGroups": [
         { "id": "g-wl", "name": "Weight Loss", "gender": "any" },
+        { "id": "g-stress", "name": "Body Stress", "gender": "any" },
+        { "id": "g-hist", "name": "History", "gender": "any" },
         { "id": "g-sleep", "name": "Sleep", "gender": "any" },
-        { "id": "g-med", "name": "Medical History", "gender": "any" }
+        { "id": "g-close", "name": "Closing", "gender": "any" }
     ]
 };

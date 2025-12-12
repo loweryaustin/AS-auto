@@ -1,10 +1,10 @@
 /**
  * ============================================
- * SCRIPT TOOL REFERENCES COMPONENT (V7.4.0)
+ * SCRIPT TOOL REFERENCES COMPONENT (V7.8.0)
  * ============================================
  * This component handles all logic and UI for the
  * References feature, including:
- * - Sidebar button rendering (Including built-in BMI Calc)
+ * - Sidebar button rendering (Including built-in BMI Calc & Charts)
  * - Modal (open/close, content injection)
  * - Keyboard shortcuts
  * - Settings modal editor UI (icon picker, add/remove)
@@ -14,7 +14,7 @@
  * - `lucide` (from CDN)
  * - `saveSettingsToStorage()` (from script.js)
  * - `AppUI.triggerAutoSave()` (from script-settings.js)
- * - `AppUI.openBmiModal()` (from script.js - added in V7.4.0)
+ * - `AppUI.openBmiModal()` (from script.js)
  */
 
 // --- Module-level variables ---
@@ -44,6 +44,16 @@ AppUI.cacheReferenceDOMElements = function() {
     // Settings-specific elements
     DOM.addReferenceBtn = document.getElementById('add-reference-btn');
     DOM.referenceSettingsList = document.getElementById('reference-settings-list');
+    
+    // NEW (V7.8.0): Chart Modals
+    DOM.a1cModal = document.getElementById('a1c-modal');
+    DOM.a1cModalCloseBtn = document.getElementById('a1c-modal-close-btn');
+    
+    DOM.bpModal = document.getElementById('bp-modal');
+    DOM.bpModalCloseBtn = document.getElementById('bp-modal-close-btn');
+    
+    DOM.testoModal = document.getElementById('testo-modal');
+    DOM.testoModalCloseBtn = document.getElementById('testo-modal-close-btn');
 }
 
 /**
@@ -53,7 +63,10 @@ AppUI.cacheReferenceDOMElements = function() {
 AppUI.renderReferenceSidebar = function() {
     DOM.referenceButtonsContainer.innerHTML = ''; // Clear existing
     
-    // --- NEW (V7.4.0): Built-in BMI Calculator Button ---
+    // --- Built-in Tools Container ---
+    // We group these to keep them distinct from custom references
+    
+    // 1. BMI Calculator
     const bmiBtn = document.createElement('button');
     bmiBtn.className = 'reference-btn bg-gray-800 border-blue-900/50 hover:bg-gray-700 hover:border-blue-500';
     bmiBtn.id = 'built-in-bmi-btn';
@@ -63,15 +76,47 @@ AppUI.renderReferenceSidebar = function() {
         <span class="reference-btn-title text-blue-200">BMI Calc</span>
     `;
     DOM.referenceButtonsContainer.appendChild(bmiBtn);
+
+    // 2. A1C Chart
+    const a1cBtn = document.createElement('button');
+    a1cBtn.className = 'reference-btn bg-gray-800 border-purple-900/50 hover:bg-gray-700 hover:border-purple-500';
+    a1cBtn.id = 'built-in-a1c-btn';
+    a1cBtn.title = 'Open A1C Chart';
+    a1cBtn.innerHTML = `
+        <i data-lucide="droplet" class="w-8 h-8 text-purple-400"></i>
+        <span class="reference-btn-title text-purple-200">A1C</span>
+    `;
+    DOM.referenceButtonsContainer.appendChild(a1cBtn);
+
+    // 3. BP Chart
+    const bpBtn = document.createElement('button');
+    bpBtn.className = 'reference-btn bg-gray-800 border-red-900/50 hover:bg-gray-700 hover:border-red-500';
+    bpBtn.id = 'built-in-bp-btn';
+    bpBtn.title = 'Open Blood Pressure Chart';
+    bpBtn.innerHTML = `
+        <i data-lucide="heart-pulse" class="w-8 h-8 text-red-400"></i>
+        <span class="reference-btn-title text-red-200">BP Chart</span>
+    `;
+    DOM.referenceButtonsContainer.appendChild(bpBtn);
+
+    // 4. Testosterone Chart
+    const tBtn = document.createElement('button');
+    tBtn.className = 'reference-btn bg-gray-800 border-yellow-900/50 hover:bg-gray-700 hover:border-yellow-500';
+    tBtn.id = 'built-in-testo-btn';
+    tBtn.title = 'Open Testosterone Chart';
+    tBtn.innerHTML = `
+        <i data-lucide="activity" class="w-8 h-8 text-yellow-400"></i>
+        <span class="reference-btn-title text-yellow-200">Testo</span>
+    `;
+    DOM.referenceButtonsContainer.appendChild(tBtn);
+
     // ----------------------------------------------------
 
     const refs = appState.supplementDatabase.references;
     
-    // If no custom references, show placeholder (but BMI button is already there)
+    // If no custom references, show placeholder (but BMI/Charts buttons are already there)
     if (!refs || refs.length === 0) {
         DOM.noReferencesPlaceholder.classList.remove('hidden');
-        // We still render the BMI button, so we don't return early, 
-        // but we assume the icons need to be created at the end.
     } else {
         DOM.noReferencesPlaceholder.classList.add('hidden');
         
@@ -387,21 +432,34 @@ AppUI.initReferenceSettingsEventListeners = function() {
 AppUI.initReferenceEventListeners = function() {
     // --- Reference Modal Listeners ---
     
-    // V7.4.0 MODIFIED: Updated delegation to handle built-in BMI button
+    // Delegation for Sidebar Buttons
     DOM.referenceButtonsContainer.addEventListener('click', (e) => {
         
         // 1. Check for BMI Button
-        const bmiBtn = e.target.closest('#built-in-bmi-btn');
-        if (bmiBtn) {
-            if (AppUI.openBmiModal) {
-                AppUI.openBmiModal();
-            } else {
-                console.error("AppUI.openBmiModal is not defined yet.");
-            }
+        if (e.target.closest('#built-in-bmi-btn')) {
+            if (AppUI.openBmiModal) AppUI.openBmiModal();
             return;
         }
 
-        // 2. Check for Standard Reference Buttons
+        // 2. Check for A1C Button
+        if (e.target.closest('#built-in-a1c-btn')) {
+            DOM.a1cModal.classList.remove('hidden');
+            return;
+        }
+
+        // 3. Check for BP Button
+        if (e.target.closest('#built-in-bp-btn')) {
+            DOM.bpModal.classList.remove('hidden');
+            return;
+        }
+
+        // 4. Check for Testo Button
+        if (e.target.closest('#built-in-testo-btn')) {
+            DOM.testoModal.classList.remove('hidden');
+            return;
+        }
+
+        // 5. Check for Standard Reference Buttons
         const button = e.target.closest('.reference-btn');
         if (button && button.dataset.index !== undefined) {
             const index = parseInt(button.dataset.index, 10);
@@ -412,7 +470,12 @@ AppUI.initReferenceEventListeners = function() {
         }
     });
     
+    // Close Logic
     DOM.referenceModalCloseBtn.addEventListener('click', AppUI.closeReferenceModal);
+    
+    if (DOM.a1cModalCloseBtn) DOM.a1cModalCloseBtn.addEventListener('click', () => DOM.a1cModal.classList.add('hidden'));
+    if (DOM.bpModalCloseBtn) DOM.bpModalCloseBtn.addEventListener('click', () => DOM.bpModal.classList.add('hidden'));
+    if (DOM.testoModalCloseBtn) DOM.testoModalCloseBtn.addEventListener('click', () => DOM.testoModal.classList.add('hidden'));
 
     // --- Global Shortcut Listener ---
     document.addEventListener('keydown', AppUI.handleReferenceKeydown);
