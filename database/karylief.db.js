@@ -12,6 +12,7 @@ DATABASE_CONFIGS["Karylief"] = {
         "gender": "any"
     },
     "guaranteeDays": 60,
+    "knowledgeBase": "Karylief",
     "questions": [
         {
             "id": "q-tin-1",
@@ -42,26 +43,6 @@ DATABASE_CONFIGS["Karylief"] = {
             "id": "q-tin-6",
             "text": "Has the ringing coincided with any change in your ability to hear? (Resverador)",
             "group": "Hearing"
-        },
-        {
-            "id": "q-univ-1",
-            "text": "What is your Height and Weight? (Duration Logic)",
-            "group": "Closing"
-        },
-        {
-            "id": "q-univ-2",
-            "text": "Do you have any Thyroid issues? (Dosing Instruction)",
-            "group": "Closing"
-        },
-        {
-            "id": "q-univ-3",
-            "text": "Do you have anyone military in the family? (Discount Applied)",
-            "group": "Closing"
-        },
-        {
-            "id": "q-univ-4",
-            "text": "Are you good at remembering to take things? (Commitment)",
-            "group": "Closing"
         }
     ],
     "recommendations": [
@@ -138,6 +119,5 @@ DATABASE_CONFIGS["Karylief"] = {
         { "id": "g-str", "name": "Stress", "gender": "any" },
         { "id": "g-hear", "name": "Hearing", "gender": "any" },
         { "id": "g-slp", "name": "Sleep", "gender": "any" },
-        { "id": "g-close", "name": "Closing", "gender": "any" }
     ]
 };

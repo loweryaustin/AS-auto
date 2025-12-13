@@ -11,7 +11,8 @@ DATABASE_CONFIGS["Blinzador"] = {
         "pitch": "Fungus Support Spray. (180 Day Protocol)",
         "gender": "any"
     },
-    "guaranteeDays": 180,
+    "guaranteeDays": 60,
+    "knowledgeBase": "Blinzador",
     "questions": [
         {
             "id": "q-fun-1",
@@ -47,26 +48,6 @@ DATABASE_CONFIGS["Blinzador"] = {
             "id": "q-fun-7",
             "text": "Do you feel like your immune system struggles to fight things off? (Zalovira)",
             "group": "Immunity"
-        },
-        {
-            "id": "q-univ-1",
-            "text": "What is your Height and Weight? (Duration Logic)",
-            "group": "Closing"
-        },
-        {
-            "id": "q-univ-2",
-            "text": "Do you have any Thyroid issues? (Dosing Instruction)",
-            "group": "Closing"
-        },
-        {
-            "id": "q-univ-3",
-            "text": "Do you have anyone military in the family? (Discount Applied)",
-            "group": "Closing"
-        },
-        {
-            "id": "q-univ-4",
-            "text": "Are you good at remembering to take things? (Commitment)",
-            "group": "Closing"
         }
     ],
     "recommendations": [
@@ -142,6 +123,5 @@ DATABASE_CONFIGS["Blinzador"] = {
         { "id": "g-circ", "name": "Circulation", "gender": "any" },
         { "id": "g-inflam", "name": "Inflammation", "gender": "any" },
         { "id": "g-imm", "name": "Immunity", "gender": "any" },
-        { "id": "g-close", "name": "Closing", "gender": "any" }
     ]
 };

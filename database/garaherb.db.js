@@ -11,6 +11,8 @@ DATABASE_CONFIGS["GaraHerb"] = {
         "pitch": "Primary Men's Health Support. 1 cap per day.",
         "gender": "male"
     },
+    // NEW LINK
+    "knowledgeBase": "GaraHerb",
     "guaranteeDays": 60,
     "questions": [
         {
@@ -47,26 +49,6 @@ DATABASE_CONFIGS["GaraHerb"] = {
             "id": "q-gh-7",
             "text": "Have you been told you have low testosterone? (Erectozyn)",
             "group": "Hormonal"
-        },
-        {
-            "id": "q-gh-8",
-            "text": "What is your Height and Weight? (Duration Logic: 18mo vs 24mo)",
-            "group": "Closing"
-        },
-        {
-            "id": "q-univ-1",
-            "text": "Do you have any Thyroid issues? (Dosing Instruction)",
-            "group": "Closing"
-        },
-        {
-            "id": "q-univ-2",
-            "text": "Do you have anyone military in the family? (Discount Applied)",
-            "group": "Closing"
-        },
-        {
-            "id": "q-univ-3",
-            "text": "Are you good at remembering to take things? (Commitment)",
-            "group": "Closing"
         }
     ],
     "recommendations": [
@@ -155,6 +137,5 @@ DATABASE_CONFIGS["GaraHerb"] = {
         { "id": "g-neuro", "name": "Neuropathy Check", "gender": "any" },
         { "id": "g-pros", "name": "Prostate", "gender": "male" },
         { "id": "g-horm", "name": "Hormonal", "gender": "male" },
-        { "id": "g-close", "name": "Closing", "gender": "any" }
     ]
 };

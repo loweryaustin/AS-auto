@@ -11,32 +11,48 @@ DATABASE_CONFIGS["Cetacondor"] = {
         "pitch": "Nerve Health Support. 1 cap per day.",
         "gender": "any"
     },
+    "knowledgeBase": "Cetacondor",
     "guaranteeDays": 60,
     "questions": [
         {
             "id": "q-neur-1",
-            "text": "Where in the body are you feeling the numbness, tingling, or pain?",
-            "group": "Neuropathy"
+            "text": "Sciatic nerve pain or Peripheral Neuropathy? (Diagnostic)",
+            "group": "Diagnostic"
         },
         {
             "id": "q-neur-2",
-            "text": "How long has this been going on?",
-            "group": "Neuropathy"
+            "text": "Where are you experiencing it? Feet, hands, legs? (Diagnostic)",
+            "group": "Diagnostic"
         },
         {
             "id": "q-neur-3",
-            "text": "Would you say it’s more burning, tingling, numbness — or pain?",
-            "group": "Neuropathy"
+            "text": "Is it tingling, numbness, or pain? (Kymezol)",
+            "group": "Diagnostic"
         },
         {
             "id": "q-neur-4",
-            "text": "Are you currently taking medications for diabetes, blood pressure, or cholesterol?",
-            "group": "Medical History"
+            "text": "Is this affecting your ability to walk or balance? (Urgency Builder)",
+            "group": "Impact"
         },
         {
             "id": "q-neur-5",
-            "text": "How is this affecting your daily routine — walking, sleeping, or just getting through the day?",
-            "group": "Lifestyle"
+            "text": "How did this come on? Diabetes? Alcohol? Chemo? Physical Trauma? (Cetadusse/GoldenFrib/Zalovira)",
+            "group": "Root Cause"
+        },
+        {
+            "id": "q-neur-6",
+            "text": "Is this keeping you up at night? (Xelovita)",
+            "group": "Sleep"
+        },
+        {
+            "id": "q-neur-7",
+            "text": "Do you have any blood pressure issues? (Tenurina)",
+            "group": "Medical History"
+        },
+        {
+            "id": "q-neur-8",
+            "text": "Are you taking Gabapentin? (Sales Positioning)",
+            "group": "Medical History"
         }
     ],
     "recommendations": [
@@ -117,11 +133,26 @@ DATABASE_CONFIGS["Cetacondor"] = {
                     "benefit": "help deliver oxygen to nerves for repair"
                 }
             ]
+        },
+        {
+            "id": "supp-cetadusse",
+            "name": "Cetadusse",
+            "gender": "any",
+            "symptoms": [
+                {
+                    "id": "symp-diabetes",
+                    "text": "Diabetes / Pre-Diabetes (High Sugar)",
+                    "pitch": "High blood sugar acts like sandpaper on the nerves. We need to control sugar to stop the daily damage so repair can begin.",
+                    "benefit": "help regulate sugar to protect nerves"
+                }
+            ]
         }
     ],
     "questionGroups": [
-        { "id": "g-neur", "name": "Neuropathy", "gender": "any" },
+        { "id": "g-diag", "name": "Diagnostic", "gender": "any" },
+        { "id": "g-imp", "name": "Impact", "gender": "any" },
+        { "id": "g-root", "name": "Root Cause", "gender": "any" },
+        { "id": "g-slp", "name": "Sleep", "gender": "any" },
         { "id": "g-med", "name": "Medical History", "gender": "any" },
-        { "id": "g-life", "name": "Lifestyle", "gender": "any" }
     ]
 };

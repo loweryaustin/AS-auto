@@ -1,6 +1,6 @@
 /**
  * ============================================
- * SCRIPT TOOL UI UTILITIES (V5.0.0)
+ * SCRIPT TOOL UI UTILITIES (V7.27.0)
  * ============================================
  * This file contains SHARED utility functions for formatting
  * and data manipulation.
@@ -14,10 +14,35 @@ const AppUI = {};
 // --- Utility Functions ---
 
 /**
+ * NEW (Moved from script.js): Helper to discover all unique product lines
+ * from both default and edited databases.
+ * Needed early for UI rendering.
+ */
+function getAvailableProductLines() {
+    const lines = new Set();
+    
+    // Check if appState exists (it might not be fully initialized yet, but the objects should be there if loaded)
+    if (typeof appState !== 'undefined') {
+        // 1. Scan Defaults
+        if (appState.allDatabaseDefaults) {
+            Object.values(appState.allDatabaseDefaults).forEach(db => {
+                lines.add(db.productLine || "General");
+            });
+        }
+
+        // 2. Scan Edited (User created/modified)
+        if (appState.editedDatabases) {
+            Object.values(appState.editedDatabases).forEach(db => {
+                lines.add(db.productLine || "General");
+            });
+        }
+    }
+    
+    return Array.from(lines).sort();
+}
+
+/**
  * Merges two objects, with source overwriting target.
- * @param {object} target - The base object.
- * @param {object} source - The object with new properties.
- * @returns {object} - The merged object.
  */
 AppUI.simpleDeepMerge = function(target, source) {
     let output = { ...target };
@@ -35,8 +60,6 @@ AppUI.simpleDeepMerge = function(target, source) {
 
 /**
  * Creates a deep copy of an object using JSON.
- * @param {object} obj - The object to copy.
- * @returns {object} - The copied object.
  */
 AppUI.deepCopy = function(obj) {
     if (typeof obj === 'undefined' || obj === null) {
@@ -53,8 +76,6 @@ AppUI.deepCopy = function(obj) {
 
 /**
  * Gets the price per bottle based on regimen length.
- * @param {number} months - The regimen length in months.
- * @returns {number} - The price per bottle.
  */
 AppUI.getPricePerBottle = function(months) {
     if (months >= 12) return 45;
@@ -64,9 +85,6 @@ AppUI.getPricePerBottle = function(months) {
 
 /**
  * Formats an array of names into a human-readable list.
- * e.g., ["A", "B", "C"] -> "A, B, and C"
- * @param {Array<string>} names - The array of names.
- * @returns {string} - The formatted string.
  */
 AppUI.formatAddonList = function(names) {
     if (names.length === 0) return "no additional supplements";
@@ -77,8 +95,6 @@ AppUI.formatAddonList = function(names) {
 
 /**
  * Formats a list of addon objects with their quantities.
- * @param {Array<Object>} addons - e.g., [{name: "A", quantity: 12}, {name: "B", quantity: 6}]
- * @returns {string} - e.g., "12 more of the A and 6 more of the B"
  */
 AppUI.formatAddonListWithQuantities = function(addons) {
     if (!addons || addons.length === 0) return "";
@@ -101,8 +117,6 @@ AppUI.formatAddonListWithQuantities = function(addons) {
 
 /**
  * Formats an array of benefit strings into a script line.
- * @param {Array<string>} benefits - The array of benefits.
- * @returns {string} - The formatted script line.
  */
 AppUI.formatBenefitsList = function(benefits) {
     if (benefits.length === 0) return "This regimen is designed to help your pancreas heal.";
@@ -112,8 +126,6 @@ AppUI.formatBenefitsList = function(benefits) {
 
 /**
  * Formats a number of seconds into MM:SS format.
- * @param {number} seconds - The time in seconds.
- * @returns {string} - The formatted time string.
  */
 AppUI.formatTime = function(seconds) {
     const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
@@ -123,10 +135,6 @@ AppUI.formatTime = function(seconds) {
 
 /**
  * Copies text to the clipboard and provides visual feedback on a button.
- * @param {string} text - The text to copy.
- * @param {HTMLElement} buttonElement - The inner element (span) of the button to update.
- * @param {string} originalText - The default text of the button.
- * @param {string} successText - The text to show on success.
  */
 AppUI.copyToClipboard = function(text, buttonElement, originalText, successText) {
     const tempTextarea = document.createElement('textarea');
@@ -145,7 +153,6 @@ AppUI.copyToClipboard = function(text, buttonElement, originalText, successText)
 
     if (success && buttonElement) {
         buttonElement.textContent = successText;
-        // Find the parent button to change its color
         const parentButton = buttonElement.closest('button');
         if (parentButton) parentButton.classList.add('bg-green-600');
         
@@ -160,8 +167,10 @@ AppUI.copyToClipboard = function(text, buttonElement, originalText, successText)
  * Attaches event listeners for shared UI utilities (e.g., notes).
  */
 AppUI.initUtilityEventListeners = function() {
-    DOM.copyNotesBtn.addEventListener('click', () => {
-        const fullNotes = DOM.generatedNotes.textContent + '\n\n' + DOM.customNotes.value;
-        AppUI.copyToClipboard(fullNotes, DOM.copyNotesBtn.querySelector('span'), 'Copy Notes', 'Copied!');
-    });
+    if (DOM.copyNotesBtn) {
+        DOM.copyNotesBtn.addEventListener('click', () => {
+            const fullNotes = DOM.generatedNotes.textContent + '\n\n' + DOM.customNotes.value;
+            AppUI.copyToClipboard(fullNotes, DOM.copyNotesBtn.querySelector('span'), 'Copy Notes', 'Copied!');
+        });
+    }
 }

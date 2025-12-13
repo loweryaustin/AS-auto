@@ -11,47 +11,43 @@ DATABASE_CONFIGS["Keskara"] = {
         "pitch": "Erectile Support - ED. 1 cap per day.",
         "gender": "male"
     },
+    "knowledgeBase": "Keskara",
     "guaranteeDays": 60,
     "questions": [
         {
             "id": "q-ed-1",
-            "text": "What is your age, height, and current weight?",
-            "group": "Erectile Dysfunction"
+            "text": "Issues getting or maintaining an erection? (Diagnostic)",
+            "group": "Diagnostic"
         },
         {
             "id": "q-ed-2",
-            "text": "How long have you been dealing with ED?",
-            "group": "Erectile Dysfunction"
+            "text": "Are you still ever ejaculating? (Jertaris)",
+            "group": "Prostate/Flow"
         },
         {
             "id": "q-ed-3",
-            "text": "Is it more of an issue getting an erection — or keeping one?",
-            "group": "Erectile Dysfunction"
+            "text": "Are you Diabetic or Pre-Diabetic? (Cetadusse)",
+            "group": "Root Cause: Sugar"
         },
         {
             "id": "q-ed-4",
-            "text": "Are you still waking with morning erections?",
-            "group": "Erectile Dysfunction"
+            "text": "Do you have high blood pressure or circulation issues? (Tenurina)",
+            "group": "Root Cause: Flow"
         },
         {
             "id": "q-ed-5",
-            "text": "Any other symptoms like low libido, low testosterone, or prostate issues?",
-            "group": "Erectile Dysfunction"
+            "text": "Do you have tingling or numbness in your feet or hands? (Arialief)",
+            "group": "Root Cause: Nerves"
         },
         {
             "id": "q-ed-6",
-            "text": "Got it — and are you sleeping well at night, or do you feel like your rest could be better?",
-            "group": "Sleep"
+            "text": "Have you been told you have low testosterone? (Erectozyn)",
+            "group": "Root Cause: Hormones"
         },
         {
             "id": "q-ed-7",
-            "text": "Have you tried anything else before?",
-            "group": "History"
-        },
-        {
-            "id": "q-ed-8",
-            "text": "Are you currently taking any blood pressure, cholesterol, or diabetes medications?",
-            "group": "Medical History"
+            "text": "Do you have any inflammation or joint pain? (Resverador)",
+            "group": "Root Cause: Inflammation"
         }
     ],
     "recommendations": [
@@ -148,9 +144,12 @@ DATABASE_CONFIGS["Keskara"] = {
         }
     ],
     "questionGroups": [
-        { "id": "g-ed", "name": "Erectile Dysfunction", "gender": "male" },
-        { "id": "g-slp", "name": "Sleep", "gender": "any" },
-        { "id": "g-hist", "name": "History", "gender": "any" },
-        { "id": "g-med", "name": "Medical History", "gender": "any" }
+        { "id": "g-diag", "name": "Diagnostic", "gender": "any" },
+        { "id": "g-prostate", "name": "Prostate/Flow", "gender": "male" },
+        { "id": "g-sugar", "name": "Root Cause: Sugar", "gender": "any" },
+        { "id": "g-flow", "name": "Root Cause: Flow", "gender": "any" },
+        { "id": "g-nerves", "name": "Root Cause: Nerves", "gender": "any" },
+        { "id": "g-horm", "name": "Root Cause: Hormones", "gender": "male" },
+        { "id": "g-inf", "name": "Root Cause: Inflammation", "gender": "any" },
     ]
 };

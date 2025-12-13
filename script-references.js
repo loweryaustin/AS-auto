@@ -1,10 +1,10 @@
 /**
  * ============================================
- * SCRIPT TOOL REFERENCES COMPONENT (V7.8.0)
+ * SCRIPT TOOL REFERENCES COMPONENT (V7.25.0)
  * ============================================
  * This component handles all logic and UI for the
  * References feature, including:
- * - Sidebar button rendering (Including built-in BMI Calc & Charts)
+ * - Sidebar button rendering (Including built-in BMI, A1C, BP, Testo, PSA Charts)
  * - Modal (open/close, content injection)
  * - Keyboard shortcuts
  * - Settings modal editor UI (icon picker, add/remove)
@@ -45,7 +45,7 @@ AppUI.cacheReferenceDOMElements = function() {
     DOM.addReferenceBtn = document.getElementById('add-reference-btn');
     DOM.referenceSettingsList = document.getElementById('reference-settings-list');
     
-    // NEW (V7.8.0): Chart Modals
+    // Charts
     DOM.a1cModal = document.getElementById('a1c-modal');
     DOM.a1cModalCloseBtn = document.getElementById('a1c-modal-close-btn');
     
@@ -54,6 +54,10 @@ AppUI.cacheReferenceDOMElements = function() {
     
     DOM.testoModal = document.getElementById('testo-modal');
     DOM.testoModalCloseBtn = document.getElementById('testo-modal-close-btn');
+
+    // NEW (V7.23.0): PSA Chart
+    DOM.psaModal = document.getElementById('psa-modal');
+    DOM.psaModalCloseBtn = document.getElementById('psa-modal-close-btn');
 }
 
 /**
@@ -109,6 +113,17 @@ AppUI.renderReferenceSidebar = function() {
         <span class="reference-btn-title text-yellow-200">Testo</span>
     `;
     DOM.referenceButtonsContainer.appendChild(tBtn);
+
+    // 5. PSA Chart (NEW V7.23.0)
+    const psaBtn = document.createElement('button');
+    psaBtn.className = 'reference-btn bg-gray-800 border-green-900/50 hover:bg-gray-700 hover:border-green-500';
+    psaBtn.id = 'built-in-psa-btn';
+    psaBtn.title = 'Open PSA Chart';
+    psaBtn.innerHTML = `
+        <i data-lucide="activity" class="w-8 h-8 text-green-400"></i>
+        <span class="reference-btn-title text-green-200">PSA</span>
+    `;
+    DOM.referenceButtonsContainer.appendChild(psaBtn);
 
     // ----------------------------------------------------
 
@@ -346,81 +361,88 @@ AppUI.renderIconPickerResults = function(query, resultsContainer) {
  */
 AppUI.initReferenceSettingsEventListeners = function() {
     // Listeners for Reference Editor
-    DOM.addReferenceBtn.addEventListener('click', () => {
-        const newRef = {
-            id: `ref-${Date.now()}`,
-            title: "New Reference",
-            icon: "book",
-            type: "website",
-            shortcut: "",
-            url: ""
-        };
-        const newRefElement = AppUI.createReferenceEditorElement(newRef);
-        DOM.referenceSettingsList.appendChild(newRefElement);
-        // Auto-save will be triggered by the main 'click' listener in script-settings.js
-    });
-
-    DOM.referenceSettingsList.addEventListener('click', (e) => {
-        const removeBtn = e.target.closest('.remove-reference-btn');
-        if (removeBtn) {
-            removeBtn.closest('.reference-editor-card').remove();
+    if (DOM.addReferenceBtn) {
+        DOM.addReferenceBtn.addEventListener('click', () => {
+            const newRef = {
+                id: `ref-${Date.now()}`,
+                title: "New Reference",
+                icon: "book",
+                type: "website",
+                shortcut: "",
+                url: ""
+            };
+            const newRefElement = AppUI.createReferenceEditorElement(newRef);
+            DOM.referenceSettingsList.appendChild(newRefElement);
             // Auto-save will be triggered by the main 'click' listener in script-settings.js
-        }
-    });
+        });
+    }
+
+    if (DOM.referenceSettingsList) {
+        DOM.referenceSettingsList.addEventListener('click', (e) => {
+            const removeBtn = e.target.closest('.remove-reference-btn');
+            if (removeBtn) {
+                removeBtn.closest('.reference-editor-card').remove();
+                // Auto-save will be triggered by the main 'click' listener in script-settings.js
+            }
+        });
+    }
 
     // --- Icon Picker Listeners (from script-settings.js) ---
-    DOM.settingsModal.addEventListener('input', (e) => {
-        // Handle icon picker search
-        const iconInput = e.target.closest('.icon-picker-input');
-        if (iconInput) {
-            const container = iconInput.closest('.icon-picker-container');
-            const results = container.querySelector('.icon-picker-results');
-            AppUI.renderIconPickerResults(iconInput.value, results);
-            activeIconPicker = results;
-        }
-    });
+    // Note: These rely on the Settings Modal being open, so listeners are typically attached to the modal itself
+    if (DOM.settingsModal) {
+        DOM.settingsModal.addEventListener('input', (e) => {
+            // Handle icon picker search
+            const iconInput = e.target.closest('.icon-picker-input');
+            if (iconInput) {
+                const container = iconInput.closest('.icon-picker-container');
+                const results = container.querySelector('.icon-picker-results');
+                AppUI.renderIconPickerResults(iconInput.value, results);
+                activeIconPicker = results;
+            }
+        });
+        
+        DOM.settingsModal.addEventListener('focusin', (e) => {
+            // Show icon picker results on focus
+            const iconInput = e.target.closest('.icon-picker-input');
+             if (iconInput) {
+                const container = iconInput.closest('.icon-picker-container');
+                const results = container.querySelector('.icon-picker-results');
+                AppUI.renderIconPickerResults(iconInput.value, results);
+                activeIconPicker = results;
+            }
+        });
+        
+        // Handle clicking an icon from the picker
+        DOM.settingsModal.addEventListener('click', (e) => {
+            const iconItem = e.target.closest('.icon-picker-item');
+            if (iconItem) {
+                const iconName = iconItem.dataset.iconName;
+                const container = iconItem.closest('.icon-picker-container');
+                const input = container.querySelector('.icon-picker-input');
+                const previewIcon = container.querySelector('.icon-picker-preview i');
+                
+                input.value = iconName;
+                
+                if (previewIcon) {
+                    previewIcon.innerHTML = ''; 
+                    previewIcon.setAttribute('data-lucide', iconName);
+                    if (typeof lucide !== 'undefined') {
+                        lucide.createIcons({ nodes: [previewIcon] });
+                    }
+                }
+                
+                container.querySelector('.icon-picker-results').classList.add('hidden');
+                activeIconPicker = null;
+                // We rely on script-settings.js to trigger the autosave via bubbling click
+            }
+        });
+    }
     
-    DOM.settingsModal.addEventListener('focusin', (e) => {
-        // Show icon picker results on focus
-        const iconInput = e.target.closest('.icon-picker-input');
-         if (iconInput) {
-            const container = iconInput.closest('.icon-picker-container');
-            const results = container.querySelector('.icon-picker-results');
-            AppUI.renderIconPickerResults(iconInput.value, results);
-            activeIconPicker = results;
-        }
-    });
-    
-    // Close icon picker when clicking outside (moved from script-settings.js)
+    // Close icon picker when clicking outside
     document.addEventListener('click', (e) => {
         if (activeIconPicker && !activeIconPicker.closest('.icon-picker-container').contains(e.target)) {
             activeIconPicker.classList.add('hidden');
             activeIconPicker = null;
-        }
-    });
-
-    // Handle clicking an icon from the picker
-    DOM.settingsModal.addEventListener('click', (e) => {
-        const iconItem = e.target.closest('.icon-picker-item');
-        if (iconItem) {
-            const iconName = iconItem.dataset.iconName;
-            const container = iconItem.closest('.icon-picker-container');
-            const input = container.querySelector('.icon-picker-input');
-            const previewIcon = container.querySelector('.icon-picker-preview i');
-            
-            input.value = iconName;
-            
-            if (previewIcon) {
-                previewIcon.innerHTML = ''; 
-                previewIcon.setAttribute('data-lucide', iconName);
-                if (typeof lucide !== 'undefined') {
-                    lucide.createIcons({ nodes: [previewIcon] });
-                }
-            }
-            
-            container.querySelector('.icon-picker-results').classList.add('hidden');
-            activeIconPicker = null;
-            AppUI.triggerAutoSave(50); // Save the change
         }
     });
 }
@@ -433,49 +455,60 @@ AppUI.initReferenceEventListeners = function() {
     // --- Reference Modal Listeners ---
     
     // Delegation for Sidebar Buttons
-    DOM.referenceButtonsContainer.addEventListener('click', (e) => {
-        
-        // 1. Check for BMI Button
-        if (e.target.closest('#built-in-bmi-btn')) {
-            if (AppUI.openBmiModal) AppUI.openBmiModal();
-            return;
-        }
-
-        // 2. Check for A1C Button
-        if (e.target.closest('#built-in-a1c-btn')) {
-            DOM.a1cModal.classList.remove('hidden');
-            return;
-        }
-
-        // 3. Check for BP Button
-        if (e.target.closest('#built-in-bp-btn')) {
-            DOM.bpModal.classList.remove('hidden');
-            return;
-        }
-
-        // 4. Check for Testo Button
-        if (e.target.closest('#built-in-testo-btn')) {
-            DOM.testoModal.classList.remove('hidden');
-            return;
-        }
-
-        // 5. Check for Standard Reference Buttons
-        const button = e.target.closest('.reference-btn');
-        if (button && button.dataset.index !== undefined) {
-            const index = parseInt(button.dataset.index, 10);
-            const ref = appState.supplementDatabase.references[index];
-            if (ref) {
-                AppUI.openReferenceModal(ref);
+    if (DOM.referenceButtonsContainer) {
+        DOM.referenceButtonsContainer.addEventListener('click', (e) => {
+            
+            // 1. Check for BMI Button
+            if (e.target.closest('#built-in-bmi-btn')) {
+                if (AppUI.openBmiModal) AppUI.openBmiModal();
+                return;
             }
-        }
-    });
+
+            // 2. Check for A1C Button
+            if (e.target.closest('#built-in-a1c-btn')) {
+                if (DOM.a1cModal) DOM.a1cModal.classList.remove('hidden');
+                return;
+            }
+
+            // 3. Check for BP Button
+            if (e.target.closest('#built-in-bp-btn')) {
+                if (DOM.bpModal) DOM.bpModal.classList.remove('hidden');
+                return;
+            }
+
+            // 4. Check for Testo Button
+            if (e.target.closest('#built-in-testo-btn')) {
+                if (DOM.testoModal) DOM.testoModal.classList.remove('hidden');
+                return;
+            }
+
+            // 5. Check for PSA Button (NEW V7.23.0)
+            if (e.target.closest('#built-in-psa-btn')) {
+                if (DOM.psaModal) DOM.psaModal.classList.remove('hidden');
+                return;
+            }
+
+            // 6. Check for Standard Reference Buttons
+            const button = e.target.closest('.reference-btn');
+            if (button && button.dataset.index !== undefined) {
+                const index = parseInt(button.dataset.index, 10);
+                const ref = appState.supplementDatabase.references[index];
+                if (ref) {
+                    AppUI.openReferenceModal(ref);
+                }
+            }
+        });
+    }
     
     // Close Logic
-    DOM.referenceModalCloseBtn.addEventListener('click', AppUI.closeReferenceModal);
+    if (DOM.referenceModalCloseBtn) DOM.referenceModalCloseBtn.addEventListener('click', AppUI.closeReferenceModal);
     
     if (DOM.a1cModalCloseBtn) DOM.a1cModalCloseBtn.addEventListener('click', () => DOM.a1cModal.classList.add('hidden'));
     if (DOM.bpModalCloseBtn) DOM.bpModalCloseBtn.addEventListener('click', () => DOM.bpModal.classList.add('hidden'));
     if (DOM.testoModalCloseBtn) DOM.testoModalCloseBtn.addEventListener('click', () => DOM.testoModal.classList.add('hidden'));
+    
+    // NEW: PSA Close Logic
+    if (DOM.psaModalCloseBtn) DOM.psaModalCloseBtn.addEventListener('click', () => DOM.psaModal.classList.add('hidden'));
 
     // --- Global Shortcut Listener ---
     document.addEventListener('keydown', AppUI.handleReferenceKeydown);

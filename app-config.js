@@ -4,9 +4,12 @@
  * These are settings that do not change when the supplement database is swapped.
  */
 
-// NEW: This is the global manifest for all supplement databases.
-// All files in /database/ will add their configs to this object.
+// Global manifest for all supplement databases.
 const DATABASE_CONFIGS = {};
+
+// NEW: Global registry for Deep Knowledge Base content.
+// Individual files in the /knowledge/ folder will populate this object.
+const KNOWLEDGE_BASE = {};
 
 const APP_CONFIG = {
     // Default agent details

@@ -46,7 +46,7 @@
                     <div class="ml-3">
                         <h3 class="text-sm font-medium warning-title">Warning: Backup Your Settings</h3>
                         <div class="mt-2 text-sm warning-text">
-                            <p>Your settings are stored in this browser's local storage, which can be unstable and easily cleared. Please use the **Export** buttons below to download a backup file of your settings and custom databases.</p>
+                            <p>Your settings are stored in this browser's local storage, which can be unstable. Please use the **Export** buttons below to backup your settings.</p>
                         </div>
                     </div>
                 </div>
@@ -95,7 +95,7 @@
                     <div class="settings-subsection">
                         <h4 class="text-lg font-semibold text-yellow-400 mb-3">Edit Current Supplement: <span id="current-db-name-display" class="font-bold">...</span></h4>
                         
-                        <!-- NEW (V7.3.7): Product Line Editor -->
+                        <!-- Product Line Editor -->
                         <div class="p-4 bg-gray-900 rounded-lg mb-4">
                             <label class="block text-sm font-semibold text-blue-300 mb-1">Product Line</label>
                             <div class="relative">
@@ -131,6 +131,15 @@
                                 <div>
                                     <label class="text-xs text-gray-400">Guarantee Length (Days)</label>
                                     <input type="number" id="base-product-guarantee-setting" class="w-full bg-gray-700 text-white rounded p-2 text-sm">
+                                </div>
+                                <!-- NEW: Default Gender Setting -->
+                                <div>
+                                    <label class="text-xs text-gray-400">Default Gender</label>
+                                    <select id="base-product-gender-setting" class="w-full bg-gray-700 text-white rounded p-2 text-sm">
+                                        <option value="any">Any (Unspecified)</option>
+                                        <option value="male">Male</option>
+                                        <option value="female">Female</option>
+                                    </select>
                                 </div>
                             </div>
                         </div>
@@ -195,9 +204,6 @@
                         </div>
                     </div>
                 </section>
-
-                <!-- Section 3 Removed (Content moved to Section 2) -->
-
             </div>
 
             <!-- Settings Footer -->
@@ -214,7 +220,7 @@
         </div>
     </div>
     
-    <!-- Library Import Modal (Simplified V7.6.0) -->
+    <!-- Library Import Modal -->
     <div id="library-import-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-90 z-[60] p-4 overflow-y-auto">
         <div class="bg-gray-800 rounded-2xl shadow-2xl p-6 md:p-8 w-full max-w-4xl border border-gray-700 flex flex-col mx-auto my-8 relative">
             <div class="flex justify-between items-center mb-6 flex-shrink-0">
@@ -225,17 +231,12 @@
                     </svg>
                 </button>
             </div>
-            
             <div class="space-y-6 flex-1 min-h-[300px]">
-                
-                <!-- Info Header -->
                 <div class="bg-gray-900 p-4 rounded-lg border border-gray-700">
                     <p class="text-sm text-gray-400 mb-1 uppercase tracking-wider font-semibold">Current Product Line</p>
                     <p id="lib-current-line-display" class="text-xl font-bold text-blue-400">...</p>
                     <p class="text-xs text-gray-500 mt-2">Showing all available supplements in this product line from all databases.</p>
                 </div>
-
-                <!-- Search Input -->
                 <div class="relative">
                     <label class="block text-sm font-medium text-gray-300 mb-1">Search Supplement</label>
                     <div class="relative">
@@ -246,11 +247,9 @@
                             </svg>
                         </div>
                     </div>
-                    <!-- Results Dropdown (Always visible/scrollable in this context) -->
                     <div id="lib-supplement-results" class="hidden mt-2 w-full bg-gray-700 border border-gray-600 rounded-lg shadow-xl z-10 max-h-96 overflow-y-auto"></div>
                 </div>
             </div>
-
             <div class="mt-8 flex justify-end gap-3 flex-shrink-0">
                 <button id="library-import-cancel-btn" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg transition-colors">Cancel</button>
             </div>
@@ -268,9 +267,7 @@
                     </svg>
                 </button>
             </div>
-            <div id="quick-edit-content" class="space-y-6 overflow-y-auto pr-2 flex-1">
-                <!-- Content injected by script-settings.js -->
-            </div>
+            <div id="quick-edit-content" class="space-y-6 overflow-y-auto pr-2 flex-1"></div>
         </div>
     </div>
 
@@ -278,14 +275,10 @@
     <div id="reset-confirm-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-80 flex items-center justify-center z-50 p-4">
         <div class="bg-gray-800 rounded-2xl shadow-2xl p-6 md:p-8 w-full max-w-md">
             <h2 class="text-2xl font-bold text-white mb-4">Reset for Next Call?</h2>
-            <p class="text-gray-300 mb-6">This will clear the client's name, reset the regimen, and reset the call timer. Your saved settings (agent info, timer segments, etc.) will not be affected.</p>
+            <p class="text-gray-300 mb-6">This will clear the client's name, reset the regimen, and reset the call timer.</p>
             <div class="flex justify-end gap-4">
-                <button id="reset-cancel-btn" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-5 rounded-lg transition-colors">
-                    Cancel
-                </button>
-                <button id="reset-confirm-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-5 rounded-lg transition-colors">
-                    Reset Call
-                </button>
+                <button id="reset-cancel-btn" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-5 rounded-lg transition-colors">Cancel</button>
+                <button id="reset-confirm-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-5 rounded-lg transition-colors">Reset Call</button>
             </div>
         </div>
     </div>
@@ -294,15 +287,11 @@
     <div id="reset-defaults-confirm-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-80 flex items-center justify-center z-50 p-4">
         <div class="bg-gray-800 rounded-2xl shadow-2xl p-6 md:p-8 w-full max-w-md">
             <h2 class="text-2xl font-bold text-white mb-4">Reset All Settings & Data?</h2>
-            <p class="text-gray-300 mb-6">This will erase ALL your saved data (Agent Name, Segments, and ALL supplement edits) and restore the original defaults. This action cannot be undone.</p>
+            <p class="text-gray-300 mb-6">This will erase ALL your saved data (Agent Name, Segments, and ALL supplement edits).</p>
             <p class="text-yellow-400 font-semibold mb-6">Are you sure you want to proceed?</p>
             <div class="flex justify-end gap-4">
-                <button id="reset-defaults-cancel-btn" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-5 rounded-lg transition-colors">
-                    Cancel
-                </button>
-                <button id="reset-defaults-confirm-btn" class="bg-red-800 hover:bg-red-700 text-white font-bold py-2 px-5 rounded-lg transition-colors">
-                    Yes, Reset All
-                </button>
+                <button id="reset-defaults-cancel-btn" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-5 rounded-lg transition-colors">Cancel</button>
+                <button id="reset-defaults-confirm-btn" class="bg-red-800 hover:bg-red-700 text-white font-bold py-2 px-5 rounded-lg transition-colors">Yes, Reset All</button>
             </div>
         </div>
     </div>
@@ -322,12 +311,8 @@
             <textarea id="import-textarea" class="import-textarea" placeholder="{ ... }"></textarea>
             <div id="import-message" class="import-message mt-2"></div>
             <div class="flex justify-end gap-4 mt-6">
-                <button id="import-cancel-btn" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-5 rounded-lg transition-colors">
-                    Cancel
-                </button>
-                <button id="import-confirm-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-5 rounded-lg transition-colors">
-                    Import & Save
-                </button>
+                <button id="import-cancel-btn" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-5 rounded-lg transition-colors">Cancel</button>
+                <button id="import-confirm-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-5 rounded-lg transition-colors">Import & Save</button>
             </div>
         </div>
     </div>
@@ -335,7 +320,6 @@
     <!-- Reference Modal -->
     <div id="reference-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-80 flex items-center justify-center z-50 p-4">
         <div class="bg-gray-800 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
-            <!-- Modal Header -->
             <div class="flex justify-between items-center p-4 md:p-6 border-b border-gray-700 flex-shrink-0">
                 <h2 id="reference-modal-title" class="text-2xl font-bold text-white">Reference</h2>
                 <button id="reference-modal-close-btn" class="text-gray-400 hover:text-white transition-colors">
@@ -344,17 +328,13 @@
                     </svg>
                 </button>
             </div>
-            <!-- Modal Content (Scrollable) -->
-            <div id="reference-modal-content" class="p-4 md:p-6 overflow-y-auto flex-1">
-                <!-- Content (Image or iFrame) will be injected here -->
-            </div>
+            <div id="reference-modal-content" class="p-4 md:p-6 overflow-y-auto flex-1"></div>
         </div>
     </div>
 
-    <!-- NEW (V7.4.0): BMI Calculator Modal -->
+    <!-- BMI Modal -->
     <div id="bmi-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-80 flex items-center justify-center z-50 p-4">
         <div class="bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md border border-blue-900/50">
-            <!-- Header -->
             <div class="flex justify-between items-center p-6 border-b border-gray-700">
                 <h2 class="text-2xl font-bold text-white flex items-center gap-2">
                     <i data-lucide="calculator" class="w-6 h-6 text-blue-400"></i>
@@ -366,17 +346,12 @@
                     </svg>
                 </button>
             </div>
-            
             <div class="p-6 space-y-6">
-                <!-- Unit Toggle -->
                 <div class="flex bg-gray-700 rounded-lg p-1">
                     <div id="bmi-unit-standard" class="unit-toggle-btn active" data-unit="standard">Standard (lb/ft)</div>
                     <div id="bmi-unit-metric" class="unit-toggle-btn" data-unit="metric">Metric (kg/cm)</div>
                 </div>
-
-                <!-- Inputs -->
                 <div class="space-y-4">
-                    <!-- Standard Inputs -->
                     <div id="bmi-inputs-standard" class="grid grid-cols-2 gap-4">
                         <div class="col-span-2">
                             <label class="block text-xs font-semibold text-gray-400 mb-1 uppercase">Weight (lbs)</label>
@@ -391,8 +366,6 @@
                             <input type="number" id="bmi-height-in" class="w-full bg-gray-700 border-gray-600 text-white rounded-lg p-3 text-lg font-semibold focus:ring-2 focus:ring-blue-500" placeholder="10">
                         </div>
                     </div>
-
-                    <!-- Metric Inputs (Hidden by default) -->
                     <div id="bmi-inputs-metric" class="grid grid-cols-2 gap-4 hidden">
                         <div>
                             <label class="block text-xs font-semibold text-gray-400 mb-1 uppercase">Weight (kg)</label>
@@ -404,15 +377,11 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- Result Display -->
                 <div class="bmi-result-display">
                     <div class="text-sm text-gray-400 uppercase tracking-wide font-semibold">Calculated BMI</div>
                     <div id="bmi-result-value" class="bmi-value-large">--.-</div>
                     <div id="bmi-result-category" class="bmi-category-badge bg-gray-800 text-gray-500">Enter Details</div>
                 </div>
-
-                <!-- NEW V7.5.0: Healthy Range & Goal Grid -->
                 <div class="bmi-details-container">
                     <div class="bmi-detail-item">
                         <div class="bmi-detail-label">Healthy Range</div>
@@ -427,7 +396,7 @@
         </div>
     </div>
 
-    <!-- NEW (V7.8.0): A1C Chart Modal (UPDATED V7.8.1 with eAG Table) -->
+    <!-- A1C Modal -->
     <div id="a1c-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-80 flex items-center justify-center z-50 p-4">
         <div class="bg-gray-800 rounded-2xl shadow-2xl w-full max-w-lg border border-purple-900/50 max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center p-6 border-b border-gray-700">
@@ -499,7 +468,7 @@
         </div>
     </div>
 
-    <!-- NEW (V7.8.0): Blood Pressure Chart Modal -->
+    <!-- Blood Pressure Modal -->
     <div id="bp-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-80 flex items-center justify-center z-50 p-4">
         <div class="bg-gray-800 rounded-2xl shadow-2xl w-full max-w-xl border border-red-900/50">
             <div class="flex justify-between items-center p-6 border-b border-gray-700">
@@ -559,7 +528,7 @@
         </div>
     </div>
 
-    <!-- NEW (V7.8.0): Testosterone Chart Modal -->
+    <!-- Testosterone Modal -->
     <div id="testo-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-80 flex items-center justify-center z-50 p-4">
         <div class="bg-gray-800 rounded-2xl shadow-2xl w-full max-w-lg border border-yellow-900/50">
             <div class="flex justify-between items-center p-6 border-b border-gray-700">
@@ -617,6 +586,88 @@
         </div>
     </div>
 
+    <!-- NEW: PSA Chart Modal -->
+    <div id="psa-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-80 flex items-center justify-center z-50 p-4">
+        <div class="bg-gray-800 rounded-2xl shadow-2xl w-full max-w-lg border border-green-900/50">
+            <div class="flex justify-between items-center p-6 border-b border-gray-700">
+                <h2 class="text-2xl font-bold text-white flex items-center gap-2">
+                    <i data-lucide="activity" class="w-6 h-6 text-green-400"></i>
+                    PSA Levels
+                </h2>
+                <button id="psa-modal-close-btn" class="text-gray-400 hover:text-white transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div class="p-6">
+                <!-- Age-Adjusted Reference Ranges -->
+                <div class="overflow-hidden rounded-lg border border-gray-700 mb-6">
+                    <div class="bg-gray-900 px-4 py-2 border-b border-gray-700">
+                        <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wide">Age-Adjusted Normal Ranges</h3>
+                    </div>
+                    <table class="min-w-full text-left text-sm">
+                        <tbody class="divide-y divide-gray-700 bg-gray-800">
+                            <tr class="hover:bg-gray-700/50">
+                                <td class="px-4 py-3 font-medium text-gray-300">Age 40 - 49</td>
+                                <td class="px-4 py-3 text-right text-green-300">0 - 2.5 ng/mL</td>
+                            </tr>
+                            <tr class="hover:bg-gray-700/50">
+                                <td class="px-4 py-3 font-medium text-gray-300">Age 50 - 59</td>
+                                <td class="px-4 py-3 text-right text-green-300">0 - 3.5 ng/mL</td>
+                            </tr>
+                            <tr class="hover:bg-gray-700/50">
+                                <td class="px-4 py-3 font-medium text-gray-300">Age 60 - 69</td>
+                                <td class="px-4 py-3 text-right text-green-300">0 - 4.5 ng/mL</td>
+                            </tr>
+                            <tr class="hover:bg-gray-700/50">
+                                <td class="px-4 py-3 font-medium text-gray-300">Age 70 - 79</td>
+                                <td class="px-4 py-3 text-right text-green-300">0 - 6.5 ng/mL</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Risk Categories -->
+                <div class="space-y-3">
+                    <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wide mb-2">General Risk Assessment</h3>
+                    <div class="bg-gray-700/50 rounded-lg p-3 border-l-4 border-green-500 flex justify-between items-center">
+                        <span class="font-bold text-green-400">Safe / Normal</span>
+                        <span class="font-mono font-bold">0 - 4.0</span>
+                    </div>
+                    <div class="bg-gray-700/50 rounded-lg p-3 border-l-4 border-yellow-500 flex justify-between items-center">
+                        <span class="font-bold text-yellow-400">Suspicious / BPH</span>
+                        <span class="font-mono font-bold">4.0 - 10.0</span>
+                    </div>
+                    <div class="bg-gray-700/50 rounded-lg p-3 border-l-4 border-red-500 flex justify-between items-center">
+                        <span class="font-bold text-red-400">High Risk</span>
+                        <span class="font-mono font-bold">10.0 +</span>
+                    </div>
+                </div>
+                
+                <p class="text-xs text-gray-500 mt-4 italic">* PSA can be elevated by infection, BPH, or recent activity. It is not a definitive cancer diagnosis.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- NEW: KNOWLEDGE BASE MODAL -->
+    <div id="knowledge-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-95 z-[70] p-4 overflow-y-auto">
+        <div class="bg-white text-gray-900 rounded-2xl shadow-2xl w-full max-w-5xl mx-auto my-8 flex flex-col relative min-h-[80vh]">
+            <!-- Header -->
+            <div class="flex justify-between items-center p-6 border-b border-gray-200 bg-gray-50 rounded-t-2xl sticky top-0 z-10">
+                <h2 id="knowledge-modal-title" class="text-3xl font-bold text-gray-800">Deep Knowledge</h2>
+                <button id="knowledge-modal-close-btn" class="text-gray-500 hover:text-gray-800 transition-colors p-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <!-- Content (Typography Optimized for Reading) -->
+            <div id="knowledge-modal-content" class="p-8 md:p-12 overflow-y-auto flex-1 prose prose-lg max-w-none prose-headings:text-gray-800 prose-p:text-gray-700 prose-li:text-gray-700">
+                <!-- Content injected here -->
+            </div>
+        </div>
+    </div>
 
     <div class="flex flex-col lg:flex-row min-h-screen">
         
@@ -870,6 +921,11 @@
         <!-- Sidebar -->
         <aside class="w-full lg:w-1/3 xl:w-1/4 bg-gray-800 p-6 shadow-2xl overflow-y-auto lg:sticky lg:top-0 lg:h-screen pb-24">
             
+            <!-- NEW: Knowledge Button Container -->
+            <div id="knowledge-btn-container">
+                <!-- Injected via script-knowledge.js -->
+            </div>
+
             <!-- NEW: Reference Buttons -->
             <div class="mb-6">
                 <h2 class="text-2xl font-semibold text-white border-b border-gray-700 pb-3 mb-4">References</h2>

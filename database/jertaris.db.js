@@ -12,6 +12,7 @@ DATABASE_CONFIGS["Jertaris"] = {
         "gender": "male"
     },
     "guaranteeDays": 60,
+    "knowledgeBase": "Jertaris",
     "questions": [
         {
             "id": "q-pros-1",
@@ -47,26 +48,6 @@ DATABASE_CONFIGS["Jertaris"] = {
             "id": "q-pros-7",
             "text": "Any issues with erectile dysfunction or low libido? (Erectozyn)",
             "group": "Sexual Health"
-        },
-        {
-            "id": "q-univ-1",
-            "text": "What is your Height and Weight? (Duration Logic)",
-            "group": "Closing"
-        },
-        {
-            "id": "q-univ-2",
-            "text": "Do you have any Thyroid issues? (Dosing Instruction)",
-            "group": "Closing"
-        },
-        {
-            "id": "q-univ-3",
-            "text": "Do you have anyone military in the family? (Discount Applied)",
-            "group": "Closing"
-        },
-        {
-            "id": "q-univ-4",
-            "text": "Are you good at remembering to take things? (Commitment)",
-            "group": "Closing"
         }
     ],
     "recommendations": [
@@ -140,6 +121,5 @@ DATABASE_CONFIGS["Jertaris"] = {
         { "id": "g-pros", "name": "Prostate Symptoms", "gender": "male" },
         { "id": "g-circ", "name": "Circulation", "gender": "any" },
         { "id": "g-sex", "name": "Sexual Health", "gender": "male" },
-        { "id": "g-close", "name": "Closing", "gender": "any" }
     ]
 };

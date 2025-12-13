@@ -12,6 +12,7 @@ DATABASE_CONFIGS["Laellium"] = {
         "gender": "any"
     },
     "guaranteeDays": 60,
+    "knowledgeBase": "Laellium",
     "questions": [
         {
             "id": "q-wl-1",
@@ -47,21 +48,6 @@ DATABASE_CONFIGS["Laellium"] = {
             "id": "q-wl-5",
             "text": "Are you sleeping well at night?",
             "group": "Sleep"
-        },
-        {
-            "id": "q-univ-2",
-            "text": "Do you have any Thyroid issues? (Dosing Instruction)",
-            "group": "Closing"
-        },
-        {
-            "id": "q-univ-3",
-            "text": "Do you have anyone military in the family? (Discount Applied)",
-            "group": "Closing"
-        },
-        {
-            "id": "q-univ-4",
-            "text": "Are you good at remembering to take things? (Commitment)",
-            "group": "Closing"
         }
     ],
     "recommendations": [
@@ -149,6 +135,5 @@ DATABASE_CONFIGS["Laellium"] = {
         { "id": "g-stress", "name": "Body Stress", "gender": "any" },
         { "id": "g-hist", "name": "History", "gender": "any" },
         { "id": "g-sleep", "name": "Sleep", "gender": "any" },
-        { "id": "g-close", "name": "Closing", "gender": "any" }
     ]
 };

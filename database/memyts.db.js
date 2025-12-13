@@ -12,6 +12,7 @@ DATABASE_CONFIGS["Memyts"] = {
         "gender": "any"
     },
     "guaranteeDays": 60,
+    "knowledgeBase": "Memyts",
     "questions": [
         {
             "id": "q-mem-1",
@@ -57,26 +58,6 @@ DATABASE_CONFIGS["Memyts"] = {
             "id": "q-mem-9",
             "text": "History of Dementia/Alzheimer's in the family? (Duration Logic)",
             "group": "Duration Logic"
-        },
-        {
-            "id": "q-univ-1",
-            "text": "What is your Height and Weight? (18mo vs 24mo)",
-            "group": "Closing"
-        },
-        {
-            "id": "q-univ-2",
-            "text": "Do you have any Thyroid issues? (Dosing Instruction)",
-            "group": "Closing"
-        },
-        {
-            "id": "q-univ-3",
-            "text": "Do you have anyone military in the family? (Discount Applied)",
-            "group": "Closing"
-        },
-        {
-            "id": "q-univ-4",
-            "text": "Are you good at remembering to take things? (Commitment)",
-            "group": "Closing"
         }
     ],
     "recommendations": [
@@ -153,7 +134,6 @@ DATABASE_CONFIGS["Memyts"] = {
         { "id": "g-neuro", "name": "Neuropathy Check", "gender": "any" },
         { "id": "g-valid", "name": "Validation", "gender": "any" },
         { "id": "g-dur", "name": "Duration Logic", "gender": "any" },
-        { "id": "g-close", "name": "Closing", "gender": "any" }
     ],
     "references": []
 };
