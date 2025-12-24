@@ -1,17 +1,16 @@
 /**
- * GaraHerb (Men's Health Base)
+ * GaraHerb (Men's Health)
  * Database file for the "GaraHerb" supplement.
  * Product Line: Digital Lions
- * Protocol: Men's Health (ED & Prostate)
+ * Protocol: Men's Health
  */
 DATABASE_CONFIGS["GaraHerb"] = {
     "productLine": "Digital Lions",
     "baseProduct": {
         "name": "GaraHerb (Base)",
-        "pitch": "Primary Men's Health Support. 1 cap per day.",
+        "pitch": "Primary Men's Health Support. 1 cap per day.\" While your testosterone support handles the internal drive, Garaherb ensures the circulatory system has the support to help the blood flow from the groin to the tip of the penis.\"",
         "gender": "male"
     },
-    // NEW LINK
     "knowledgeBase": "GaraHerb",
     "guaranteeDays": 60,
     "questions": [
@@ -60,20 +59,20 @@ DATABASE_CONFIGS["GaraHerb"] = {
                 {
                     "id": "symp-testo",
                     "text": "Low Testosterone / Low Libido",
-                    "pitch": "Booster included for Testosterone boosting, energy, or libido issues.",
-                    "benefit": "help boost testosterone and libido"
+                    "pitch": "\"Erectozyn is designed to support the body’s natural testosterone production, providing the essential hormonal 'spark' that activates the drive and maintains the tissue health required for reliable, peak performance.\"",
+                    "benefit": "help boost testosterone - libido, tissue integrity (corpus cavernosum - sponge like tissues in penis), nitric oxide production, and nerve health"
                 }
             ]
         },
         {
             "id": "supp-tenurina",
             "name": "Tenurina",
-            "gender": "any",
+            "gender": "male",
             "symptoms": [
                 {
                     "id": "symp-circ",
                     "text": "Blood Pressure / Circulation Issues",
-                    "pitch": "Circulation support included for blood flow. We need to ensure oxygenated blood is reaching the area.",
+                    "pitch": "Tenurima helps promote optimal vasodilation and blood flow, supporting long term circulatory power required to achieve and maintain peak performance.\"",
                     "benefit": "help ensure blood flow reaches the area"
                 }
             ]
@@ -81,12 +80,12 @@ DATABASE_CONFIGS["GaraHerb"] = {
         {
             "id": "supp-arialief",
             "name": "Arialief",
-            "gender": "any",
+            "gender": "male",
             "symptoms": [
                 {
                     "id": "symp-numbness",
                     "text": "Numbness / Sensation Issues",
-                    "pitch": "Repair support included for sensation issues. This strengthens the penile nerve to restore pleasure.",
+                    "pitch": "Arialief supports the health of the nerves that send \"performance\" signals from the brain to the pelvic region This helps to strengthens the penile nerve to restore pleasure.",
                     "benefit": "help restore sensation and pleasure"
                 }
             ]
@@ -94,12 +93,12 @@ DATABASE_CONFIGS["GaraHerb"] = {
         {
             "id": "supp-cetadusse",
             "name": "Cetadusse",
-            "gender": "any",
+            "gender": "male",
             "symptoms": [
                 {
                     "id": "symp-diabetes",
                     "text": "Diabetes / Pre-Diabetes",
-                    "pitch": "Included because sugar damages blood vessels. We need to repair this damage to ensure blood can reach the area.",
+                    "pitch": "\"Cetadusse helps maintain healthy blood sugar levels, which supports the protection of the delicate blood vessels and nerves from the oxidative damage that can hinder reliable performance.\"",
                     "benefit": "help repair sugar-induced vessel damage"
                 }
             ]
@@ -112,7 +111,7 @@ DATABASE_CONFIGS["GaraHerb"] = {
                 {
                     "id": "symp-prostate",
                     "text": "Prostate Issues (Frequency, Swelling)",
-                    "pitch": "Included to alleviate prostate blockages permanently.",
+                    "pitch": "\"Jertaris helps promote optimal prostate health and pelvic comfort, helping reduce urinary and structural pressure so they shouldn't interfere with the healthy nerve signaling and blood flow needed for peak performance.\"",
                     "benefit": "help alleviate prostate blockages"
                 }
             ]
@@ -120,22 +119,43 @@ DATABASE_CONFIGS["GaraHerb"] = {
         {
             "id": "supp-resverador",
             "name": "Resverador",
-            "gender": "any",
+            "gender": "male",
             "symptoms": [
                 {
                     "id": "symp-inflam",
                     "text": "Inflammation",
-                    "pitch": "Reduces inflammation that might be blocking blood flow pathways.",
+                    "pitch": "\"Resverador delivers potent antioxidants that help the body manage oxidative stress and inflammation, which is essential for supporting the delicate lining of your blood vessels and ensuring they can relax and expand for optimal performance.\"",
                     "benefit": "help reduce inflammation blocking blood flow"
                 }
             ]
         }
     ],
     "questionGroups": [
-        { "id": "g-ed", "name": "Erectile Dysfunction", "gender": "male" },
-        { "id": "g-med", "name": "Medical History", "gender": "any" },
-        { "id": "g-neuro", "name": "Neuropathy Check", "gender": "any" },
-        { "id": "g-pros", "name": "Prostate", "gender": "male" },
-        { "id": "g-horm", "name": "Hormonal", "gender": "male" },
-    ]
+        {
+            "id": "g-ed",
+            "name": "Erectile Dysfunction",
+            "gender": "male"
+        },
+        {
+            "id": "g-med",
+            "name": "Medical History",
+            "gender": "any"
+        },
+        {
+            "id": "g-neuro",
+            "name": "Neuropathy Check",
+            "gender": "any"
+        },
+        {
+            "id": "g-pros",
+            "name": "Prostate",
+            "gender": "male"
+        },
+        {
+            "id": "g-horm",
+            "name": "Hormonal",
+            "gender": "male"
+        }
+    ],
+    "references": []
 };
