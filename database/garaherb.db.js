@@ -1,14 +1,13 @@
 /**
- * GaraHerb (Men's Health)
- * Database file for the "GaraHerb" supplement.
- * Product Line: Digital Lions
- * Protocol: Men's Health
+ * GaraHerb (Digital Lions)
+ * Database file for "GaraHerb"
+ * Protocol: Male Potency & Nitric Oxide Support
  */
 DATABASE_CONFIGS["GaraHerb"] = {
     "productLine": "Digital Lions",
     "baseProduct": {
         "name": "GaraHerb (Base)",
-        "pitch": "Primary Men's Health Support. 1 cap per day.\" While your testosterone support handles the internal drive, Garaherb ensures the circulatory system has the support to help the blood flow from the groin to the tip of the penis.\"",
+        "pitch": "This formula targets Nitric Oxide production to maximize blood flow and hydraulic pressure for reliable performance.",
         "gender": "male"
     },
     "knowledgeBase": "GaraHerb",
@@ -16,90 +15,56 @@ DATABASE_CONFIGS["GaraHerb"] = {
     "questions": [
         {
             "id": "q-gh-1",
-            "text": "Issues getting or maintaining an erection? (Diagnostic)",
-            "group": "Erectile Dysfunction"
+            "text": "Are you struggling with firmness, duration, or getting started?",
+            "group": "Symptoms"
         },
         {
             "id": "q-gh-2",
-            "text": "Are you still ever ejaculating? (Jertaris)",
-            "group": "Erectile Dysfunction"
+            "text": "How long has this been affecting your confidence?",
+            "group": "Impact"
         },
         {
             "id": "q-gh-3",
-            "text": "Are you Diabetic or Pre-Diabetic? (Cetadusse)",
-            "group": "Medical History"
+            "text": "Do you have high blood pressure or poor circulation in your hands/feet? (Tenurina)",
+            "group": "Circulation"
         },
         {
             "id": "q-gh-4",
-            "text": "Do you have blood pressure issues? (Tenurina)",
-            "group": "Medical History"
-        },
-        {
-            "id": "q-gh-5",
-            "text": "Tingling or numbness in feet or hands? (Arialief)",
-            "group": "Neuropathy Check"
-        },
-        {
-            "id": "q-gh-6",
-            "text": "Prostate issues? Inflammation? (Jertaris or Resverador)",
+            "text": "Do you wake up to urinate frequently at night? (Jertaris)",
             "group": "Prostate"
         },
         {
+            "id": "q-gh-5",
+            "text": "Do you feel like your overall drive and energy is low? (Erectozyn)",
+            "group": "Testosterone"
+        },
+        {
+            "id": "q-gh-6",
+            "text": "Are you managing Diabetes or high blood sugar? (Cetadusse)",
+            "group": "Medical History"
+        },
+        {
             "id": "q-gh-7",
-            "text": "Have you been told you have low testosterone? (Erectozyn)",
-            "group": "Hormonal"
+            "text": "Do you have numbness or lack of sensation? (Arialief)",
+            "group": "Nerve Health"
+        },
+        {
+            "id": "q-gh-8",
+            "text": "Do you have joint pain or systemic inflammation? (Resverador)",
+            "group": "Inflammation"
         }
     ],
     "recommendations": [
         {
-            "id": "supp-erectozyn",
-            "name": "Erectozyn",
-            "gender": "male",
-            "symptoms": [
-                {
-                    "id": "symp-testo",
-                    "text": "Low Testosterone / Low Libido",
-                    "pitch": "\"Erectozyn is designed to support the body’s natural testosterone production, providing the essential hormonal 'spark' that activates the drive and maintains the tissue health required for reliable, peak performance.\"",
-                    "benefit": "help boost testosterone - libido, tissue integrity (corpus cavernosum - sponge like tissues in penis), nitric oxide production, and nerve health"
-                }
-            ]
-        },
-        {
             "id": "supp-tenurina",
             "name": "Tenurina",
-            "gender": "male",
+            "gender": "any",
             "symptoms": [
                 {
                     "id": "symp-circ",
-                    "text": "Blood Pressure / Circulation Issues",
-                    "pitch": "Tenurima helps promote optimal vasodilation and blood flow, supporting long term circulatory power required to achieve and maintain peak performance.\"",
-                    "benefit": "help ensure blood flow reaches the area"
-                }
-            ]
-        },
-        {
-            "id": "supp-arialief",
-            "name": "Arialief",
-            "gender": "male",
-            "symptoms": [
-                {
-                    "id": "symp-numbness",
-                    "text": "Numbness / Sensation Issues",
-                    "pitch": "Arialief supports the health of the nerves that send \"performance\" signals from the brain to the pelvic region This helps to strengthens the penile nerve to restore pleasure.",
-                    "benefit": "help restore sensation and pleasure"
-                }
-            ]
-        },
-        {
-            "id": "supp-cetadusse",
-            "name": "Cetadusse",
-            "gender": "male",
-            "symptoms": [
-                {
-                    "id": "symp-diabetes",
-                    "text": "Diabetes / Pre-Diabetes",
-                    "pitch": "\"Cetadusse helps maintain healthy blood sugar levels, which supports the protection of the delicate blood vessels and nerves from the oxidative damage that can hinder reliable performance.\"",
-                    "benefit": "help repair sugar-induced vessel damage"
+                    "text": "High BP / Poor Circulation",
+                    "pitch": "GaraHerb signals the vessels to open, but Tenurina repairs the vessel walls so they are flexible enough to respond. They work together to maximize pressure.",
+                    "benefit": "help repair blood vessels for maximum flow"
                 }
             ]
         },
@@ -110,52 +75,74 @@ DATABASE_CONFIGS["GaraHerb"] = {
             "symptoms": [
                 {
                     "id": "symp-prostate",
-                    "text": "Prostate Issues (Frequency, Swelling)",
-                    "pitch": "\"Jertaris helps promote optimal prostate health and pelvic comfort, helping reduce urinary and structural pressure so they shouldn't interfere with the healthy nerve signaling and blood flow needed for peak performance.\"",
-                    "benefit": "help alleviate prostate blockages"
+                    "text": "Frequent Urination / Weak Stream",
+                    "pitch": "You can't get full flow if the pipe is clamped shut. Jertaris shrinks the prostate to remove the physical blockage in the pelvic floor.",
+                    "benefit": "help clear prostate blockages"
+                }
+            ]
+        },
+        {
+            "id": "supp-erectozyn",
+            "name": "Erectozyn",
+            "gender": "male",
+            "symptoms": [
+                {
+                    "id": "symp-libido",
+                    "text": "Low Drive / Low Energy",
+                    "pitch": "Circulation is the mechanics, but Testosterone is the fuel. Erectozyn boosts your natural drive so you are ready when the moment strikes.",
+                    "benefit": "help boost testosterone and libido"
+                }
+            ]
+        },
+        {
+            "id": "supp-arialief",
+            "name": "Arialief",
+            "gender": "any",
+            "symptoms": [
+                {
+                    "id": "symp-numbness",
+                    "text": "Numbness / Delayed Response",
+                    "pitch": "If you have low sensation, the nerve signal isn't reaching the brain fast enough. Arialief strengthens the nerve wiring to restore pleasure and response speed.",
+                    "benefit": "help restore nerve sensation and signaling"
+                }
+            ]
+        },
+        {
+            "id": "supp-cetadusse",
+            "name": "Cetadusse",
+            "gender": "any",
+            "symptoms": [
+                {
+                    "id": "symp-diabetes",
+                    "text": "Diabetes / High Blood Sugar",
+                    "pitch": "Sugar damages the valves in your veins, leading to 'Venous Leak' (losing firmness). Cetadusse stops this damage to help you maintain the erection.",
+                    "benefit": "help protect veins from sugar damage"
                 }
             ]
         },
         {
             "id": "supp-resverador",
             "name": "Resverador",
-            "gender": "male",
+            "gender": "any",
             "symptoms": [
                 {
                     "id": "symp-inflam",
-                    "text": "Inflammation",
-                    "pitch": "\"Resverador delivers potent antioxidants that help the body manage oxidative stress and inflammation, which is essential for supporting the delicate lining of your blood vessels and ensuring they can relax and expand for optimal performance.\"",
+                    "text": "Inflammation / Swelling",
+                    "pitch": "Inflammation lowers testosterone and restricts blood flow. Resverador clears system-wide inflammation to improve overall vascular health.",
                     "benefit": "help reduce inflammation blocking blood flow"
                 }
             ]
         }
     ],
     "questionGroups": [
-        {
-            "id": "g-ed",
-            "name": "Erectile Dysfunction",
-            "gender": "male"
-        },
-        {
-            "id": "g-med",
-            "name": "Medical History",
-            "gender": "any"
-        },
-        {
-            "id": "g-neuro",
-            "name": "Neuropathy Check",
-            "gender": "any"
-        },
-        {
-            "id": "g-pros",
-            "name": "Prostate",
-            "gender": "male"
-        },
-        {
-            "id": "g-horm",
-            "name": "Hormonal",
-            "gender": "male"
-        }
+        { "id": "g-symp", "name": "Symptoms", "gender": "any" },
+        { "id": "g-imp", "name": "Impact", "gender": "any" },
+        { "id": "g-circ", "name": "Circulation", "gender": "any" },
+        { "id": "g-pros", "name": "Prostate", "gender": "male" },
+        { "id": "g-test", "name": "Testosterone", "gender": "male" },
+        { "id": "g-med", "name": "Medical History", "gender": "any" },
+        { "id": "g-nerve", "name": "Nerve Health", "gender": "any" },
+        { "id": "g-inf", "name": "Inflammation", "gender": "any" }
     ],
     "references": []
 };

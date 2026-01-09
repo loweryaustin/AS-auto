@@ -3,7 +3,7 @@ KNOWLEDGE_BASE["Arialief"] = `
     <h1>Arialief & Neuropathy Deep Dive</h1>
     
     <div class="p-4 bg-yellow-50 rounded-lg border-l-4 border-yellow-500 mb-6">
-        <p class="text-sm italic"><strong>The Core Concept:</strong> Neuropathy is not a disease; it is the *result* of a disease attacking your wiring. Your nerves are electrical wires. The insulation (Myelin) is being stripped off, causing short circuits (pain) and eventually dead wires (numbness).</p>
+        <p class="text-sm italic"><strong>The Core Concept:</strong> Neuropathy is not a disease; it is the *result* of damage to your wiring. Your nerves are electrical wires. The insulation (Myelin) is being stripped off, causing short circuits (pain) and eventually dead wires (numbness).</p>
     </div>
 
     <h2>1. Medical Glossary</h2>
@@ -12,7 +12,6 @@ KNOWLEDGE_BASE["Arialief"] = `
         <li><strong>Myelin Sheath:</strong> The fatty protective coating around your nerves (like the rubber coating on a phone charger). When this is damaged, the "bare wire" is exposed, causing burning pain.</li>
         <li><strong>Axon:</strong> The core of the nerve fiber. If the Myelin is damaged for too long, the Axon dies. This is when pain turns into permanent numbness.</li>
         <li><strong>Paresthesia:</strong> The medical term for "pins and needles," tingling, or the feeling of ants crawling on the skin.</li>
-        <li><strong>Small Fiber Neuropathy:</strong> Damage to the tiny nerve fibers in the skin that sense pain and temperature. Often the first stage of diabetic neuropathy.</li>
     </ul>
 
     <hr class="my-6 border-gray-300">
@@ -23,14 +22,8 @@ KNOWLEDGE_BASE["Arialief"] = `
     <ul class="list-disc pl-5 mb-4">
         <li><strong>Mechanism:</strong> These are anti-seizure medications. They work by blocking calcium channels in the brain to "turn down the volume" on pain signals.</li>
         <li><strong>The Problem:</strong> They do <strong>zero</strong> repair work. Imagine your house is on fire (nerve damage), and you just turn off the fire alarm (Gabapentin). The house is still burning.</li>
-        <li><strong>Side Effects:</strong> "Brain Fog" (feeling slow/stupid), severe drowsiness, dizziness/balance issues (increasing fall risk), and significant weight gain.</li>
+        <li><strong>Side Effects:</strong> "Brain Fog," severe drowsiness, dizziness (fall risk), and weight gain.</li>
         <li><strong>Our Approach:</strong> We don't mask the signal; we repair the wire so it stops sending the distress signal.</li>
-    </ul>
-
-    <h3 class="text-indigo-600 font-bold mt-4">Cymbalta (Duloxetine)</h3>
-    <ul class="list-disc pl-5 mb-4">
-        <li><strong>Mechanism:</strong> An antidepressant that increases serotonin/norepinephrine to help the body regulate pain.</li>
-        <li><strong>The Problem:</strong> It alters brain chemistry without addressing the physical damage in the feet/hands.</li>
     </ul>
 
     <hr class="my-6 border-gray-300">
@@ -52,7 +45,7 @@ KNOWLEDGE_BASE["Arialief"] = `
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div class="bg-gray-100 p-3 rounded">
             <span class="font-bold text-gray-800">Arialief</span>
-            <p class="text-sm">The Electrician. Rebuilds the Myelin Sheath insulation.</p>
+            <p class="text-sm">The Electrician. Supports nerve signal health and comfort.</p>
         </div>
         <div class="bg-gray-100 p-3 rounded">
             <span class="font-bold text-gray-800">Tenurina</span>
@@ -67,7 +60,7 @@ KNOWLEDGE_BASE["Arialief"] = `
             <p class="text-sm">The Decompressor. Reduces swelling crushing the nerve.</p>
         </div>
         <div class="bg-gray-100 p-3 rounded">
-            <span class="font-bold text-gray-800">Kymezol</span>
+            <span class="font-bold text-gray-800">Korvizol</span>
             <p class="text-sm">The Fire Extinguisher. Topical cream for instant relief.</p>
         </div>
         <div class="bg-gray-100 p-3 rounded">

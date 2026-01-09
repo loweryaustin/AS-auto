@@ -1,123 +1,70 @@
 /**
- * Cetacondor (Neuropathy)
- * Database file for the "Cetacondor" supplement.
- * Product Line: Digital Lions
- * Protocol: Neuropathy & Nerve Health
+ * Cetacondor (Digital Lions)
+ * Database file for "Cetacondor"
+ * Protocol: Internal Neuropathy & Nerve Repair
  */
 DATABASE_CONFIGS["Cetacondor"] = {
     "productLine": "Digital Lions",
     "baseProduct": {
         "name": "Cetacondor (Base)",
-        "pitch": "Nerve Health Support. 1 cap per day.",
+        "pitch": "Internal Nerve Repair Formula. 1 cap per day to rebuild nerve insulation.",
         "gender": "any"
     },
     "knowledgeBase": "Cetacondor",
     "guaranteeDays": 60,
     "questions": [
         {
-            "id": "q-neur-1",
-            "text": "Sciatic nerve pain or Peripheral Neuropathy? (Diagnostic)",
+            "id": "q-cet-1",
+            "text": "Where is the numbness or tingling located? (Feet, Hands, Legs?)",
             "group": "Diagnostic"
         },
         {
-            "id": "q-neur-2",
-            "text": "Where are you experiencing it? Feet, hands, legs? (Diagnostic)",
-            "group": "Diagnostic"
+            "id": "q-cet-2",
+            "text": "How long have you been dealing with this nerve damage?",
+            "group": "History"
         },
         {
-            "id": "q-neur-3",
-            "text": "Is it tingling, numbness, or pain? (Kymezol)",
-            "group": "Diagnostic"
+            "id": "q-cet-3",
+            "text": "Is the pain sharp and burning (active damage) or are you feeling total numbness (nerve death)? (Korvizol)",
+            "group": "Severity"
         },
         {
-            "id": "q-neur-4",
-            "text": "Is this affecting your ability to walk or balance? (Urgency Builder)",
-            "group": "Impact"
-        },
-        {
-            "id": "q-neur-5",
-            "text": "How did this come on? Diabetes? Alcohol? Chemo? Physical Trauma? (Cetadusse/GoldenFrib/Zalovira)",
+            "id": "q-cet-4",
+            "text": "What do you think caused this? Diabetes? Chemotherapy? Or Alcohol history? (Zalovira/Goldenfrib)",
             "group": "Root Cause"
         },
         {
-            "id": "q-neur-6",
-            "text": "Is this keeping you up at night? (Xelovita)",
+            "id": "q-cet-5",
+            "text": "Do you have cold feet or poor circulation in the area? (Tenurina)",
+            "group": "Circulation"
+        },
+        {
+            "id": "q-cet-6",
+            "text": "Is the pain keeping you awake at night? (Xelovita)",
             "group": "Sleep"
         },
         {
-            "id": "q-neur-7",
-            "text": "Do you have any blood pressure issues? (Tenurina)",
-            "group": "Medical History"
+            "id": "q-cet-7",
+            "text": "Are you currently managing high blood sugar? (Cetadusse)",
+            "group": "Sugar Control"
         },
         {
-            "id": "q-neur-8",
-            "text": "Are you taking Gabapentin? (Sales Positioning)",
-            "group": "Medical History"
+            "id": "q-cet-8",
+            "text": "Do you have swelling or fluid retention in the legs? (Resverador)",
+            "group": "Compression"
         }
     ],
     "recommendations": [
         {
-            "id": "supp-xelovita",
-            "name": "Xelovita",
+            "id": "supp-korvizol",
+            "name": "Korvizol",
             "gender": "any",
             "symptoms": [
                 {
-                    "id": "symp-sleep",
-                    "text": "Sleep Disturbance (Pain/tingling keeps awake)",
-                    "pitch": "Taken at night to relax the nerves specifically so you can sleep. Sleep is the only time the body repairs nerve tissue, so this is vital for recovery.",
-                    "benefit": "help relax nerves for sleep and repair"
-                }
-            ]
-        },
-        {
-            "id": "supp-kymezol",
-            "name": "Kymezol",
-            "gender": "any",
-            "symptoms": [
-                {
-                    "id": "symp-pain",
-                    "text": "Immediate Pain Relief (Burning, Sharp Pains)",
-                    "pitch": "Applied topically for immediate relief. Helps calm the nerves from the outside-in while the oral supplements work from the inside-out.",
+                    "id": "symp-pain-relief",
+                    "text": "Burning Pain / Need Immediate Relief",
+                    "pitch": "Internal repair takes time. I'm adding Korvizol cream to give you immediate relief from the burning so you can be comfortable while Cetacondor fixes the wiring.",
                     "benefit": "provide immediate topical relief"
-                }
-            ]
-        },
-        {
-            "id": "supp-goldenfrib",
-            "name": "GoldenFrib",
-            "gender": "any",
-            "symptoms": [
-                {
-                    "id": "symp-alcohol",
-                    "text": "Alcohol-Induced Neuropathy",
-                    "pitch": "Alcohol damages the nerve connection between the gut and the brain. We need to repair the gut to fix this specific nerve damage.",
-                    "benefit": "help repair the gut-nerve connection"
-                }
-            ]
-        },
-        {
-            "id": "supp-zalovira",
-            "name": "Zalovira",
-            "gender": "any",
-            "symptoms": [
-                {
-                    "id": "symp-chemo",
-                    "text": "Chemotherapy History",
-                    "pitch": "Specifically used for immune system support and to help repair damage caused by harsh chemical treatments like chemotherapy.",
-                    "benefit": "help repair damage from chemical treatments"
-                }
-            ]
-        },
-        {
-            "id": "supp-resverador",
-            "name": "Resverador",
-            "gender": "any",
-            "symptoms": [
-                {
-                    "id": "symp-arthritis",
-                    "text": "Arthritis / Joint Pain / Stiffness",
-                    "pitch": "If the body is inflamed (arthritis), it prioritizes fighting that inflammation over repairing nerves. We must reduce the inflammation so the body can focus on nerve repair.",
-                    "benefit": "help reduce inflammation to prioritize nerve repair"
                 }
             ]
         },
@@ -128,9 +75,9 @@ DATABASE_CONFIGS["Cetacondor"] = {
             "symptoms": [
                 {
                     "id": "symp-circ",
-                    "text": "Poor Circulation (Cold extremities)",
-                    "pitch": "Nerves need oxygen to repair. If circulation is poor, the nutrients won't reach the nerves to fix them.",
-                    "benefit": "help deliver oxygen to nerves for repair"
+                    "text": "Cold Feet / Poor Circulation",
+                    "pitch": "Nerves need oxygen to regenerate. If your feet are cold, the nerves are starving. Tenurina pumps blood to the extremities to feed the repair process.",
+                    "benefit": "help drive oxygen to nerves for repair"
                 }
             ]
         },
@@ -141,18 +88,61 @@ DATABASE_CONFIGS["Cetacondor"] = {
             "symptoms": [
                 {
                     "id": "symp-diabetes",
-                    "text": "Diabetes / Pre-Diabetes (High Sugar)",
-                    "pitch": "High blood sugar acts like sandpaper on the nerves. We need to control sugar to stop the daily damage so repair can begin.",
-                    "benefit": "help regulate sugar to protect nerves"
+                    "text": "Diabetes / High Sugar",
+                    "pitch": "We can't fix the nerves if sugar keeps stripping the insulation off. Cetadusse controls the sugar so the repairs actually stick.",
+                    "benefit": "help stop sugar from undoing the repair"
+                }
+            ]
+        },
+        {
+            "id": "supp-xelovita",
+            "name": "Xelovita",
+            "gender": "any",
+            "symptoms": [
+                {
+                    "id": "symp-sleep",
+                    "text": "Night Pain / Insomnia",
+                    "pitch": "Nerve regeneration happens almost exclusively during deep sleep. Xelovita ensures you stay asleep long enough for this healing window to open.",
+                    "benefit": "help you sleep for nerve regeneration"
+                }
+            ]
+        },
+        {
+            "id": "supp-zalovira",
+            "name": "Zalovira",
+            "gender": "any",
+            "symptoms": [
+                {
+                    "id": "symp-chemo",
+                    "text": "Chemo-Induced Neuropathy",
+                    "pitch": "Chemotherapy damages nerves via oxidative stress. Zalovira boosts your immune resilience to help flush out residual toxins and aid repair.",
+                    "benefit": "help repair damage from chemical treatments"
+                }
+            ]
+        },
+        {
+            "id": "supp-resverador",
+            "name": "Resverador",
+            "gender": "any",
+            "symptoms": [
+                {
+                    "id": "symp-swell",
+                    "text": "Swelling / Compression",
+                    "pitch": "Swelling physically crushes the nerves. Resverador acts as a natural diuretic to remove the fluid pressure so the nerve can breathe.",
+                    "benefit": "help reduce swelling crushing the nerve"
                 }
             ]
         }
     ],
     "questionGroups": [
         { "id": "g-diag", "name": "Diagnostic", "gender": "any" },
-        { "id": "g-imp", "name": "Impact", "gender": "any" },
+        { "id": "g-hist", "name": "History", "gender": "any" },
+        { "id": "g-sev", "name": "Severity", "gender": "any" },
         { "id": "g-root", "name": "Root Cause", "gender": "any" },
-        { "id": "g-slp", "name": "Sleep", "gender": "any" },
-        { "id": "g-med", "name": "Medical History", "gender": "any" },
-    ]
+        { "id": "g-circ", "name": "Circulation", "gender": "any" },
+        { "id": "g-sleep", "name": "Sleep", "gender": "any" },
+        { "id": "g-sug", "name": "Sugar Control", "gender": "any" },
+        { "id": "g-comp", "name": "Compression", "gender": "any" }
+    ],
+    "references": []
 };

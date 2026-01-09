@@ -1,34 +1,31 @@
 /**
- * Basmontex (Topical Joint Relief)
- * Database file for the "Basmontex" supplement.
- * Product Line: Digital Lions
+ * Basmontex (Digital Lions)
+ * Database file for "Basmontex"
  * Protocol: Topical Pain Relief & Mobility
  */
 DATABASE_CONFIGS["Basmontex"] = {
     "productLine": "Digital Lions",
     "baseProduct": {
         "name": "Basmontex (Base)",
-        "pitch": "Daily Comfort Cream for Stiff, Aching Joints. Apply topically.",
+        "pitch": "Daily Comfort Cream for Stiff, Aching Joints. Apply topically for immediate relief.",
         "gender": "any"
     },
-    // Placeholder for future KB
-    "knowledgeBase": null,
-    "guaranteeDays": 60,
     "knowledgeBase": "Basmontex",
+    "guaranteeDays": 60,
     "questions": [
         {
             "id": "q-bas-1",
-            "text": "Where is the stiffness or pain located? Knees, hands, hips, or back? (Diagnostic)",
+            "text": "Where is the stiffness or pain located? Knees, hands, hips, or back?",
             "group": "Diagnostic"
         },
         {
             "id": "q-bas-2",
-            "text": "Do you feel like your joints 'lock up' or feel stiffest in the morning? (Basmontex Base)",
+            "text": "Do you feel like your joints 'lock up' or feel stiffest in the morning?",
             "group": "Symptoms"
         },
         {
             "id": "q-bas-3",
-            "text": "Is the pain worse at night or does it keep you awake? (Xelovita)",
+            "text": "Is the pain worse at night? Does it keep you awake? (Xelovita)",
             "group": "Sleep"
         },
         {
@@ -51,7 +48,6 @@ DATABASE_CONFIGS["Basmontex"] = {
             "text": "Are you carrying extra weight that puts pressure on your knees/hips? (Laellium)",
             "group": "Weight Stress"
         }
-        // Closing questions removed
     ],
     "recommendations": [
         {
@@ -127,6 +123,7 @@ DATABASE_CONFIGS["Basmontex"] = {
         { "id": "g-int", "name": "Internal Support", "gender": "any" },
         { "id": "g-nerve", "name": "Nerve Check", "gender": "any" },
         { "id": "g-circ", "name": "Circulation", "gender": "any" },
-        { "id": "g-weight", "name": "Weight Stress", "gender": "any" }
-    ]
+        { "id": "g-wgh", "name": "Weight Stress", "gender": "any" }
+    ],
+    "references": []
 };

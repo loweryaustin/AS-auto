@@ -3,7 +3,7 @@ KNOWLEDGE_BASE["Keskara"] = `
     <h1>Keskara & Men's Health Deep Dive</h1>
     
     <div class="p-4 bg-blue-50 rounded-lg border-l-4 border-blue-500 mb-6">
-        <p class="text-sm italic"><strong>The Core Concept:</strong> An erection is a complex hydraulic event requiring three systems to work perfectly: 1. Blood Flow (The Pump), 2. Nerves (The Signal), and 3. Testosterone (The Fuel). If any one of these fails, the system fails.</p>
+        <p class="text-sm italic"><strong>The Core Concept:</strong> An erection is a complex hydraulic event. It requires three systems to work perfectly: 1. Blood Flow (The Pump), 2. Nerves (The Signal), and 3. Testosterone (The Fuel). If any one of these fails, the system fails.</p>
     </div>
 
     <h2>1. Medical Glossary</h2>
@@ -16,19 +16,19 @@ KNOWLEDGE_BASE["Keskara"] = `
 
     <hr class="my-6 border-gray-300">
 
-    <h2>2. Common Medications</h2>
+    <h2>2. Common Medications vs. Root Cause</h2>
     
     <h3 class="text-indigo-600 font-bold mt-4">Viagra (Sildenafil) & Cialis (Tadalafil)</h3>
     <ul class="list-disc pl-5 mb-4">
         <li><strong>Mechanism:</strong> They block the enzyme (PDE5) that makes an erection go away. They essentially force the "drain" to stay closed.</li>
-        <li><strong>The Problem:</strong> They do not fix the "faucet" (blood inflow). If your arteries are clogged or damaged, plugging the drain won't help because no water is coming in. They lose effectiveness over time as the damage worsens.</li>
+        <li><strong>The Problem:</strong> They do not fix the "faucet" (blood inflow). If your arteries are clogged or damaged (Tenurina/Cetadusse needed), plugging the drain won't help because no water is coming in.</li>
         <li><strong>Side Effects:</strong> Headaches, flushing, acid reflux, blue-tinted vision, and dangerous drops in blood pressure.</li>
     </ul>
 
     <h3 class="text-indigo-600 font-bold mt-4">TRT (Testosterone Injections)</h3>
     <ul class="list-disc pl-5 mb-4">
         <li><strong>Mechanism:</strong> Injecting synthetic testosterone.</li>
-        <li><strong>The Problem:</strong> When you inject T, your body thinks "Oh, we have plenty," and shuts down your testicles. This causes testicular shrinkage and permanent dependence.</li>
+        <li><strong>The Problem:</strong> When you inject T, your body stops making its own. This causes testicular shrinkage and permanent dependence. <strong>Erectozyn</strong> supports natural production instead.</li>
     </ul>
 
     <hr class="my-6 border-gray-300">
@@ -53,7 +53,7 @@ KNOWLEDGE_BASE["Keskara"] = `
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div class="bg-gray-100 p-3 rounded">
             <span class="font-bold text-gray-800">Keskara</span>
-            <p class="text-sm">The Foundation. Targeted support for erectile quality.</p>
+            <p class="text-sm">The Foundation. Targeted support for erectile quality and stamina.</p>
         </div>
         <div class="bg-gray-100 p-3 rounded">
             <span class="font-bold text-gray-800">Tenurina</span>

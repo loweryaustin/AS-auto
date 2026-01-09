@@ -1,77 +1,75 @@
-// Content for Goldenfrib Knowledge Base
-KNOWLEDGE_BASE["Goldenfrib"] = `
-    <h1>Goldenfrib & Gut Health Deep Dive</h1>
+// Content for GoldenFrib Knowledge Base
+KNOWLEDGE_BASE["GoldenFrib"] = `
+    <h1>GoldenFrib & Gut Health Deep Dive</h1>
     
-    <div class="p-4 bg-yellow-50 rounded-lg border-l-4 border-yellow-500 mb-6">
-        <p class="text-sm italic"><strong>The Core Concept:</strong> Your gut is the engine of your health. It controls your immune system (70%), your mood (Serotonin), and your metabolism. Goldenfrib isn't just "fiber"; it is high-grade fuel (Prebiotics) to rebuild the gut ecosystem from the ground up.</p>
+    <div class="p-4 bg-green-50 rounded-lg border-l-4 border-green-500 mb-6">
+        <p class="text-sm italic"><strong>The Core Concept:</strong> You are not just one organism; you are a walking ecosystem. The bacteria in your gut outnumber your human cells 10 to 1. They control your digestion, your immunity, your mood, and your weight. Health is impossible without a balanced microbiome.</p>
     </div>
 
     <h2>1. Medical Glossary</h2>
     <ul class="space-y-3">
-        <li><strong>Microbiome:</strong> The trillions of bacteria living in your intestines. When balanced, they digest food, fight viruses, and regulate weight. When unbalanced (Dysbiosis), they cause bloating, brain fog, and illness.</li>
-        <li><strong>Prebiotics (Acacia/Inulin):</strong> The *food* for good bacteria. Most people take Probiotics (seeds), but without Prebiotics (fertilizer), the good bacteria starve and die. Goldenfrib provides the fertilizer.</li>
-        <li><strong>Leaky Gut Syndrome:</strong> When the lining of the intestine gets damaged (by stress, sugar, or toxins), microscopic holes allow food particles and toxins to leak into the bloodstream. This triggers systemic inflammation (joint pain, fatigue).</li>
-        <li><strong>Short-Chain Fatty Acids (SCFAs):</strong> Compounds produced when good bacteria ferment fiber. SCFAs literally repair the gut lining and speed up metabolism.</li>
+        <li><strong>Microbiome:</strong> The trillions of bacteria living in your digestive tract. When balanced, they digest food and fight viruses. When unbalanced (Dysbiosis), they cause bloating, fog, and illness.</li>
+        <li><strong>Gut-Brain Axis:</strong> The physical connection (Vagus Nerve) between your gut and brain. 90% of Serotonin (the "happy" chemical) is made in the gut, not the brain.</li>
+        <li><strong>GALT (Gut-Associated Lymphoid Tissue):</strong> The immune command center in your gut. It houses 70% of your immune system cells.</li>
+        <li><strong>Leaky Gut:</strong> When the intestinal lining gets damaged, toxins leak into the bloodstream. This triggers inflammation everywhere, from joints to skin.</li>
     </ul>
 
     <hr class="my-6 border-gray-300">
 
-    <h2>2. Why Standard Solutions Fail</h2>
+    <h2>2. Why Laxatives Fail</h2>
     
-    <h3 class="text-indigo-600 font-bold mt-4">Laxatives</h3>
+    <h3 class="text-indigo-600 font-bold mt-4">The Dependency Trap</h3>
     <ul class="list-disc pl-5 mb-4">
-        <li><strong>Mechanism:</strong> They irritate the bowel lining to force a contraction (movement).</li>
-        <li><strong>The Problem:</strong> They create dependency. Your bowel forgets how to work on its own. They also dehydrate you and do nothing to fix the bacterial imbalance.</li>
-    </ul>
-
-    <h3 class="text-indigo-600 font-bold mt-4">Probiotics Only</h3>
-    <ul class="list-disc pl-5 mb-4">
-        <li><strong>The Problem:</strong> Throwing seeds on dry, barren concrete won't grow a forest. If you don't change the environment (feed the soil with Prebiotics like Goldenfrib), the expensive probiotics you take just pass right through you.</li>
+        <li><strong>Mechanism:</strong> Laxatives irritate the bowel lining to force a contraction.</li>
+        <li><strong>The Problem:</strong> They create dependency; your bowel forgets how to work on its own. They also flush out good bacteria, making the underlying imbalance worse. GoldenFrib rebuilds the system rather than just forcing it.</li>
     </ul>
 
     <hr class="my-6 border-gray-300">
 
-    <h2>3. The Root Causes: The "Central Hub" Failure</h2>
+    <h2>3. The Root Causes: Systemic Impact</h2>
 
-    <h3 class="text-green-600 font-bold mt-4">1. The "Immune HQ" (Immunity)</h3>
-    <p><strong>The Science:</strong> 70-80% of your immune cells live in the GALT (Gut-Associated Lymphoid Tissue). If your gut is overrun by bad bacteria, your immune system is overwhelmed fighting the internal war, leaving you vulnerable to external viruses (colds/flu). <strong>Zalovira</strong> boosts the immune system while Goldenfrib cleans the battlefield.</p>
+    <h3 class="text-purple-600 font-bold mt-4">1. The "Happy Chemical" Factory (Brain)</h3>
+    <p><strong>The Science:</strong> If you are anxious or foggy, look at your gut. The Vagus Nerve sends signals from the gut to the brain. An inflamed gut sends "panic" signals. <strong>Arialief</strong> calms this nerve connection to reduce stress-induced digestion issues.</p>
 
-    <h3 class="text-red-600 font-bold mt-4">2. The "Metabolic Stall" (Weight)</h3>
-    <p><strong>The Science:</strong> Certain bad bacteria extract *more* calories from food than good bacteria do. A poor microbiome can literally make you fat even if you eat less. Goldenfrib shifts the bacterial balance to favor "lean" bacteria, resetting the metabolic rate. <strong>Laellium</strong> aids in burning the stored fat.</p>
+    <h3 class="text-red-600 font-bold mt-4">2. The "Immune Shield" (Defense)</h3>
+    <p><strong>The Science:</strong> Your gut bacteria are the bouncers. They stop viruses from entering the blood. If the bouncers are gone, you get sick constantly. <strong>Zalovira</strong> strengthens the immune cells that work alongside the bacteria.</p>
 
-    <h3 class="text-purple-600 font-bold mt-4">3. The "Nervous Stomach" (Stress)</h3>
-    <p><strong>The Science:</strong> The gut and brain talk constantly via the Vagus Nerve. Stress shuts down digestion (causing bloating/constipation). Conversely, a bad gut sends anxiety signals to the brain. <strong>Arialief</strong> calms the vagus nerve to allow digestion to restart.</p>
+    <h3 class="text-yellow-600 font-bold mt-4">3. The "Toxic Leak" (Joints/Inflammation)</h3>
+    <p><strong>The Science:</strong> When the gut leaks, the immune system attacks the escaping toxins. This creates whole-body inflammation that often settles in the joints. <strong>Resverador</strong> acts as a fire extinguisher for this systemic heat.</p>
 
-    <h3 class="text-blue-600 font-bold mt-4">4. The "Nutrient Void" (Circulation/Absorption)</h3>
-    <p><strong>The Science:</strong> You aren't what you eat; you are what you *absorb*. If the gut lining is inflamed or blood flow is poor, nutrients pass right through you. <strong>Tenurina</strong> increases blood flow to the intestinal villi (absorption fingers) to ensure you actually get the vitamins from your food.</p>
+    <h3 class="text-green-600 font-bold mt-4">4. The "Fat Storage" Bacteria (Weight)</h3>
+    <p><strong>The Science:</strong> "Obese" gut bacteria extract more calories from food than "Lean" bacteria. A poor microbiome can make you gain weight even if you eat less. <strong>Laellium</strong> helps burn this stored fat while GoldenFrib shifts the bacterial balance.</p>
+
+    <h3 class="text-blue-600 font-bold mt-4">5. The "Nutrient Void" (Circulation)</h3>
+    <p><strong>The Science:</strong> You aren't what you eat; you are what you absorb. If blood flow to the gut is poor, you cannot pick up nutrients. <strong>Tenurina</strong> increases circulation to the intestinal villi to maximize absorption.</p>
 
     <hr class="my-6 border-gray-300">
 
     <h2>4. Regimen Breakdown</h2>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div class="bg-gray-100 p-3 rounded">
-            <span class="font-bold text-gray-800">Goldenfrib</span>
-            <p class="text-sm">The Foundation. Prebiotic fiber (Acacia/Inulin) to feed and rebuild the microbiome.</p>
+            <span class="font-bold text-gray-800">GoldenFrib</span>
+            <p class="text-sm">The Foundation. Restores the ecosystem of good bacteria and heals the lining.</p>
         </div>
         <div class="bg-gray-100 p-3 rounded">
             <span class="font-bold text-gray-800">Zalovira</span>
-            <p class="text-sm">The Defender. Supports the 70% of the immune system living in the gut.</p>
-        </div>
-        <div class="bg-gray-100 p-3 rounded">
-            <span class="font-bold text-gray-800">Tenurina</span>
-            <p class="text-sm">The Transporter. Increases blood flow for maximum nutrient absorption.</p>
+            <p class="text-sm">The Army. Works with the gut to provide systemic immunity.</p>
         </div>
         <div class="bg-gray-100 p-3 rounded">
             <span class="font-bold text-gray-800">Arialief</span>
-            <p class="text-sm">The Calmer. Relaxes the gut-brain axis to stop stress-induced bloating.</p>
-        </div>
-        <div class="bg-gray-100 p-3 rounded">
-            <span class="font-bold text-gray-800">Laellium</span>
-            <p class="text-sm">The Burner. Works with the new microbiome to accelerate weight loss.</p>
+            <p class="text-sm">The Signal. Calms the Vagus Nerve to stop stress-digestion cycles.</p>
         </div>
         <div class="bg-gray-100 p-3 rounded">
             <span class="font-bold text-gray-800">Resverador</span>
             <p class="text-sm">The Sealer. Reduces systemic inflammation caused by Leaky Gut.</p>
+        </div>
+        <div class="bg-gray-100 p-3 rounded">
+            <span class="font-bold text-gray-800">Laellium</span>
+            <p class="text-sm">The Metabolizer. Helps burn the fat stored by bad bacteria.</p>
+        </div>
+        <div class="bg-gray-100 p-3 rounded">
+            <span class="font-bold text-gray-800">Tenurina</span>
+            <p class="text-sm">The Delivery. Improves blood flow for nutrient absorption.</p>
         </div>
     </div>
 `;

@@ -1,14 +1,13 @@
 /**
- * Keskara (ED / Men's Health)
- * Database file for the "Keskara" supplement.
- * Product Line: Digital Lions
- * Protocol: Men's Health (ED & Prostate)
+ * Keskara (Digital Lions)
+ * Database file for "Keskara"
+ * Protocol: Men's Health & Erectile Support
  */
 DATABASE_CONFIGS["Keskara"] = {
     "productLine": "Digital Lions",
     "baseProduct": {
         "name": "Keskara (Base)",
-        "pitch": "Erectile Support - ED. 1 cap per day.",
+        "pitch": "Erectile Support Formula. 1 cap per day to support blood flow and performance.",
         "gender": "male"
     },
     "knowledgeBase": "Keskara",
@@ -16,90 +15,56 @@ DATABASE_CONFIGS["Keskara"] = {
     "questions": [
         {
             "id": "q-ed-1",
-            "text": "Issues getting or maintaining an erection? (Diagnostic)",
+            "text": "Are you having issues getting an erection, maintaining it, or both?",
             "group": "Diagnostic"
         },
         {
             "id": "q-ed-2",
-            "text": "Are you still ever ejaculating? (Jertaris)",
-            "group": "Prostate/Flow"
+            "text": "How long has this been affecting your confidence or relationships?",
+            "group": "Impact"
         },
         {
             "id": "q-ed-3",
-            "text": "Are you Diabetic or Pre-Diabetic? (Cetadusse)",
-            "group": "Root Cause: Sugar"
+            "text": "Do you also experience a weak urinary stream or wake up at night to pee? (Jertaris)",
+            "group": "Prostate"
         },
         {
             "id": "q-ed-4",
-            "text": "Do you have high blood pressure or circulation issues? (Tenurina)",
-            "group": "Root Cause: Flow"
+            "text": "Have you been diagnosed with High Blood Pressure or poor circulation? (Tenurina)",
+            "group": "Circulation"
         },
         {
             "id": "q-ed-5",
-            "text": "Do you have tingling or numbness in your feet or hands? (Arialief)",
-            "group": "Root Cause: Nerves"
+            "text": "Do you have Diabetes or high blood sugar? (Cetadusse)",
+            "group": "Root Cause: Sugar"
         },
         {
             "id": "q-ed-6",
-            "text": "Have you been told you have low testosterone? (Erectozyn)",
-            "group": "Root Cause: Hormones"
+            "text": "Do you have numbness or low sensation in the area, or tingling in your feet? (Arialief)",
+            "group": "Nerve Health"
         },
         {
             "id": "q-ed-7",
-            "text": "Do you have any inflammation or joint pain? (Resverador)",
-            "group": "Root Cause: Inflammation"
+            "text": "Have you been told you have low Testosterone? (Erectozyn)",
+            "group": "Hormones"
+        },
+        {
+            "id": "q-ed-8",
+            "text": "Are you carrying extra weight around the midsection (Belly Fat)? (Laellium)",
+            "group": "Estrogen Risk"
         }
     ],
     "recommendations": [
         {
-            "id": "supp-garaherb",
-            "name": "GaraHerb",
-            "gender": "male",
-            "symptoms": [
-                {
-                    "id": "symp-boost",
-                    "text": "Need additional potency",
-                    "pitch": "Erectile Support Booster.",
-                    "benefit": "help boost potency and performance"
-                }
-            ]
-        },
-        {
-            "id": "supp-erectozyn",
-            "name": "Erectozyn",
-            "gender": "male",
-            "symptoms": [
-                {
-                    "id": "symp-testo",
-                    "text": "Low Testosterone / Low Libido",
-                    "pitch": "Included for Testosterone boosting, energy, or libido issues.",
-                    "benefit": "help boost testosterone and libido"
-                }
-            ]
-        },
-        {
-            "id": "supp-jertaris",
-            "name": "Jertaris",
-            "gender": "male",
-            "symptoms": [
-                {
-                    "id": "symp-prostate",
-                    "text": "Prostate Issues (Frequent urination, swelling)",
-                    "pitch": "This helps alleviate prostate blockages permanently. We use this instead of circulation supplements because clearing the blockage often restores flow on its own.",
-                    "benefit": "help alleviate prostate blockages"
-                }
-            ]
-        },
-        {
-            "id": "supp-cetadusse",
-            "name": "Cetadusse",
+            "id": "supp-tenurina",
+            "name": "Tenurina",
             "gender": "any",
             "symptoms": [
                 {
-                    "id": "symp-diabetes",
-                    "text": "Diabetes / Pre-Diabetes (High Sugar)",
-                    "pitch": "High blood sugar causes permanent damage to blood vessels and veins over time. We need to repair this sugar damage to ensure the blood can actually reach the area.",
-                    "benefit": "help repair blood vessel damage caused by sugar"
+                    "id": "symp-circ",
+                    "text": "High BP / Poor Circulation",
+                    "pitch": "An erection is purely hydraulics. Blood needs to get in fast. Tenurina clears the 'pipes' and boosts Nitric Oxide to maximize that hydraulic pressure.",
+                    "benefit": "help ensure oxygenated blood flow reaches the area"
                 }
             ]
         },
@@ -111,45 +76,72 @@ DATABASE_CONFIGS["Keskara"] = {
                 {
                     "id": "symp-numbness",
                     "text": "Low Sensation / Numbness / Neuropathy",
-                    "pitch": "This strengthens the penile nerve. If you have neuropathy or numbness elsewhere, it means the penile nerve is also weak. This restores sensation and pleasure.",
+                    "pitch": "If you have nerve damage in your feet (neuropathy), you likely have it in the penile nerve too. Arialief strengthens the wiring to restore sensation and signal speed.",
                     "benefit": "help restore sensation and strengthen nerves"
                 }
             ]
         },
         {
-            "id": "supp-tenurina",
-            "name": "Tenurina",
-            "gender": "any",
+            "id": "supp-jertaris",
+            "name": "Jertaris",
+            "gender": "male",
             "symptoms": [
                 {
-                    "id": "symp-circ",
-                    "text": "Circulation Issues (High BP, Cold hands/feet)",
-                    "pitch": "We need to ensure oxygenated blood flow is consistently reaching the area to maintain the erection.",
-                    "benefit": "help ensure oxygenated blood flow reaches the area"
+                    "id": "symp-prostate",
+                    "text": "Prostate Issues (Frequent urination, weak stream)",
+                    "pitch": "An enlarged prostate physically squeezes the plumbing shut. Jertaris helps shrink the prostate to remove that physical clamp so blood can flow freely.",
+                    "benefit": "help alleviate prostate blockages"
                 }
             ]
         },
         {
-            "id": "supp-resverador",
-            "name": "Resverador",
+            "id": "supp-erectozyn",
+            "name": "Erectozyn",
+            "gender": "male",
+            "symptoms": [
+                {
+                    "id": "symp-testo",
+                    "text": "Low Testosterone / Low Libido",
+                    "pitch": "Keskara fixes the mechanics, but Erectozyn provides the fuel. It boosts free testosterone to restore your natural drive and energy.",
+                    "benefit": "help boost testosterone and libido"
+                }
+            ]
+        },
+        {
+            "id": "supp-cetadusse",
+            "name": "Cetadusse",
             "gender": "any",
             "symptoms": [
                 {
-                    "id": "symp-inflam",
-                    "text": "Inflammation / General Pain",
-                    "pitch": "Reduces inflammation that might be blocking blood flow pathways.",
-                    "benefit": "help reduce inflammation blocking blood flow"
+                    "id": "symp-diabetes",
+                    "text": "Diabetes / High Sugar",
+                    "pitch": "High sugar acts like sandpaper on blood vessels, causing scar tissue that blocks flow. Cetadusse stops this damage so the vessels can heal.",
+                    "benefit": "help repair blood vessel damage caused by sugar"
+                }
+            ]
+        },
+        {
+            "id": "supp-laellium",
+            "name": "Laellium",
+            "gender": "any",
+            "symptoms": [
+                {
+                    "id": "symp-belly-fat",
+                    "text": "Belly Fat / Estrogen",
+                    "pitch": "Belly fat produces an enzyme that turns your Testosterone into Estrogen. Laellium helps burn that fat to protect your manhood.",
+                    "benefit": "help burn fat that kills testosterone"
                 }
             ]
         }
     ],
     "questionGroups": [
         { "id": "g-diag", "name": "Diagnostic", "gender": "any" },
-        { "id": "g-prostate", "name": "Prostate/Flow", "gender": "male" },
-        { "id": "g-sugar", "name": "Root Cause: Sugar", "gender": "any" },
-        { "id": "g-flow", "name": "Root Cause: Flow", "gender": "any" },
-        { "id": "g-nerves", "name": "Root Cause: Nerves", "gender": "any" },
-        { "id": "g-horm", "name": "Root Cause: Hormones", "gender": "male" },
-        { "id": "g-inf", "name": "Root Cause: Inflammation", "gender": "any" },
+        { "id": "g-imp", "name": "Impact", "gender": "any" },
+        { "id": "g-pros", "name": "Prostate", "gender": "male" },
+        { "id": "g-circ", "name": "Circulation", "gender": "any" },
+        { "id": "g-root", "name": "Root Cause: Sugar", "gender": "any" },
+        { "id": "g-nerve", "name": "Nerve Health", "gender": "any" },
+        { "id": "g-horm", "name": "Hormones", "gender": "male" },
+        { "id": "g-est", "name": "Estrogen Risk", "gender": "any" }
     ]
 };

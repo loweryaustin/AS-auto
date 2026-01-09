@@ -1,71 +1,70 @@
 /**
- * Arialief (Neuropathy Base)
- * Database file for the "Arialief" supplement.
- * Product Line: Digital Lions
- * Protocol: Neuropathy
+ * Arialief (Digital Lions)
+ * Database file for "Arialief"
+ * Protocol: Nerve Health & Signal Comfort
  */
 DATABASE_CONFIGS["Arialief"] = {
     "productLine": "Digital Lions",
     "baseProduct": {
         "name": "Arialief (Base)",
-        "pitch": "Primary Nerve Health Support. 1 cap per day.",
+        "pitch": "This formula supports healthy nerve signaling to reduce the 'static' (tingling/burning) and improve comfort.",
         "gender": "any"
     },
-    "guaranteeDays": 60,
     "knowledgeBase": "Arialief",
+    "guaranteeDays": 60,
     "questions": [
         {
-            "id": "q-neur-1",
-            "text": "Sciatic nerve pain or Peripheral Neuropathy? (Diagnostic)",
+            "id": "q-ari-1",
+            "text": "Where is the nerve discomfort located? Feet, hands, or legs?",
             "group": "Diagnostic"
         },
         {
-            "id": "q-neur-2",
-            "text": "Where are you experiencing it? Feet, hands, legs? (Diagnostic)",
-            "group": "Diagnostic"
+            "id": "q-ari-2",
+            "text": "Is the sensation more of a burning fire, tingling, or numbness?",
+            "group": "Symptoms"
         },
         {
-            "id": "q-neur-3",
-            "text": "Is it tingling, numbness, or pain? (Kymezol)",
-            "group": "Diagnostic"
-        },
-        {
-            "id": "q-neur-4",
-            "text": "Is this affecting your ability to walk or balance? (Urgency Builder)",
-            "group": "Impact"
-        },
-        {
-            "id": "q-neur-5",
-            "text": "How did this come on? Diabetes? Alcohol? Chemo? Physical Trauma? (Cetadusse/GoldenFrib/Zalovira)",
-            "group": "Root Cause"
-        },
-        {
-            "id": "q-neur-6",
-            "text": "Is this keeping you up at night? (Xelovita)",
+            "id": "q-ari-3",
+            "text": "Is the pain worse at night? Does it keep you awake? (Xelovita)",
             "group": "Sleep"
         },
         {
-            "id": "q-neur-7",
-            "text": "Do you have any blood pressure issues? (Tenurina)",
-            "group": "Medical History"
+            "id": "q-ari-4",
+            "text": "Do you have poor circulation or cold feet? (Tenurina)",
+            "group": "Circulation"
         },
         {
-            "id": "q-neur-8",
-            "text": "Are you taking Gabapentin? (Sales Positioning)",
-            "group": "Medical History"
+            "id": "q-ari-5",
+            "text": "Are you managing Diabetes or high blood sugar? (Cetadusse)",
+            "group": "Root Cause: Sugar"
+        },
+        {
+            "id": "q-ari-6",
+            "text": "Do you have swelling or inflammation in the area? (Resverador)",
+            "group": "Compression"
+        },
+        {
+            "id": "q-ari-7",
+            "text": "Do you feel like you need immediate relief while this builds up? (Korvizol)",
+            "group": "Immediate Relief"
+        },
+        {
+            "id": "q-ari-8",
+            "text": "Do you have digestive issues or a history of alcohol use? (GoldenFrib)",
+            "group": "Gut-Nerve Axis"
         }
     ],
     "recommendations": [
         {
-            "id": "supp-resverador",
-            "name": "Resverador",
+            "id": "supp-korvizol",
+            "name": "Korvizol",
             "gender": "any",
             "symptoms": [
                 {
-                    "id": "symp-swell",
-                    "text": "Inflammation / Swelling",
-                    "pitch": "Included to reduce swelling or inflammation pressing on the nerves.",
-                    "benefit": "help reduce inflammation pressing on nerves"
+                    "id": "symp-pain",
+                    "text": "Burning Pain / Need Instant Relief",
+                    "pitch": "Oral supplements take time to rebuild the nerve. I'm adding Korvizol cream to give you immediate relief from the burning right now.",
+                    "benefit": "provide immediate topical relief"
                 }
             ]
         },
@@ -76,61 +75,9 @@ DATABASE_CONFIGS["Arialief"] = {
             "symptoms": [
                 {
                     "id": "symp-circ",
-                    "text": "Poor Circulation / Cold Hands & Feet",
-                    "pitch": "Included to drive oxygen to the nerves for repair. Nerves die without oxygenated blood flow.",
-                    "benefit": "help deliver oxygen to nerves for repair"
-                }
-            ]
-        },
-        {
-            "id": "supp-kymezol",
-            "name": "Kymezol",
-            "gender": "any",
-            "symptoms": [
-                {
-                    "id": "symp-pain",
-                    "text": "Severe Pain (Burning, Sharp Pains)",
-                    "pitch": "Cream applied at night for immediate relief. Helps calm nerves from the outside-in.",
-                    "benefit": "provide immediate topical relief"
-                }
-            ]
-        },
-        {
-            "id": "supp-xelovita",
-            "name": "Xelovita",
-            "gender": "any",
-            "symptoms": [
-                {
-                    "id": "symp-sleep",
-                    "text": "Sleep Disturbance",
-                    "pitch": "Taken at night to relax nerves and allow sleep, which is the only time the body repairs nerve tissue.",
-                    "benefit": "help relax nerves for repair during sleep"
-                }
-            ]
-        },
-        {
-            "id": "supp-zalovira",
-            "name": "Zalovira",
-            "gender": "any",
-            "symptoms": [
-                {
-                    "id": "symp-chemo",
-                    "text": "Chemo-Induced Neuropathy",
-                    "pitch": "Included for immune support and to help repair damage from harsh chemical treatments.",
-                    "benefit": "help repair damage from chemical treatments"
-                }
-            ]
-        },
-        {
-            "id": "supp-goldenfrib",
-            "name": "GoldenFrib",
-            "gender": "any",
-            "symptoms": [
-                {
-                    "id": "symp-alcohol",
-                    "text": "Alcohol-Induced Neuropathy",
-                    "pitch": "Included to repair the gut-brain nerve connection damaged by alcohol.",
-                    "benefit": "help repair the gut-nerve connection"
+                    "text": "Cold Feet / Poor Circulation",
+                    "pitch": "Nerves starve without oxygen. Tenurina pumps blood to the extremities to feed the dying nerves so they can heal.",
+                    "benefit": "help drive oxygen to nerves for repair"
                 }
             ]
         },
@@ -141,18 +88,61 @@ DATABASE_CONFIGS["Arialief"] = {
             "symptoms": [
                 {
                     "id": "symp-diabetes",
-                    "text": "Diabetes / Pre-Diabetes",
-                    "pitch": "Included to target the root cause of high blood sugar damaging the nerves.",
-                    "benefit": "help manage blood sugar to protect nerves"
+                    "text": "Diabetes / Sugar Spikes",
+                    "pitch": "Sugar attacks the nerve coating like acid. Cetadusse regulates your blood sugar to stop this daily damage.",
+                    "benefit": "help stop sugar from damaging nerves"
+                }
+            ]
+        },
+        {
+            "id": "supp-resverador",
+            "name": "Resverador",
+            "gender": "any",
+            "symptoms": [
+                {
+                    "id": "symp-swell",
+                    "text": "Swelling / Compression",
+                    "pitch": "If your feet are swollen, the fluid crushes the nerves. Resverador acts as a natural diuretic to release this pressure.",
+                    "benefit": "help reduce swelling compressing the nerves"
+                }
+            ]
+        },
+        {
+            "id": "supp-xelovita",
+            "name": "Xelovita",
+            "gender": "any",
+            "symptoms": [
+                {
+                    "id": "symp-sleep",
+                    "text": "Night Pain / Insomnia",
+                    "pitch": "Nerve repair happens during deep sleep. Xelovita ensures you stay asleep long enough for the body to fix the wiring.",
+                    "benefit": "help relax nerves for repair during sleep"
+                }
+            ]
+        },
+        {
+            "id": "supp-goldenfrib",
+            "name": "GoldenFrib",
+            "gender": "any",
+            "symptoms": [
+                {
+                    "id": "symp-alcohol",
+                    "text": "Alcohol History / Gut Issues",
+                    "pitch": "Alcohol and poor digestion strip B-vitamins from your body, causing nerve damage. GoldenFrib restores the gut's ability to absorb these critical nutrients.",
+                    "benefit": "help restore nutrient absorption for nerves"
                 }
             ]
         }
     ],
     "questionGroups": [
         { "id": "g-diag", "name": "Diagnostic", "gender": "any" },
-        { "id": "g-imp", "name": "Impact", "gender": "any" },
-        { "id": "g-root", "name": "Root Cause", "gender": "any" },
-        { "id": "g-slp", "name": "Sleep", "gender": "any" },
-        { "id": "g-med", "name": "Medical History", "gender": "any" },
-    ]
+        { "id": "g-symp", "name": "Symptoms", "gender": "any" },
+        { "id": "g-sleep", "name": "Sleep", "gender": "any" },
+        { "id": "g-circ", "name": "Circulation", "gender": "any" },
+        { "id": "g-root", "name": "Root Cause: Sugar", "gender": "any" },
+        { "id": "g-comp", "name": "Compression", "gender": "any" },
+        { "id": "g-imm", "name": "Immediate Relief", "gender": "any" },
+        { "id": "g-gut", "name": "Gut-Nerve Axis", "gender": "any" }
+    ],
+    "references": []
 };

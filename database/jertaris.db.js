@@ -1,53 +1,57 @@
 /**
- * Jertaris (Prostate)
- * Database file for the "Jertaris" supplement.
- * Product Line: Digital Lions
- * Protocol: Prostate Health
+ * Jertaris (Digital Lions)
+ * Database file for "Jertaris"
+ * Protocol: Prostate Health & Urinary Flow
  */
 DATABASE_CONFIGS["Jertaris"] = {
     "productLine": "Digital Lions",
     "baseProduct": {
         "name": "Jertaris (Base)",
-        "pitch": "Supports healthy circulation, prostate function, urinary comfort, and male vitality.",
+        "pitch": "This formula supports healthy prostate size to reduce urinary urgency, improve flow, and stop those frequent nighttime bathroom trips.",
         "gender": "male"
     },
-    "guaranteeDays": 60,
     "knowledgeBase": "Jertaris",
+    "guaranteeDays": 60,
     "questions": [
         {
-            "id": "q-pros-1",
-            "text": "Do you ever feel a sudden, strong need to urinate, making it hard to wait? (Urgency) (Diagnostic)",
-            "group": "Prostate Symptoms"
+            "id": "q-jer-1",
+            "text": "How many times do you wake up at night to use the restroom (Nocturia)?",
+            "group": "Symptoms"
         },
         {
-            "id": "q-pros-2",
-            "text": "On average, how often are you needing to use the restroom during the day? (Frequency) (Diagnostic)",
-            "group": "Prostate Symptoms"
+            "id": "q-jer-2",
+            "text": "Do you experience a weak stream, dribbling, or the feeling you can't empty fully?",
+            "group": "Symptoms"
         },
         {
-            "id": "q-pros-3",
-            "text": "How often do you find yourself waking up during the night to urinate? (Nocturia) (Xelovita)",
-            "group": "Prostate Symptoms"
+            "id": "q-jer-3",
+            "text": "How long has this been affecting your sleep or daily life?",
+            "group": "Impact"
         },
         {
-            "id": "q-pros-4",
-            "text": "Have you noticed any changes in the strength or flow of your urinary stream? (Resverador)",
-            "group": "Prostate Symptoms"
+            "id": "q-jer-4",
+            "text": "Do you have inflammation or swelling elsewhere (joints/legs)? (Resverador)",
+            "group": "Inflammation"
         },
         {
-            "id": "q-pros-5",
-            "text": "After you finish, do you often feel like your bladder hasn't fully emptied? (Arialief)",
-            "group": "Prostate Symptoms"
-        },
-        {
-            "id": "q-pros-6",
-            "text": "Do you have any issues with blood pressure or circulation? (Tenurina)",
+            "id": "q-jer-5",
+            "text": "Do you have poor circulation or high blood pressure? (Tenurina)",
             "group": "Circulation"
         },
         {
-            "id": "q-pros-7",
-            "text": "Any issues with erectile dysfunction or low libido? (Erectozyn)",
+            "id": "q-jer-6",
+            "text": "Have you noticed a drop in libido or performance? (Erectozyn)",
             "group": "Sexual Health"
+        },
+        {
+            "id": "q-jer-7",
+            "text": "Are you carrying extra weight around the midsection? (Laellium)",
+            "group": "Hormones/Weight"
+        },
+        {
+            "id": "q-jer-8",
+            "text": "Do you ever feel sudden urgency that is hard to control? (Arialief)",
+            "group": "Nerve Health"
         }
     ],
     "recommendations": [
@@ -57,23 +61,23 @@ DATABASE_CONFIGS["Jertaris"] = {
             "gender": "any",
             "symptoms": [
                 {
-                    "id": "symp-swell-pros",
-                    "text": "Weak stream / Swelling",
-                    "pitch": "A weak stream is often caused by inflammation swelling the prostate against the urethra. This helps reduce that inflammation to open up the flow.",
+                    "id": "symp-prostate-swell",
+                    "text": "Weak Stream / Swelling",
+                    "pitch": "A weak stream is caused by the prostate swelling against the urine tube. Resverador acts as a systemic anti-inflammatory to reduce that swelling and open the flow.",
                     "benefit": "help reduce prostate inflammation"
                 }
             ]
         },
         {
-            "id": "supp-tenurima",
+            "id": "supp-tenurina",
             "name": "Tenurina",
             "gender": "any",
             "symptoms": [
                 {
-                    "id": "symp-circ-pros",
-                    "text": "Circulation issues",
-                    "pitch": "Improved circulation supports healthy blood flow to the prostate to clear out toxins and reduce swelling.",
-                    "benefit": "help improve pelvic circulation"
+                    "id": "symp-circ-pelvic",
+                    "text": "Poor Circulation / Stagnation",
+                    "pitch": "The pelvic area needs fresh blood flow to flush out toxins that irritate the prostate. Tenurina improves circulation to keep the area clean and healthy.",
+                    "benefit": "help flush toxins from the prostate"
                 }
             ]
         },
@@ -83,23 +87,10 @@ DATABASE_CONFIGS["Jertaris"] = {
             "gender": "male",
             "symptoms": [
                 {
-                    "id": "symp-ed-pros",
-                    "text": "Erectile Dysfunction symptoms",
-                    "pitch": "Prostate issues often go hand-in-hand with performance issues. This helps boost testosterone and vitality while we fix the prostate.",
-                    "benefit": "help support male vitality and performance"
-                }
-            ]
-        },
-        {
-            "id": "supp-arialief",
-            "name": "Arialief",
-            "gender": "any",
-            "symptoms": [
-                {
-                    "id": "symp-nerve-bladder",
-                    "text": "Bladder control / Not emptying",
-                    "pitch": "Sometimes the issue isn't just the prostate, but the nerves controlling the bladder. This supports the nerve signaling to help you empty fully.",
-                    "benefit": "help support healthy nerve signalling to the bladder"
+                    "id": "symp-libido-pros",
+                    "text": "Low Libido / ED Symptoms",
+                    "pitch": "Prostate issues often lower your drive. Erectozyn supports healthy testosterone levels to restore your vitality while Jertaris fixes the plumbing.",
+                    "benefit": "help restore male drive and vitality"
                 }
             ]
         },
@@ -109,17 +100,48 @@ DATABASE_CONFIGS["Jertaris"] = {
             "gender": "any",
             "symptoms": [
                 {
-                    "id": "symp-sleep-noct",
-                    "text": "Waking up at night (Nocturia)",
-                    "pitch": "Waking up constantly ruins your body's ability to repair itself. This helps you stay asleep so your body can focus on healing the prostate.",
-                    "benefit": "help you stay asleep through the night"
+                    "id": "symp-nocturia",
+                    "text": "Waking up at Night (Nocturia)",
+                    "pitch": "Waking up 3-4 times a night ruins your recovery. Xelovita helps you sleep deeply so your body produces the hormones needed to shrink the prostate.",
+                    "benefit": "help you sleep through the urge to go"
+                }
+            ]
+        },
+        {
+            "id": "supp-arialief",
+            "name": "Arialief",
+            "gender": "any",
+            "symptoms": [
+                {
+                    "id": "symp-urgency",
+                    "text": "Urgency / Bladder Spasms",
+                    "pitch": "Sometimes 'urgency' is just an irritated nerve sending a false signal. Arialief calms the bladder nerves so you don't feel the need to go constantly.",
+                    "benefit": "help calm overactive bladder nerves"
+                }
+            ]
+        },
+        {
+            "id": "supp-laellium",
+            "name": "Laellium",
+            "gender": "any",
+            "symptoms": [
+                {
+                    "id": "symp-belly-fat",
+                    "text": "Belly Fat / Estrogen Dominance",
+                    "pitch": "Belly fat turns testosterone into estrogen, which fuels prostate growth. Laellium helps burn that fat to stop the hormonal imbalance.",
+                    "benefit": "help reduce belly fat driving prostate growth"
                 }
             ]
         }
     ],
     "questionGroups": [
-        { "id": "g-pros", "name": "Prostate Symptoms", "gender": "male" },
+        { "id": "g-symp", "name": "Symptoms", "gender": "male" },
+        { "id": "g-imp", "name": "Impact", "gender": "male" },
+        { "id": "g-inf", "name": "Inflammation", "gender": "any" },
         { "id": "g-circ", "name": "Circulation", "gender": "any" },
         { "id": "g-sex", "name": "Sexual Health", "gender": "male" },
-    ]
+        { "id": "g-wgh", "name": "Hormones/Weight", "gender": "male" },
+        { "id": "g-nerve", "name": "Nerve Health", "gender": "any" }
+    ],
+    "references": []
 };

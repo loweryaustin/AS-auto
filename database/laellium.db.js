@@ -1,92 +1,83 @@
 /**
- * Laellium (Weight Loss)
- * Database file for the "Laellium" supplement.
- * Product Line: Digital Lions
- * Protocol: Universal Weight Loss
+ * Laellium (Digital Lions)
+ * Database file for "Laellium"
+ * Protocol: Metabolic Reset & Weight Loss
  */
 DATABASE_CONFIGS["Laellium"] = {
     "productLine": "Digital Lions",
     "baseProduct": {
         "name": "Laellium (Base)",
-        "pitch": "Weight Loss Support - 1 cap per day. (60 Day Supply)",
+        "pitch": "This formula targets the metabolic 'set point,' helping to shift your body from fat-storage mode to fat-burning mode.",
         "gender": "any"
     },
-    "guaranteeDays": 60,
     "knowledgeBase": "Laellium",
+    "guaranteeDays": 60,
     "questions": [
         {
             "id": "q-wl-1",
-            "text": "What’s your age, height, and current weight? (Duration Logic)",
-            "group": "Weight Loss"
+            "text": "How much weight are you hoping to lose to reach your goal?",
+            "group": "Goals"
         },
         {
             "id": "q-wl-2",
-            "text": "What’s your ideal weight-loss goal?",
-            "group": "Weight Loss"
-        },
-        {
-            "id": "q-wl-time",
-            "text": "How long has it been since you were last at your goal weight? (Felaromi Trigger)",
-            "group": "Weight Loss"
-        },
-        {
-            "id": "q-wl-stress",
-            "text": "Do you have any joint pain (arthritis) or nerve tingling (neuropathy)? (Stress/Safety Trigger)",
-            "group": "Body Stress"
+            "text": "How long has it been since you were last at your ideal weight?",
+            "group": "History"
         },
         {
             "id": "q-wl-3",
-            "text": "Have you tried anything before for weight loss? If so, what?",
-            "group": "History"
+            "text": "Do you struggle with sugar cravings or energy crashes after meals? (Cetadusse)",
+            "group": "Insulin"
         },
         {
             "id": "q-wl-4",
-            "text": "Are you able to exercise consistently, even just light activity?",
-            "group": "History"
+            "text": "Do you experience bloating, gas, or sluggish digestion? (GoldenFrib)",
+            "group": "Gut Health"
         },
         {
             "id": "q-wl-5",
-            "text": "Are you sleeping well at night?",
+            "text": "Do you carry most of your weight in the midsection (Belly Fat)? (Arialief)",
+            "group": "Cortisol"
+        },
+        {
+            "id": "q-wl-6",
+            "text": "Do you have joint pain that makes it hard to exercise? (Feilaira)",
+            "group": "Mobility"
+        },
+        {
+            "id": "q-wl-7",
+            "text": "How is your sleep? Do you wake up tired or hungry? (Xelovita)",
             "group": "Sleep"
+        },
+        {
+            "id": "q-wl-8",
+            "text": "Do you feel puffy or hold water weight? (Resverador)",
+            "group": "Inflammation"
         }
     ],
     "recommendations": [
+        {
+            "id": "supp-cetadusse",
+            "name": "Cetadusse",
+            "gender": "any",
+            "symptoms": [
+                {
+                    "id": "symp-sugar-wl",
+                    "text": "Sugar Cravings / High Insulin",
+                    "pitch": "Insulin is the 'Fat Storage Hormone.' If it's high, your body is locked in storage mode. Cetadusse lowers insulin to unlock fat burning.",
+                    "benefit": "help unlock fat stores by lowering insulin"
+                }
+            ]
+        },
         {
             "id": "supp-goldenfrib",
             "name": "GoldenFrib",
             "gender": "any",
             "symptoms": [
                 {
-                    "id": "symp-meta",
-                    "text": "Universal Weight Loss Inclusion",
-                    "pitch": "This helps speed up your metabolic rate permanently so you shouldn't see weight gain once you're off the regimen.",
-                    "benefit": "help permanently reset metabolic rate"
-                }
-            ]
-        },
-        {
-            "id": "supp-felaromi",
-            "name": "Felaromi",
-            "gender": "any",
-            "symptoms": [
-                {
-                    "id": "symp-old-fat",
-                    "text": "Long time since goal weight",
-                    "pitch": "This helps break the fat cells up since it's been years since you've been at your goal weight.",
-                    "benefit": "help break down stubborn fat cells"
-                }
-            ]
-        },
-        {
-            "id": "supp-resverador",
-            "name": "Resverador",
-            "gender": "any",
-            "symptoms": [
-                {
-                    "id": "symp-skin",
-                    "text": "Loose Skin Prevention",
-                    "pitch": "This helps tighten skin as you're in the process, so you shouldn't end up with a bunch of loose skin.",
-                    "benefit": "help tighten skin during weight loss"
+                    "id": "symp-gut-wl",
+                    "text": "Bloating / Slow Metabolism",
+                    "pitch": "Certain bacteria in your gut extract more calories from food than others. GoldenFrib shifts your microbiome to a 'lean' profile.",
+                    "benefit": "help shift gut bacteria to a lean profile"
                 }
             ]
         },
@@ -96,44 +87,62 @@ DATABASE_CONFIGS["Laellium"] = {
             "gender": "any",
             "symptoms": [
                 {
-                    "id": "symp-nerve-stress",
-                    "text": "Nerve Stress / Tingling (4th Supp)",
-                    "pitch": "We need to have this on board to help get that nerve stress off your body. That helps your body feel safer to let go of that fat reserve.",
-                    "benefit": "help lower body stress to unlock fat reserves"
+                    "id": "symp-cortisol",
+                    "text": "Belly Fat / Stress",
+                    "pitch": "Stress releases Cortisol, which forces your body to store fat in the belly for 'survival.' Arialief lowers stress to stop this survival storage.",
+                    "benefit": "help reduce stress-induced belly fat"
                 }
             ]
         },
         {
-            "id": "supp-feilaira",
-            "name": "Feilaira",
+            "id": "supp-resverador",
+            "name": "Resverador",
             "gender": "any",
             "symptoms": [
                 {
-                    "id": "symp-joint-stress",
-                    "text": "Joint Pain / Arthritis (4th Supp)",
-                    "pitch": "We need to have this on board to help get that inflammation stress off your body. That helps your body feel safer to let go of that fat reserve.",
-                    "benefit": "help lower physical stress to unlock fat reserves"
+                    "id": "symp-inflam-wl",
+                    "text": "Water Retention / Puffiness",
+                    "pitch": "Inflammation makes fat cells resistant to burning. Resverador reduces system-wide inflammation and helps tighten skin as you lose weight.",
+                    "benefit": "help reduce inflammatory water retention"
                 }
             ]
         },
         {
-            "id": "supp-tenurima",
-            "name": "Tenurima",
+            "id": "supp-xelovita",
+            "name": "Xelovita",
             "gender": "any",
             "symptoms": [
                 {
-                    "id": "symp-bp-meds",
-                    "text": "High Blood Pressure / Circulation",
-                    "pitch": "Improved circulation helps flush out the toxins released by burning fat.",
-                    "benefit": "help flush toxins from fat loss"
+                    "id": "symp-sleep-wl",
+                    "text": "Poor Sleep / Night Cravings",
+                    "pitch": "Poor sleep raises your hunger hormone (Ghrelin). Xelovita ensures you get the deep sleep needed to reset your appetite hormones.",
+                    "benefit": "help regulate hunger hormones via sleep"
+                }
+            ]
+        },
+        {
+            "id": "supp-tenurina",
+            "name": "Tenurina",
+            "gender": "any",
+            "symptoms": [
+                {
+                    "id": "symp-detox",
+                    "text": "Sluggish / Toxicity",
+                    "pitch": "Burning fat releases stored toxins into the blood. Tenurina improves circulation to flush these toxins out so you don't feel sick or sluggish.",
+                    "benefit": "help flush toxins released by fat burning"
                 }
             ]
         }
     ],
     "questionGroups": [
-        { "id": "g-wl", "name": "Weight Loss", "gender": "any" },
-        { "id": "g-stress", "name": "Body Stress", "gender": "any" },
+        { "id": "g-goal", "name": "Goals", "gender": "any" },
         { "id": "g-hist", "name": "History", "gender": "any" },
+        { "id": "g-ins", "name": "Insulin", "gender": "any" },
+        { "id": "g-gut", "name": "Gut Health", "gender": "any" },
+        { "id": "g-cort", "name": "Cortisol", "gender": "any" },
+        { "id": "g-mob", "name": "Mobility", "gender": "any" },
         { "id": "g-sleep", "name": "Sleep", "gender": "any" },
-    ]
+        { "id": "g-inf", "name": "Inflammation", "gender": "any" }
+    ],
+    "references": []
 };

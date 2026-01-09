@@ -1,51 +1,47 @@
 // Content for Laellium Knowledge Base
 KNOWLEDGE_BASE["Laellium"] = `
-    <h1>Laellium & Weight Loss Deep Dive</h1>
+    <h1>Laellium & Metabolic Reset Deep Dive</h1>
     
     <div class="p-4 bg-indigo-50 rounded-lg border-l-4 border-indigo-500 mb-6">
-        <p class="text-sm italic"><strong>The Core Concept:</strong> Most weight loss fails because the body enters "Starvation Mode" (slowing metabolism to save energy) or because the body is too stressed (Cortisol) to burn fat. We don't force weight loss; we make the body <em>safe</em> enough to release it.</p>
+        <p class="text-sm italic"><strong>The Core Concept:</strong> Weight loss isn't just about calories; it's about <em>signaling</em>. If your body thinks it is starving (dieting) or under attack (stress/inflammation), it will hoard fat for survival. Laellium changes the signal to "Safety," allowing the body to release its reserves.</p>
     </div>
 
     <h2>1. Medical Glossary</h2>
     <ul class="space-y-3">
-        <li><strong>Metabolic Rate:</strong> The speed at which your body burns calories at rest. "Dieting" often lowers this rate, causing immediate weight gain when you stop.</li>
-        <li><strong>Visceral Fat:</strong> The dangerous fat stored deep inside the belly, wrapping around organs. It is metabolically active and releases inflammatory chemicals.</li>
-        <li><strong>Cortisol:</strong> The "Stress Hormone." High cortisol tells the body to store fat (especially in the belly) for a future "emergency."</li>
-        <li><strong>Insulin Resistance:</strong> When cells stop listening to insulin, sugar stays in the blood and gets stored as fat instead of being used for energy.</li>
+        <li><strong>Basal Metabolic Rate (BMR):</strong> The number of calories your body burns at rest. Yo-yo dieting lowers this number ("Starvation Mode"). We must speed it back up.</li>
+        <li><strong>Insulin Resistance:</strong> When insulin is high, the "door" to your fat cells is locked. You can only store fat, not burn it. Lowering insulin is the key to unlocking the door.</li>
+        <li><strong>Cortisol Belly:</strong> Visceral fat stored deep in the abdomen due to stress. This fat is biologically different; it has 4x more cortisol receptors than other fat.</li>
+        <li><strong>Leptin Resistance:</strong> Leptin tells your brain "I'm full." In obesity, the brain stops hearing this signal, leading to a "bottomless pit" hunger.</li>
     </ul>
 
     <hr class="my-6 border-gray-300">
 
-    <h2>2. Common Medications</h2>
+    <h2>2. Why "Just Dieting" Fails</h2>
     
-    <h3 class="text-indigo-600 font-bold mt-4">GLP-1 Agonists (Ozempic, Wegovy, Mounjaro)</h3>
+    <h3 class="text-indigo-600 font-bold mt-4">The Starvation Response</h3>
     <ul class="list-disc pl-5 mb-4">
-        <li><strong>Mechanism:</strong> They mimic a hormone that tells your brain you are full. You essentially starve yourself because you have no appetite.</li>
-        <li><strong>The Problem:</strong> You lose muscle mass along with fat ("Ozempic Body"). Muscle is your metabolic engine. When you stop the drug, you have less muscle, a slower metabolism, and the weight comes back aggressively.</li>
-        <li><strong>Side Effects:</strong> "Ozempic Face" (rapid aging/sagging skin), severe nausea, gastroparesis (stomach paralysis).</li>
-    </ul>
-
-    <h3 class="text-indigo-600 font-bold mt-4">Stimulants (Phentermine)</h3>
-    <ul class="list-disc pl-5 mb-4">
-        <li><strong>Mechanism:</strong> Speed up the heart rate to burn calories.</li>
-        <li><strong>The Problem:</strong> High stress on the heart and adrenal glands. Causes crash and rebound weight gain.</li>
+        <li><strong>Mechanism:</strong> When you cut calories drastically, your thyroid slows down to save energy. You feel cold and tired.</li>
+        <li><strong>The Result:</strong> Your metabolism drops to match your food intake. As soon as you eat normal food again, you gain weight rapidly because your engine is now smaller. Laellium supports metabolic rate to prevent this slowdown.</li>
     </ul>
 
     <hr class="my-6 border-gray-300">
 
-    <h2>3. The Root Causes: Why the Weight Stays</h2>
+    <h2>3. The Root Causes: The Metabolic Stalls</h2>
 
-    <h3 class="text-yellow-600 font-bold mt-4">1. The "Metabolic Stall"</h3>
-    <p><strong>The Science:</strong> If you've yo-yo dieted for years, your body's thermostat (metabolism) is set to "low." You burn fewer calories than a normal person. <strong>GoldenFrib</strong> helps reset this basal metabolic rate permanently so the weight stays off.</p>
+    <h3 class="text-red-600 font-bold mt-4">1. The "Sugar Lock" (Insulin)</h3>
+    <p><strong>The Science:</strong> You cannot burn fat in the presence of high insulin. It is biologically impossible. <strong>Cetadusse</strong> stabilizes blood sugar to keep insulin low, keeping the "fat burning window" open longer.</p>
 
-    <h3 class="text-red-600 font-bold mt-4">2. The "Old Fat" Armor</h3>
-    <p><strong>The Science:</strong> Fat cells that have been on your body for years (since your goal weight) act like hardened scar tissue. They are resistant to normal signaling. <strong>Felaromi</strong> helps break down these stubborn, aged fat cells.</p>
+    <h3 class="text-green-600 font-bold mt-4">2. The "Fat Bacteria" (Microbiome)</h3>
+    <p><strong>The Science:</strong> Studies show that obese individuals have different gut bacteria than lean people. "Fat" bacteria extract more energy from food. <strong>GoldenFrib</strong> shifts the microbiome to a "lean" profile to stop this extra calorie absorption.</p>
 
-    <h3 class="text-purple-600 font-bold mt-4">3. The "Elasticity" Failure (Loose Skin)</h3>
-    <p><strong>The Science:</strong> Rapid weight loss leaves empty skin hanging because the collagen structure can't shrink fast enough. <strong>Resverador</strong> improves cellular elasticity to tighten the skin <em>as</em> you lose the weight, preventing the "melted candle" look.</p>
+    <h3 class="text-purple-600 font-bold mt-4">3. The "Survival Hoard" (Stress)</h3>
+    <p><strong>The Science:</strong> Stress releases Cortisol. Cortisol tells the body: "Famine is coming! Store fat in the belly!" <strong>Arialief</strong> calms the nervous system to turn off this survival alarm.</p>
 
-    <h3 class="text-blue-600 font-bold mt-4">4. The "Safety" Mechanism (Stress)</h3>
-    <p><strong>The Science:</strong> If you are in pain (Neuropathy/Arthritis), your body thinks it is under attack. It holds onto fat reserves for survival. By fixing the nerves (<strong>Arialief</strong>) or joints (<strong>Feilaira</strong>), we lower the body's threat level, signaling that it is safe to drop the weight.</p>
+    <h3 class="text-orange-600 font-bold mt-4">4. The "Inflamed Cell" (Toxicity)</h3>
+    <p><strong>The Science:</strong> Fat cells release inflammatory chemicals. This inflammation makes the cell wall rigid and resistant to hormonal signals. <strong>Resverador</strong> reduces this inflammation, making the fat cells "responsive" again.</p>
+
+    <h3 class="text-blue-600 font-bold mt-4">5. The "Toxic Dump" (Detox)</h3>
+    <p><strong>The Science:</strong> Fat is where your body stores toxins it can't process. When you burn fat, you dump these toxins into the blood. If you don't flush them, you feel sick ("Keto Flu") and the body stops burning. <strong>Tenurina</strong> improves circulation to flush the waste.</p>
 
     <hr class="my-6 border-gray-300">
 
@@ -53,27 +49,27 @@ KNOWLEDGE_BASE["Laellium"] = `
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div class="bg-gray-100 p-3 rounded">
             <span class="font-bold text-gray-800">Laellium</span>
-            <p class="text-sm">The Foundation. General metabolic support.</p>
+            <p class="text-sm">The Foundation. Metabolic support to increase daily calorie burn.</p>
+        </div>
+        <div class="bg-gray-100 p-3 rounded">
+            <span class="font-bold text-gray-800">Cetadusse</span>
+            <p class="text-sm">The Key. Lowers insulin to unlock fat stores.</p>
         </div>
         <div class="bg-gray-100 p-3 rounded">
             <span class="font-bold text-gray-800">GoldenFrib</span>
-            <p class="text-sm">The Accelerator. Permanently increases metabolic rate.</p>
+            <p class="text-sm">The Reset. Changes gut bacteria to stop excess calorie absorption.</p>
         </div>
         <div class="bg-gray-100 p-3 rounded">
-            <span class="font-bold text-gray-800">Felaromi</span>
-            <p class="text-sm">The Breaker. Breaks down "old" stubborn fat cells.</p>
+            <span class="font-bold text-gray-800">Arialief</span>
+            <p class="text-sm">The Unlocker. Lowers cortisol to release belly fat.</p>
         </div>
         <div class="bg-gray-100 p-3 rounded">
             <span class="font-bold text-gray-800">Resverador</span>
-            <p class="text-sm">The Tightener. Prevents loose skin during weight loss.</p>
+            <p class="text-sm">The Anti-Inflammatory. Reduces water retention and puffiness.</p>
         </div>
         <div class="bg-gray-100 p-3 rounded">
-            <span class="font-bold text-gray-800">Arialief/Feilaira</span>
-            <p class="text-sm">The Stress Relief. Tells the body it's safe to let go of fat.</p>
-        </div>
-        <div class="bg-gray-100 p-3 rounded">
-            <span class="font-bold text-gray-800">Tenurina</span>
-            <p class="text-sm">The Detox. Flushes out toxins released by burning fat.</p>
+            <span class="font-bold text-gray-800">Xelovita</span>
+            <p class="text-sm">The Regulator. Balances hunger hormones during sleep.</p>
         </div>
     </div>
 `;

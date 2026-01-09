@@ -1,53 +1,57 @@
 /**
- * Blinzador (Fungus)
- * Database file for the "Blinzador" supplement.
- * Product Line: Digital Lions
- * Protocol: Antifungal & Tissue Repair
+ * Blinzador (Digital Lions)
+ * Database file for "Blinzador"
+ * Protocol: Antifungal & Nail Support
  */
 DATABASE_CONFIGS["Blinzador"] = {
     "productLine": "Digital Lions",
     "baseProduct": {
         "name": "Blinzador (Base)",
-        "pitch": "Fungus Support Spray. (180 Day Protocol)",
+        "pitch": "This topical solution targets the infection at the site, penetrating the nail bed to clear fungus and support healthy regrowth.",
         "gender": "any"
     },
-    "guaranteeDays": 60,
     "knowledgeBase": "Blinzador",
+    "guaranteeDays": 60,
     "questions": [
         {
             "id": "q-fun-1",
-            "text": "How long have you been dealing with the foot or nail fungus? (Protocol Setup)",
-            "group": "Fungus"
+            "text": "How long have you been dealing with the nail or foot fungus?",
+            "group": "History"
         },
         {
             "id": "q-fun-2",
-            "text": "Is it mostly on the skin, under the nails, or both? (Diagnostic)",
-            "group": "Fungus"
+            "text": "Is it affecting just one toe, or has it spread to multiple nails/feet?",
+            "group": "Symptoms"
         },
         {
             "id": "q-fun-3",
-            "text": "Have you had issues with recurring infections, athlete’s foot, or yeast issues in the past? (GoldenFrib)",
-            "group": "Root Cause"
+            "text": "Do you have digestive issues, bloating, or a history of yeast infections? (GoldenFrib)",
+            "group": "Gut Source"
         },
         {
             "id": "q-fun-4",
-            "text": "Do you have dry, cracked feet or generally cold feet? (Tenurina)",
-            "group": "Circulation"
+            "text": "Do you crave sugar or have high blood sugar/Diabetes? (Cetadusse)",
+            "group": "Fuel Source"
         },
         {
             "id": "q-fun-5",
-            "text": "Do you crave sugar or have high blood sugar/diabetes? (Cetadusse)",
-            "group": "Root Cause"
+            "text": "Do you have poor circulation or cold feet? (Tenurina)",
+            "group": "Circulation"
         },
         {
             "id": "q-fun-6",
-            "text": "Is there redness, swelling, or pain in the area? (Resverador)",
-            "group": "Inflammation"
+            "text": "Do you feel like your immune system is weak or sluggish? (Zalovira)",
+            "group": "Immunity"
         },
         {
             "id": "q-fun-7",
-            "text": "Do you feel like your immune system struggles to fight things off? (Zalovira)",
-            "group": "Immunity"
+            "text": "Is the area swollen, red, or painful? (Resverador)",
+            "group": "Inflammation"
+        },
+        {
+            "id": "q-fun-8",
+            "text": "Do you also have nerve pain or tingling in the feet? (Arialief)",
+            "group": "Nerve Health"
         }
     ],
     "recommendations": [
@@ -58,9 +62,9 @@ DATABASE_CONFIGS["Blinzador"] = {
             "symptoms": [
                 {
                     "id": "symp-gut-fung",
-                    "text": "Recurring infections / Gut history",
-                    "pitch": "Fungus on the outside often starts with Candida overgrowth on the inside. This helps balance the gut so the fungus stops coming back.",
-                    "benefit": "help stop the internal source of the fungus"
+                    "text": "Digestive Issues / Recurring Fungus",
+                    "pitch": "Fungus on the toes often comes from yeast overgrowth in the gut. GoldenFrib balances your internal flora to stop the infection from coming back.",
+                    "benefit": "help stop the fungal source in the gut"
                 }
             ]
         },
@@ -72,34 +76,21 @@ DATABASE_CONFIGS["Blinzador"] = {
                 {
                     "id": "symp-sugar-fung",
                     "text": "Sugar Cravings / Diabetes",
-                    "pitch": "Sugar is the fuel that fungus eats. We need to control your blood sugar levels to essentially 'starve' the fungus out.",
-                    "benefit": "help starve the fungus by controlling sugar"
+                    "pitch": "Sugar feeds fungus. If your blood sugar is high, you are feeding the infection. Cetadusse regulates sugar to 'starve' the fungus out.",
+                    "benefit": "help starve the fungus by lowering sugar"
                 }
             ]
         },
         {
-            "id": "supp-tenurima",
+            "id": "supp-tenurina",
             "name": "Tenurina",
             "gender": "any",
             "symptoms": [
                 {
                     "id": "symp-circ-fung",
-                    "text": "Dry cracked feet / Cold feet",
-                    "pitch": "The feet are the hardest place to heal because they are furthest from the heart. This drives oxygenated blood to the toes to speed up repair.",
-                    "benefit": "help drive healing blood flow to the feet"
-                }
-            ]
-        },
-        {
-            "id": "supp-resverador",
-            "name": "Resverador",
-            "gender": "any",
-            "symptoms": [
-                {
-                    "id": "symp-inflam-fung",
-                    "text": "Swelling / Redness / Pain",
-                    "pitch": "If the tissue is inflamed, it can't heal properly. This helps reduce the redness and swelling so the Blinzador can penetrate better.",
-                    "benefit": "help reduce inflammation to allow healing"
+                    "text": "Cold Feet / Poor Circulation",
+                    "pitch": "Your immune cells need to get to your toes to fight the fungus. Tenurina improves circulation to deliver your body's defenses to the infection site.",
+                    "benefit": "help deliver immune cells to the feet"
                 }
             ]
         },
@@ -109,19 +100,49 @@ DATABASE_CONFIGS["Blinzador"] = {
             "gender": "any",
             "symptoms": [
                 {
-                    "id": "symp-imm-fung",
-                    "text": "Weak immune system",
-                    "pitch": "This provides the immune support your body needs to fight off the infection from the inside while the spray works on the outside.",
-                    "benefit": "help boost immune defense against infection"
+                    "id": "symp-immune-fung",
+                    "text": "Weak Immunity / Slow Healing",
+                    "pitch": "Blinzador works from the outside, but Zalovira boosts your immune system to fight the infection from the inside.",
+                    "benefit": "help boost internal immune defense"
+                }
+            ]
+        },
+        {
+            "id": "supp-resverador",
+            "name": "Resverador",
+            "gender": "any",
+            "symptoms": [
+                {
+                    "id": "symp-swell-fung",
+                    "text": "Swelling / Redness",
+                    "pitch": "Fungus thrives in swollen, damp tissue. Resverador reduces inflammation to dry out the environment so the fungus can't grow.",
+                    "benefit": "help reduce swelling to inhibit fungal growth"
+                }
+            ]
+        },
+        {
+            "id": "supp-arialief",
+            "name": "Arialief",
+            "gender": "any",
+            "symptoms": [
+                {
+                    "id": "symp-nerve-fung",
+                    "text": "Tingling / Numbness",
+                    "pitch": "Fungal infections often happen in feet that have nerve damage (neuropathy). Arialief repairs the nerves to restore sensation and health to the foot.",
+                    "benefit": "help repair nerves in the infected area"
                 }
             ]
         }
     ],
     "questionGroups": [
-        { "id": "g-fung", "name": "Fungus", "gender": "any" },
-        { "id": "g-root", "name": "Root Cause", "gender": "any" },
+        { "id": "g-hist", "name": "History", "gender": "any" },
+        { "id": "g-symp", "name": "Symptoms", "gender": "any" },
+        { "id": "g-gut", "name": "Gut Source", "gender": "any" },
+        { "id": "g-fuel", "name": "Fuel Source", "gender": "any" },
         { "id": "g-circ", "name": "Circulation", "gender": "any" },
-        { "id": "g-inflam", "name": "Inflammation", "gender": "any" },
         { "id": "g-imm", "name": "Immunity", "gender": "any" },
-    ]
+        { "id": "g-inf", "name": "Inflammation", "gender": "any" },
+        { "id": "g-nerve", "name": "Nerve Health", "gender": "any" }
+    ],
+    "references": []
 };
